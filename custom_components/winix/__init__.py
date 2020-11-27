@@ -1,9 +1,9 @@
 """The Winix AirPurifier component."""
 
-import os
 import asyncio
 from datetime import timedelta
 import logging
+import os
 from typing import Dict, List
 
 import aiohttp
@@ -21,6 +21,7 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.event import async_call_later, async_track_time_interval
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 import voluptuous as vol
+
 from winix import WinixAccount
 from winix.auth import login, refresh
 from winix.cmd import Configuration

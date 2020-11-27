@@ -5,6 +5,7 @@ from typing import Dict
 
 import aiohttp
 import requests
+
 from winix import WinixDeviceStub
 
 from .const import (
