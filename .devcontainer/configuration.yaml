@@ -1,0 +1,18 @@
+#Limited configuration instead of default_config
+#https://github.com/home-assistant/core/tree/dev/homeassistant/components/default_config
+automation:
+frontend:
+history:
+logbook:
+
+homeassistant:
+  name: Home
+
+logger:
+  default: warn
+  logs:
+    custom_components.winix: debug
+
+winix:
+  username: !secret wininx_email
+  password: !secret wininx_password

@@ -1,0 +1,29 @@
+// See https://aka.ms/vscode-remote/devcontainer.json for format details.
+{
+	"context": "..",
+	"image": "ludeeus/container:integration",
+	"appPort": "9123:8123",
+	"postCreateCommand": "apk add jq && for req in $(jq -c -r '.requirements | .[]' custom_components/winix_purifier/manifest.json); do python -m pip install $req; done && container install",
+	"extensions": [
+		"ms-python.python",
+		"github.vscode-pull-request-github",
+		"tabnine.tabnine-vscode",
+		"ms-python.vscode-pylance",
+		"spmeesseman.vscode-taskexplorer"
+
+	],
+	"settings": {
+		"files.eol": "\n",
+		"editor.tabSize": 4,
+		"terminal.integrated.shell.linux": "/bin/bash",
+		"python.pythonPath": "/usr/bin/python3",
+		"python.analysis.autoSearchPaths": false,
+		"python.linting.pylintEnabled": true,
+		"python.linting.enabled": true,
+		"python.formatting.provider": "black",
+		"editor.formatOnPaste": false,
+		"editor.formatOnSave": true,
+		"editor.formatOnType": true,
+		"files.trimTrailingWhitespace": true
+	}
+}

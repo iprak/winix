@@ -1,0 +1,35 @@
+# Describes the format of available services.
+
+refresh_config:
+  description: Refresh the authorization configuration.
+
+delete_config:
+  description: Delete the authorization configuration. Intended for debugging use.
+
+plasmawave_on:
+  description: Turn on plasma wave.
+  fields:
+    entity_id:
+      description: Name(s) of Winix entities. Leave service data empty to use all Winix entities.
+      example: "fan.winix_living_room"
+
+plasmawave_off:
+  description: Turn off plasma wave.
+  fields:
+    entity_id:
+      description: Name(s) of Winix entities. Leave service data empty to use all Winix entities.
+      example: "fan.winix_living_room"
+
+auto:
+  description: Turn auto mode.
+  fields:
+    entity_id:
+      description: Name(s) of Winix entities. Leave service data empty to use all Winix entities.
+      example: "fan.winix_living_room"
+
+manual:
+  description: Turn manual mode.
+  fields:
+    entity_id:
+      description: Name(s) of Winix entities. Leave service data empty to use all Winix entities.
+      example: "fan.winix_living_room"
