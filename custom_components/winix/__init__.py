@@ -61,8 +61,6 @@ CONFIG_SCHEMA = vol.Schema(
 
 
 async def async_setup(hass: HomeAssistant, config):
-    _LOGGER.debug("Creating main object")
-
     domain_config = config[DOMAIN]
     scan_interval = domain_config.get(CONF_SCAN_INTERVAL, MIN_SCAN_INTERVAL)
 
@@ -74,6 +72,7 @@ async def async_setup(hass: HomeAssistant, config):
         )
         scan_interval = MIN_SCAN_INTERVAL
 
+    _LOGGER.debug("Creating locator with scan interval of %s", scan_interval)
     manager = hass.data[DOMAIN] = WinixManager(hass, domain_config, scan_interval)
     await hass.async_add_executor_job(manager.login)
     return True
@@ -127,7 +126,9 @@ class WinixManager:
             client = async_get_clientsession(self.hass)
 
             for device_stub in device_stubs:
-                self._device_wrappers.append(WinixDeviceWrapper(client, device_stub))
+                self._device_wrappers.append(
+                    WinixDeviceWrapper(client, device_stub, _LOGGER)
+                )
 
             _LOGGER.info("Found %d purifiers", len(self._device_wrappers))
             self.hass.async_create_task(self.async_setup_platforms())
@@ -143,12 +144,10 @@ class WinixManager:
             def update_devices(event_time):
                 asyncio.run_coroutine_threadsafe(self.async_update(), self.hass.loop)
 
-            _LOGGER.debug("Setting async_track_time_interval")
             async_track_time_interval(self.hass, update_devices, self.scan_interval)
 
     def setup_services(self) -> None:
         """Setup services"""
-
         self.hass.services.register(
             DOMAIN,
             SERVICE_REFRESH_CONFIG,
@@ -179,8 +178,9 @@ class WinixManager:
                 os.remove(self._config.config_path)
                 _LOGGER.info("Deleted configuration file")
 
-    async def async_update(self) -> None:
+    async def async_update(self, now=None) -> None:
         """Asynchronously update all the devices."""
+        _LOGGER.info("Updating devices")
         for device in self._device_wrappers:
             await device.update()
 

@@ -14,9 +14,7 @@ ATTR_POWER = "power"
 
 ATTR_POWER_ON_VALUE = "on"
 
-# The service name is the method name in WinixPurifier
-SERVICE_AUTO = "auto"
-SERVICE_MANUAL = "manual"
+# The service name is the partial name of the method in WinixPurifier
 SERVICE_PLASMAWAVE_ON = "plasmawave_on"
 SERVICE_PLASMAWAVE_OFF = "plasmawave_off"
 SERVICE_DELETE_CONFIG = "delete_config"
@@ -24,16 +22,23 @@ SERVICE_REFRESH_CONFIG = "refresh_config"
 
 
 SERVICES = [
-    SERVICE_AUTO,
-    SERVICE_MANUAL,
     SERVICE_PLASMAWAVE_ON,
     SERVICE_PLASMAWAVE_OFF,
 ]
 
 SPEED_OFF = "off"
+SPEED_AUTO = "auto"
 SPEED_LOW = "low"
 SPEED_MEDIUM = "medium"
 SPEED_HIGH = "high"
 SPEED_TURBO = "turbo"
 SPEED_SLEEP = "sleep"
-SPEED_LIST = [SPEED_OFF, SPEED_LOW, SPEED_MEDIUM, SPEED_HIGH, SPEED_TURBO, SPEED_SLEEP]
+SPEED_LIST = [
+    SPEED_OFF,
+    SPEED_AUTO,
+    SPEED_LOW,
+    SPEED_MEDIUM,
+    SPEED_HIGH,
+    SPEED_TURBO,
+    SPEED_SLEEP,
+]

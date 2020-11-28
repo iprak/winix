@@ -28,10 +28,6 @@ from .const import (
     ATTR_LOCATION,
     ATTR_POWER,
     DOMAIN as WINIX_DOMAIN,
-    SERVICE_AUTO,
-    SERVICE_MANUAL,
-    SERVICE_PLASMAWAVE_OFF,
-    SERVICE_PLASMAWAVE_ON,
     SERVICES,
     SPEED_HIGH,
     SPEED_LIST,
@@ -71,8 +67,8 @@ async def async_setup_platform(
 
     async def async_service_handler(service):
         """Service handler."""
-        method = service.service
-        _LOGGER.info("Service '%s' invoked", service)
+        method = "async_" + service.service
+        _LOGGER.debug("Service '%s' invoked", service)
 
         # The defined services do not accept any additional parameters
         params = {}
@@ -153,15 +149,17 @@ class WinixPurifier(FanEntity):
     @property
     def speed(self):
         """Return the current speed."""
-        return self._wrapper.get_state().get(ATTR_AIRFLOW)
+        wrapperState = self._wrapper.get_state()
+        return None if wrapperState is None else wrapperState.get(ATTR_AIRFLOW)
 
     @property
     def device_state_attributes(self) -> None:
         """Return the state attributes."""
         attributes = {}
 
-        if self._wrapper.get_state() is not None:
-            for f, v in self._wrapper.get_state().items():
+        wrapperState = self._wrapper.get_state()
+        if wrapperState is not None:
+            for f, v in wrapperState.items():
                 # The power attribute is the entity state, so skip it
                 if not f == ATTR_POWER:
                     attributes[f] = v
@@ -175,30 +173,22 @@ class WinixPurifier(FanEntity):
 
     async def async_turn_on(self, speed: Optional[str] = None, **kwargs):
         """Turn the fan on."""
-        await self._wrapper.turn_on()
+        await self._wrapper.async_turn_on()
         if speed:
-            await self.set_speed(speed)
+            await self._wrapper.async_set_speed(speed)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the fan off."""
-        await self._wrapper.turn_off()
+        await self._wrapper.async_turn_off()
 
     async def async_set_speed(self, speed: str):
         """Set the speed of the fan."""
-        await self._wrapper.set_speed(speed)
+        await self._wrapper.async_set_speed(speed)
 
-    async def plasmawave_on(self):
+    async def async_plasmawave_on(self):
         """Turn plasma wave on."""
-        await self._wrapper.plasmawave_on()
+        await self._wrapper.async_plasmawave_on()
 
-    async def plasmawave_off(self):
+    async def async_plasmawave_off(self):
         """Turn plasma wave off."""
-        await self._wrapper.plasmawave_off()
-
-    async def auto(self) -> None:
-        """Put the purifier in auto mode."""
-        await self._wrapper.auto()
-
-    async def manual(self) -> None:
-        """Put the purifier in manual mode."""
-        await self._wrapper.manual()
+        await self._wrapper.async_plasmawave_off()

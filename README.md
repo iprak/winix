@@ -21,6 +21,7 @@ This will generate fan entities whose id is based on the mac address e.g. `fan.w
 ```
 speed_list:
   - 'off'
+  - auto
   - low
   - medium
   - high
@@ -44,4 +45,4 @@ supported_features: 1
 The device data is fetched every 30 seconds.
 
 
-There are few new services `winix.manual, winix.plasmawave_off, winix.plasmawave_on` to control some specific features of the purifier which is in addition to the default fan services `fan.speed, fan.toggle, fan.turn_off, fan.turn_on`.
+There are few new services `winix.plasmawave_off, winix.plasmawave_on` to control some specific features of the purifier which is in addition to the default fan services `fan.speed, fan.toggle, fan.turn_off, fan.turn_on`.

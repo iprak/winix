@@ -16,29 +16,35 @@ from .const import (
     ATTR_POWER_ON_VALUE,
     DOMAIN,
     SPEED_LIST,
+    SPEED_AUTO,
+    SPEED_SLEEP,
     SPEED_OFF,
 )
-
-_LOGGER = logging.getLogger(__name__)
 
 
 class WinixDeviceWrapper:
     """Representation of the Winix device data."""
 
-    def __init__(self, client: aiohttp.ClientSession, device_stub: WinixDeviceStub):
+    def __init__(
+        self,
+        client: aiohttp.ClientSession,
+        device_stub: WinixDeviceStub,
+        logger,
+    ):
         """Initialize the wrapper."""
         self.driver = WinixDevice(device_stub.id, client)
         self.info = device_stub
         self._state = None
         self._on = False
+        self.logger = logger
 
     async def update(self) -> None:
         """Update the device data."""
         self._state = await self.driver.get_state()
         self._on = self._state.get(ATTR_POWER) == ATTR_POWER_ON_VALUE
 
-        _LOGGER.debug(
-            "%s: data updated, fan is %s",
+        self.logger.debug(
+            "%s: updated, fan is %s",
             self.info.alias,
             ("on" if self._on else "off"),
         )
@@ -51,61 +57,69 @@ class WinixDeviceWrapper:
         """Return true if fan is on."""
         return self._on
 
-    async def turn_on(self) -> None:
+    async def async_turn_on(self) -> None:
         """Turn the fan on."""
-        _LOGGER.debug("Turning on fan")
+        self.logger.debug("Turning on")
         await self.driver.on()
         self._on = True
 
-    async def turn_off(self) -> None:
+    async def async_turn_off(self) -> None:
         """Turn the purifier off."""
-        _LOGGER.debug("Turning off fan")
+        self.logger.debug("Turning off")
         await self.driver.off()
         self._on = False
 
-    async def plasmawave_on(self) -> None:
+    async def async_ensure_on(self) -> None:
+        """Turn on, if not on"""
+        if not self._on:
+            await self.async_turn_on()
+
+    async def async_plasmawave_on(self) -> None:
         """Turn plasma wave on."""
-        await self.ensure_on()
+        self.logger.debug("Turning plasmawave on")
+        await self.async_ensure_on()
         await self.driver.plasmawave_on()
         self._state[ATTR_PLASMA] = "on"
 
-    async def plasmawave_off(self) -> None:
+    async def async_plasmawave_off(self) -> None:
         """Turn plasma wave off."""
+        self.logger.debug("Turning plasmawave off")
+
+        # Turning plasmawave off should not need to turn the fan on
         await self.driver.plasmawave_off()
         self._state[ATTR_PLASMA] = "off"
 
-    async def auto(self) -> None:
+    async def async_auto(self) -> None:
         """Put the purifier in auto mode."""
-        _LOGGER.debug("Setting auto mode")
-        await self.ensure_on()
+        self.logger.debug("Setting auto mode")
+        await self.async_ensure_on()
         await self.driver.auto()
         self._state[ATTR_MODE] = "auto"
 
-    async def manual(self) -> None:
+    async def async_manual(self) -> None:
         """Put the purifier in manual mode."""
-        _LOGGER.debug("Setting manual mode")
-        await self.ensure_on()
+        self.logger.debug("Setting manual mode")
+        await self.async_ensure_on()
         await self.driver.manual()
         self._state[ATTR_MODE] = "manual"
 
-    async def set_speed(self, speed) -> None:
+    async def async_set_speed(self, speed) -> None:
         if speed == SPEED_OFF:
-            await self.turn_off()
+            await self.async_turn_off()
+        elif speed == SPEED_AUTO:
+            await self.async_auto()
         elif speed in SPEED_LIST:
-            _LOGGER.debug("Setting speed to '%s'", speed)
+            # Setting speed requires the fan to be in manual mode
+            await self.async_manual()
 
-            await self.ensure_on()
+            self.logger.debug("Setting speed to '%s'", speed)
             await getattr(self.driver, speed)()
             self._state[ATTR_AIRFLOW] = speed
         else:
-            _LOGGER.error("%s is an invalid speed option", speed)
-
-    async def ensure_on(self) -> None:
-        if not self._on:
-            await self.turn_on()
+            self.logger.error("%s is an invalid speed option", speed)
 
 
-# Modified from https://github.com/hfern/winix to support async
+# Modified from https://github.com/hfern/winix to support async operations
 class WinixDevice:
     CTRL_URL = "https://us.api.winix-iot.com/common/control/devices/{deviceid}/A211/{attribute}:{value}"
     STATE_URL = "https://us.api.winix-iot.com/common/event/sttus/devices/{deviceid}"
