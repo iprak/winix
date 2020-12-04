@@ -1,9 +1,9 @@
 {
   "domain": "winix",
   "name": "Winix Purifier",
-  "documentation": "",
+  "documentation": "https://github.com/iprak/winix",
   "requirements": ["winix==0.2.1"],
   "dependencies": [],
   "codeowners": ["@iprak"],
-  "issue_tracker": ""
+  "issue_tracker": "https://github.com/iprak/winix/issues"
 }
