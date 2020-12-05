@@ -12,8 +12,8 @@ Example:
 
 ```yaml
 winix:
-  username: wininx_email
-  password: wininx_password
+  username: winix_email
+  password: winix_password
 ```
 
 This will generate fan entities whose id is based on the mac address e.g. `fan.winix_abcdefghijkl` with attributes like:
