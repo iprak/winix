@@ -119,22 +119,37 @@ class WinixPurifier(FanEntity):
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        return True
+        self._state = self._wrapper.get_state()
+        return not self._state is None
 
     @property
-    def supported_features(self):
-        """Flag supported features."""
-        return SUPPORT_SET_SPEED
+    def device_state_attributes(self) -> None:
+        """Return the state attributes."""
+        attributes = {}
 
-    @property
-    def name(self) -> str:
-        """Return the name of the switch."""
-        return self._name
+        wrapperState = self._state
+        if wrapperState is not None:
+            for f, v in wrapperState.items():
+                # The power attribute is the entity state, so skip it
+                if not f == ATTR_POWER:
+                    attributes[f] = v
+
+        attributes[ATTR_LOCATION] = self._wrapper.info.location_code
+        attributes[
+            ATTR_FILTER_REPLACEMENT_DATE
+        ] = self._wrapper.info.filter_replace_date
+
+        return attributes
 
     @property
     def entity_id(self) -> str:
         """Return the unique id of the switch."""
         return self._id
+
+    @property
+    def name(self) -> str:
+        """Return the name of the switch."""
+        return self._name
 
     @property
     def is_on(self) -> bool:
@@ -149,33 +164,19 @@ class WinixPurifier(FanEntity):
     @property
     def speed(self):
         """Return the current speed."""
-        wrapperState = self._wrapper.get_state()
-        return None if wrapperState is None else wrapperState.get(ATTR_AIRFLOW)
+        return None if self._state is None else self._state.get(ATTR_AIRFLOW)
 
     @property
-    def device_state_attributes(self) -> None:
-        """Return the state attributes."""
-        attributes = {}
-
-        wrapperState = self._wrapper.get_state()
-        if wrapperState is not None:
-            for f, v in wrapperState.items():
-                # The power attribute is the entity state, so skip it
-                if not f == ATTR_POWER:
-                    attributes[f] = v
-
-        attributes[ATTR_LOCATION] = self._wrapper.info.location_code
-        attributes[
-            ATTR_FILTER_REPLACEMENT_DATE
-        ] = self._wrapper.info.filter_replace_date
-
-        return attributes
+    def supported_features(self):
+        """Flag supported features."""
+        return SUPPORT_SET_SPEED
 
     async def async_turn_on(self, speed: Optional[str] = None, **kwargs):
         """Turn the fan on."""
-        await self._wrapper.async_turn_on()
         if speed:
             await self._wrapper.async_set_speed(speed)
+        else:
+            await self._wrapper.async_ensure_on()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the fan off."""
