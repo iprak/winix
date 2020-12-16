@@ -11,6 +11,8 @@ ATTR_LOCATION = "location"
 ATTR_MODE = "mode"
 ATTR_PLASMA = "plasma"
 ATTR_POWER = "power"
+ATTR_AIR_QUALITY = "air_quality"
+ATTR_AIR_QVALUE = "air_qvalue"
 
 ATTR_POWER_ON_VALUE = "on"
 

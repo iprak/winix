@@ -112,9 +112,10 @@ class WinixPurifier(FanEntity):
     def __init__(self, wrapper: WinixDeviceWrapper) -> None:
         """Initialize the device."""
         self._wrapper = wrapper
-        self._state = None
+
         self._id = f"{DOMAIN}.{WINIX_DOMAIN}_{wrapper.info.mac.lower()}"
         self._name = f"Winix {self._wrapper.info.alias}"
+        self._state = None
 
     @property
     def available(self) -> bool:
