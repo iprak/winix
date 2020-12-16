@@ -16,7 +16,9 @@ winix:
   password: winix_password
 ```
 
-This will generate fan entities whose id is based on the mac address e.g. `fan.winix_abcdefghijkl` with attributes like:
+This will generate entities and sensors whose id is based on the mac address.
+
+Sample `fan.winix_abcdefghijkl` entity:
 
 ```
 speed_list:
@@ -40,6 +42,13 @@ location: MDNWI
 filter_replace_date: '2020-10-01 23:31:09.0'
 friendly_name: Winix Basement
 supported_features: 1
+```
+
+Sample `sensor.winix_qvalue_abcdefghijkl` sensor:
+
+```
+air_quality: good
+friendly_name: Winix Basement
 ```
 
 The device data is fetched every 30 seconds.

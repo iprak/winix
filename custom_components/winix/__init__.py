@@ -43,6 +43,7 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 MIN_SCAN_INTERVAL = timedelta(seconds=30)
+SUPPORTED_PLATFORMS = ["fan", "sensor"]
 
 CONFIG_SCHEMA = vol.Schema(
     {
@@ -84,17 +85,17 @@ class WinixManager:
     def __init__(self, hass: HomeAssistant, domain_config, scan_interval: int) -> None:
         """Initialize the manager."""
         self._device_wrappers: List[WinixDeviceWrapper] = None
-        self.hass = hass
-        self.domain_config = domain_config
-        self.scan_interval = scan_interval
+        self._domain_config = domain_config
+        self._hass = hass
+        self._scan_interval = scan_interval
 
         self._config = Configuration(hass.config.path(WINIX_CONFIG_FILE))
 
     def login(self) -> None:
         """Login and setup platforms"""
         config = self._config
-        username = self.domain_config.get(CONF_USERNAME)
-        password = self.domain_config.get(CONF_PASSWORD)
+        username = self._domain_config.get(CONF_USERNAME)
+        password = self._domain_config.get(CONF_PASSWORD)
         device_stubs = None
 
         if config.exists:
@@ -116,14 +117,14 @@ class WinixManager:
             except Exception as err:
                 _LOGGER.error(err)
 
-        self.hass.async_create_task(self.async_prepare_devices(device_stubs))
+        self._hass.async_create_task(self.async_prepare_devices(device_stubs))
         self.setup_services()
 
     async def async_prepare_devices(self, device_stubs) -> None:
         """Create devices and setup platforms"""
         if device_stubs:
             self._device_wrappers = []
-            client = async_get_clientsession(self.hass)
+            client = async_get_clientsession(self._hass)
 
             for device_stub in device_stubs:
                 self._device_wrappers.append(
@@ -131,7 +132,7 @@ class WinixManager:
                 )
 
             _LOGGER.info("Found %d purifiers", len(self._device_wrappers))
-            self.hass.async_create_task(self.async_setup_platforms())
+            self._hass.async_create_task(self.async_setup_platforms())
 
     async def async_setup_platforms(self) -> None:
         """Setup the fan platform"""
@@ -139,22 +140,25 @@ class WinixManager:
             # Get data once
             await self.async_update()
 
-            discovery.load_platform(self.hass, "fan", DOMAIN, {}, self.domain_config)
+            for component in SUPPORTED_PLATFORMS:
+                discovery.load_platform(
+                    self._hass, component, DOMAIN, {}, self._domain_config
+                )
 
             def update_devices(event_time):
-                asyncio.run_coroutine_threadsafe(self.async_update(), self.hass.loop)
+                asyncio.run_coroutine_threadsafe(self.async_update(), self._hass.loop)
 
-            async_track_time_interval(self.hass, update_devices, self.scan_interval)
+            async_track_time_interval(self._hass, update_devices, self._scan_interval)
 
     def setup_services(self) -> None:
         """Setup services"""
-        self.hass.services.register(
+        self._hass.services.register(
             DOMAIN,
             SERVICE_REFRESH_CONFIG,
             self.handle_platform_services,
         )
 
-        self.hass.services.register(
+        self._hass.services.register(
             DOMAIN,
             SERVICE_DELETE_CONFIG,
             self.handle_platform_services,
