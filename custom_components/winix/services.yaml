@@ -1,10 +1,7 @@
 # Describes the format of available services.
 
-refresh_config:
-  description: Refresh the authorization configuration.
-
-delete_config:
-  description: Delete the authorization configuration. Intended for debugging use.
+refresh_access:
+  description: Register the Cognito access token.
 
 plasmawave_on:
   description: Turn on plasmawave.

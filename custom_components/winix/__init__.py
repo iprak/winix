@@ -34,8 +34,7 @@ from .const import (
     ATTR_POWER,
     ATTR_POWER_ON_VALUE,
     DOMAIN,
-    SERVICE_DELETE_CONFIG,
-    SERVICE_REFRESH_CONFIG,
+    SERVICE_REFRESH_ACCESS,
     SPEED_LIST,
     SPEED_OFF,
     WINIX_CONFIG_FILE,
@@ -89,36 +88,32 @@ class WinixManager:
         self._hass = hass
         self._scan_interval = scan_interval
 
-        self._config = Configuration(hass.config.path(WINIX_CONFIG_FILE))
+        # Not creating local configuration file which always results in updated configuration
+        self._config = Configuration("")
 
     def login(self) -> None:
         """Login and setup platforms"""
         config = self._config
         username = self._domain_config.get(CONF_USERNAME)
         password = self._domain_config.get(CONF_PASSWORD)
-        device_stubs = None
 
-        if config.exists:
-            _LOGGER.debug("Reloading existing configuration")
+        try:
+            config.cognito = login(username, password)
+            account = WinixAccount(config.cognito.access_token)
+            account.register_user(username)
+            account.check_access_token()
+            config.devices = account.get_device_info_list()
+
+            self._config = config
             device_stubs = self._config.devices
-        else:
-            try:
-                config.cognito = login(username, password)
-                account = WinixAccount(config.cognito.access_token)
-                account.register_user(username)
-                account.check_access_token()
-                config.devices = account.get_device_info_list()
-                config.save()
 
-                self._config = config
-                device_stubs = self._config.devices
+            _LOGGER.debug("Configuration initialized")
 
-                _LOGGER.debug("Configuration created")
-            except Exception as err:
-                _LOGGER.error(err)
+            self._hass.async_create_task(self.async_prepare_devices(device_stubs))
+            self.setup_services()
 
-        self._hass.async_create_task(self.async_prepare_devices(device_stubs))
-        self.setup_services()
+        except Exception as err:
+            _LOGGER.error(err)
 
     async def async_prepare_devices(self, device_stubs) -> None:
         """Create devices and setup platforms"""
@@ -135,7 +130,7 @@ class WinixManager:
             self._hass.async_create_task(self.async_setup_platforms())
 
     async def async_setup_platforms(self) -> None:
-        """Setup the fan platform"""
+        """Setup platforms"""
         if self.get_device_wrappers():
             # Get data once
             await self.async_update()
@@ -154,33 +149,24 @@ class WinixManager:
         """Setup services"""
         self._hass.services.register(
             DOMAIN,
-            SERVICE_REFRESH_CONFIG,
-            self.handle_platform_services,
-        )
-
-        self._hass.services.register(
-            DOMAIN,
-            SERVICE_DELETE_CONFIG,
+            SERVICE_REFRESH_ACCESS,
             self.handle_platform_services,
         )
 
     def handle_platform_services(self, call) -> None:
-        """Refresh the authorization token."""
+        """Common service handler."""
         service = call.service
 
         if self._config:
-            if service == SERVICE_REFRESH_CONFIG:
+            if service == SERVICE_REFRESH_ACCESS:
                 self._config.cognito = refresh(
                     user_id=self._config.cognito.user_id,
                     refresh_token=self._config.cognito.refresh_token,
                 )
 
-                WinixAccount(self._config.cognito.access_token).check_access_token()
-                self._config.save()
-                _LOGGER.info("Configuration updated")
-            elif service == SERVICE_DELETE_CONFIG:
-                os.remove(self._config.config_path)
-                _LOGGER.info("Deleted configuration file")
+                account = WinixAccount(self._config.cognito.access_token)
+                account.check_access_token()
+                _LOGGER.info("Access token refreshed")
 
     async def async_update(self, now=None) -> None:
         """Asynchronously update all the devices."""
