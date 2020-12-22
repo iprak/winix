@@ -51,7 +51,6 @@ air_quality: good
 friendly_name: Winix Basement
 ```
 
-The device data is fetched every 30 seconds.
-
-
-There are 2 new services `winix.plasmawave_off, winix.plasmawave_on` in addition to the default fan services `fan.speed, fan.toggle, fan.turn_off, fan.turn_on`.
+* The device data is fetched every 30 seconds.
+* There are 2 new services `winix.plasmawave_off, winix.plasmawave_on` in addition to the default fan services `fan.speed, fan.toggle, fan.turn_off, fan.turn_on`.
+* If purifiers are added/removed, then you would want to restart HomeAssistant.

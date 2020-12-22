@@ -19,8 +19,7 @@ ATTR_POWER_ON_VALUE = "on"
 # The service name is the partial name of the method in WinixPurifier
 SERVICE_PLASMAWAVE_ON = "plasmawave_on"
 SERVICE_PLASMAWAVE_OFF = "plasmawave_off"
-SERVICE_DELETE_CONFIG = "delete_config"
-SERVICE_REFRESH_CONFIG = "refresh_config"
+SERVICE_REFRESH_ACCESS = "refresh_access"
 
 
 SERVICES = [
