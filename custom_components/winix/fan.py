@@ -1,4 +1,4 @@
-"""Winix Air Purfier Device"""
+"""Winix C545 Air Purifier Device"""
 
 import asyncio
 from datetime import timedelta
