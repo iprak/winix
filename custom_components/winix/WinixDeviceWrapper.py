@@ -1,4 +1,4 @@
-"""The Winix AirPurifier component."""
+"""The Winix C545 Air Purifier component."""
 
 import logging
 from typing import Dict

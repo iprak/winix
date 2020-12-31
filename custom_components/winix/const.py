@@ -1,4 +1,4 @@
-"""Constants for the Winix component."""
+"""Constants for the Winix C545 Air Purifier component."""
 
 DOMAIN = "winix"
 

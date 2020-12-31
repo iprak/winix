@@ -1,4 +1,4 @@
-"""Winix Air Purfier Air QValue Sensor"""
+"""Winix C545 Air Purfier Air QValue Sensor"""
 
 from datetime import timedelta
 import logging
@@ -58,6 +58,11 @@ class WinixPurifier(Entity):
         return self._id
 
     @property
+    def icon(self):
+        """Return the icon to use for device if any."""
+        return "mdi:cloud"
+
+    @property
     def name(self) -> str:
         """Return the name of the switch."""
         return self._name
@@ -66,3 +71,8 @@ class WinixPurifier(Entity):
     def state(self):
         """Return the state of the sensor."""
         return None if self._state is None else self._state.get(ATTR_AIR_QVALUE)
+
+    @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement of this entity, if any."""
+        return "QV"
