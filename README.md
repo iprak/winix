@@ -1,6 +1,6 @@
 # Summary
 
-A custom component to interact with Winix [C545](https://www.winixamerica.com/product/certified-refurbished-c545-air-purifier/) Air Purifier. This has been reported to work well with [AM90](https://www.winixamerica.com/product/am90/).
+A custom component to interact with Winix [C545](https://www.winixamerica.com/product/certified-refurbished-c545-air-purifier/) Air Purifier. This has been reported to work with model [AM90](https://www.winixamerica.com/product/am90/) too.
 
 # Installation
 
