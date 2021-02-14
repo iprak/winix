@@ -1,16 +1,14 @@
-// See https://aka.ms/vscode-remote/devcontainer.json for format details.
 {
+	"name": "Home Assistant Custom Component Dev",
 	"context": "..",
-	"image": "ludeeus/container:integration",
+	"image": "ghcr.io/ludeeus/devcontainer/integration:stable",
 	"appPort": "9123:8123",
-	"postCreateCommand": "apk add jq && for req in $(jq -c -r '.requirements | .[]' custom_components/winix_purifier/manifest.json); do python -m pip install $req; done && container install",
+	"postCreateCommand": "python3 -m pip install -r requirements_test.txt && container install",
 	"extensions": [
 		"ms-python.python",
 		"github.vscode-pull-request-github",
-		"tabnine.tabnine-vscode",
 		"ms-python.vscode-pylance",
 		"spmeesseman.vscode-taskexplorer"
-
 	],
 	"settings": {
 		"files.eol": "\n",
@@ -20,7 +18,14 @@
 		"python.analysis.autoSearchPaths": false,
 		"python.linting.pylintEnabled": true,
 		"python.linting.enabled": true,
+		"python.linting.pylintArgs": [
+			"--disable",
+			"import-error"
+		],
 		"python.formatting.provider": "black",
+		"python.testing.pytestArgs": [
+			"--no-cov"
+		],
 		"editor.formatOnPaste": false,
 		"editor.formatOnSave": true,
 		"editor.formatOnType": true,

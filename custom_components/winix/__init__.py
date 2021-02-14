@@ -3,23 +3,14 @@
 import asyncio
 from datetime import timedelta
 import logging
-import os
-from typing import Dict, List
+from typing import List
 
-import aiohttp
-from homeassistant import config_entries
-from homeassistant.const import (
-    ATTR_ENTITY_ID,
-    CONF_PASSWORD,
-    CONF_SCAN_INTERVAL,
-    CONF_USERNAME,
-)
+from homeassistant.const import CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import discovery
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
-from homeassistant.helpers.event import async_call_later, async_track_time_interval
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.event import async_track_time_interval
 import voluptuous as vol
 
 from winix import WinixAccount
@@ -27,18 +18,7 @@ from winix.auth import login, refresh
 from winix.cmd import Configuration
 
 from .WinixDeviceWrapper import WinixDeviceWrapper
-from .const import (
-    ATTR_AIRFLOW,
-    ATTR_MODE,
-    ATTR_PLASMA,
-    ATTR_POWER,
-    ATTR_POWER_ON_VALUE,
-    DOMAIN,
-    SERVICE_REFRESH_ACCESS,
-    SPEED_LIST,
-    SPEED_OFF,
-    WINIX_CONFIG_FILE,
-)
+from .const import DOMAIN, SERVICE_REFRESH_ACCESS
 
 _LOGGER = logging.getLogger(__name__)
 MIN_SCAN_INTERVAL = timedelta(seconds=30)
@@ -61,6 +41,7 @@ CONFIG_SCHEMA = vol.Schema(
 
 
 async def async_setup(hass: HomeAssistant, config):
+    """Set up the component."""
     domain_config = config[DOMAIN]
     scan_interval = domain_config.get(CONF_SCAN_INTERVAL, MIN_SCAN_INTERVAL)
 
@@ -92,7 +73,7 @@ class WinixManager:
         self._config = Configuration("")
 
     def login(self) -> None:
-        """Login and setup platforms"""
+        """Login and setup platforms."""
         config = self._config
         username = self._domain_config.get(CONF_USERNAME)
         password = self._domain_config.get(CONF_PASSWORD)
@@ -116,7 +97,7 @@ class WinixManager:
             _LOGGER.error(err)
 
     async def async_prepare_devices(self, device_stubs) -> None:
-        """Create devices and setup platforms"""
+        """Create devices and setup platforms."""
         if device_stubs:
             self._device_wrappers = []
             client = async_get_clientsession(self._hass)
@@ -130,7 +111,7 @@ class WinixManager:
             self._hass.async_create_task(self.async_setup_platforms())
 
     async def async_setup_platforms(self) -> None:
-        """Setup platforms"""
+        """Set up platforms."""
         if self.get_device_wrappers():
             # Get data once
             await self.async_update()
@@ -146,7 +127,7 @@ class WinixManager:
             async_track_time_interval(self._hass, update_devices, self._scan_interval)
 
     def setup_services(self) -> None:
-        """Setup services"""
+        """Set up services."""
         self._hass.services.register(
             DOMAIN,
             SERVICE_REFRESH_ACCESS,
@@ -154,7 +135,7 @@ class WinixManager:
         )
 
     def handle_platform_services(self, call) -> None:
-        """Common service handler."""
+        """Handle common services."""
         service = call.service
 
         if self._config:

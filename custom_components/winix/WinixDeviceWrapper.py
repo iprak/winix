@@ -1,10 +1,9 @@
 """The Winix C545 Air Purifier component."""
 
-import logging
+
 from typing import Dict
 
 import aiohttp
-import requests
 
 from winix import WinixDeviceStub
 
@@ -14,10 +13,8 @@ from .const import (
     ATTR_PLASMA,
     ATTR_POWER,
     ATTR_POWER_ON_VALUE,
-    DOMAIN,
-    SPEED_LIST,
     SPEED_AUTO,
-    SPEED_SLEEP,
+    SPEED_LIST,
     SPEED_OFF,
 )
 
@@ -70,7 +67,7 @@ class WinixDeviceWrapper:
         self._on = False
 
     async def async_ensure_on(self) -> None:
-        """Turn purifier on, if not on"""
+        """Turn purifier on, if not on."""
         if not self._on:
             await self.async_turn_on()
 
@@ -110,6 +107,7 @@ class WinixDeviceWrapper:
             self._state[ATTR_MODE] = "manual"
 
     async def async_set_speed(self, speed) -> None:
+        """Set the speed."""
         if speed == SPEED_OFF:
             await self.async_turn_off()
         elif speed == SPEED_AUTO:
@@ -128,6 +126,8 @@ class WinixDeviceWrapper:
 
 # Modified from https://github.com/hfern/winix to support async operations
 class WinixDevice:
+    """WinixDevice driver."""
+
     CTRL_URL = "https://us.api.winix-iot.com/common/control/devices/{deviceid}/A211/{attribute}:{value}"
     STATE_URL = "https://us.api.winix-iot.com/common/event/sttus/devices/{deviceid}"
 
@@ -158,60 +158,72 @@ class WinixDevice:
     }
 
     def __init__(self, id: str, client: aiohttp.ClientSession):
+        """Create an instance of WinixDevice."""
         self.id = id
         self._client = client
 
     async def off(self):
+        """Turn the device off."""
         await self._rpc_attr(
             self.category_keys["power"], self.state_keys["power"]["off"]
         )
 
     async def on(self):
+        """Turn the device on."""
         await self._rpc_attr(
             self.category_keys["power"], self.state_keys["power"]["on"]
         )
 
     async def auto(self):
+        """Set device in auto mode."""
         await self._rpc_attr(
             self.category_keys["mode"], self.state_keys["mode"]["auto"]
         )
 
     async def manual(self):
+        """Set device in manual mode."""
         await self._rpc_attr(
             self.category_keys["mode"], self.state_keys["mode"]["manual"]
         )
 
     async def plasmawave_off(self):
+        """Turn plasmawave off."""
         await self._rpc_attr(
             self.category_keys["plasma"], self.state_keys["plasma"]["off"]
         )
 
     async def plasmawave_on(self):
+        """Turn plasmawave on."""
         await self._rpc_attr(
             self.category_keys["plasma"], self.state_keys["plasma"]["on"]
         )
 
     async def low(self):
+        """Set speed low."""
         await self._rpc_attr(
             self.category_keys["airflow"], self.state_keys["airflow"]["low"]
         )
 
     async def medium(self):
+        """Set speed medium."""
         await self._rpc_attr(
             self.category_keys["airflow"], self.state_keys["airflow"]["medium"]
         )
 
     async def high(self):
+        """Set speed high."""
         await self._rpc_attr(
             self.category_keys["airflow"], self.state_keys["airflow"]["high"]
         )
 
     async def turbo(self):
+        """Set speed turbo."""
         await self._rpc_attr(
             self.category_keys["airflow"], self.state_keys["airflow"]["turbo"]
         )
 
     async def sleep(self):
+        """Set device in sleep mode."""
         await self._rpc_attr(
             self.category_keys["airflow"], self.state_keys["airflow"]["sleep"]
         )
@@ -225,6 +237,7 @@ class WinixDevice:
         # )
 
     async def get_state(self) -> Dict[str, str]:
+        """Get device state."""
         response = await self._client.get(self.STATE_URL.format(deviceid=self.id))
         json = await response.json()
         payload = json["body"]["data"][0]["attributes"]

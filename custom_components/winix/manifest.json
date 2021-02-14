@@ -9,5 +9,6 @@
   "codeowners": [
     "@iprak"
   ],
-  "issue_tracker": "https://github.com/iprak/winix/issues"
+  "issue_tracker": "https://github.com/iprak/winix/issues",
+  "version": "0.4"
 }
