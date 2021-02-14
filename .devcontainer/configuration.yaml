@@ -9,7 +9,7 @@ homeassistant:
   name: Home
 
 logger:
-  default: warn
+  default: info
   logs:
     custom_components.winix: debug
 

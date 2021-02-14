@@ -1,8 +1,7 @@
 {
-    "python.linting.pylintEnabled": true,
-    "python.linting.enabled": true,
     "python.formatting.provider": "black",
     "editor.formatOnPaste": false,
     "editor.formatOnSave": true,
     "files.trimTrailingWhitespace": true,
+    "git.ignoreLimitWarning": true,
 }
