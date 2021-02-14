@@ -1,18 +1,12 @@
-"""Winix C545 Air Purifier Device"""
+"""Winix C545 Air Purifier Device."""
 
 import asyncio
 from datetime import timedelta
 import logging
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Optional
 
-from homeassistant.components.fan import (
-    DOMAIN,
-    PLATFORM_SCHEMA,
-    SUPPORT_SET_SPEED,
-    FanEntity,
-)
+from homeassistant.components.fan import DOMAIN, SUPPORT_SET_SPEED, FanEntity
 from homeassistant.const import ATTR_ENTITY_ID
-from homeassistant.core import HomeAssistant
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.typing import (
     ConfigType,
@@ -29,13 +23,7 @@ from .const import (
     ATTR_POWER,
     DOMAIN as WINIX_DOMAIN,
     SERVICES,
-    SPEED_HIGH,
     SPEED_LIST,
-    SPEED_LOW,
-    SPEED_MEDIUM,
-    SPEED_OFF,
-    SPEED_SLEEP,
-    SPEED_TURBO,
     WINIX_DATA_KEY,
 )
 
@@ -107,7 +95,7 @@ async def async_setup_platform(
 
 
 class WinixPurifier(FanEntity):
-    """Representation of a Winix Purifier device"""
+    """Representation of a Winix Purifier device."""
 
     def __init__(self, wrapper: WinixDeviceWrapper) -> None:
         """Initialize the device."""
@@ -121,7 +109,7 @@ class WinixPurifier(FanEntity):
     def available(self) -> bool:
         """Return True if entity is available."""
         self._state = self._wrapper.get_state()
-        return not self._state is None
+        return self._state is not None
 
     @property
     def device_state_attributes(self) -> None:

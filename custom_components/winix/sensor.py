@@ -1,11 +1,10 @@
-"""Winix C545 Air Purfier Air QValue Sensor"""
+"""Winix C545 Air Purfier Air QValue Sensor."""
 
 from datetime import timedelta
 import logging
 
 from homeassistant.components.sensor import DOMAIN
 from homeassistant.helpers.entity import Entity
-import voluptuous as vol
 
 from . import DOMAIN as WINIX_DOMAIN, WinixDeviceWrapper, WinixManager
 from .const import ATTR_AIR_QUALITY, ATTR_AIR_QVALUE
@@ -15,6 +14,7 @@ SCAN_INTERVAL = timedelta(seconds=15)
 
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
+    """Set up the Winix sensor platform."""
     manager: WinixManager = hass.data[WINIX_DOMAIN]
 
     entities = []
@@ -26,7 +26,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 
 class WinixPurifier(Entity):
-    """Representation of a Winix Purifier air qValue sensor"""
+    """Representation of a Winix Purifier air qValue sensor."""
 
     def __init__(self, wrapper: WinixDeviceWrapper) -> None:
         """Initialize the sensor."""
@@ -40,7 +40,7 @@ class WinixPurifier(Entity):
     def available(self) -> bool:
         """Return True if entity is available."""
         self._state = self._wrapper.get_state()
-        return not self._state is None
+        return self._state is not None
 
     @property
     def device_state_attributes(self) -> None:
