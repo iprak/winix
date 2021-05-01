@@ -32,7 +32,7 @@ class WinixPurifier(Entity):
         """Initialize the sensor."""
         self._wrapper = wrapper
 
-        self._id = f"{DOMAIN}.{WINIX_DOMAIN}_qvalue_{wrapper.info.mac.lower()}"
+        self._unique_id = f"{DOMAIN}.{WINIX_DOMAIN}_qvalue_{wrapper.info.mac.lower()}"
         self._name = f"Winix {self._wrapper.info.alias}"
         self._state = None
 
@@ -53,9 +53,18 @@ class WinixPurifier(Entity):
         return attributes
 
     @property
-    def entity_id(self) -> str:
+    def unique_id(self) -> str:
         """Return the unique id of the switch."""
-        return self._id
+        return self._unique_id
+
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {
+                (WINIX_DOMAIN, self._wrapper.info.mac.lower())
+            },
+            "name": self._name,
+        }
 
     @property
     def icon(self):
