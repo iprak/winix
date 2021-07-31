@@ -16,3 +16,10 @@ plasmawave_off:
     entity_id:
       description: Name(s) of Winix entities. Leave service data empty to use all Winix entities.
       example: "fan.winix_living_room"
+
+plasmawave_toggle:
+  description: Toggle plasmawave.
+  fields:
+    entity_id:
+      description: Name(s) of Winix entities. Leave service data empty to use all Winix entities.
+      example: "fan.winix_living_room"

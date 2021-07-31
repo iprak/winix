@@ -8,14 +8,21 @@ import aiohttp
 from winix import WinixDeviceStub
 
 from .const import (
+    AIRFLOW_LOW,
+    AIRFLOW_SLEEP,
     ATTR_AIRFLOW,
     ATTR_MODE,
     ATTR_PLASMA,
     ATTR_POWER,
-    ATTR_POWER_ON_VALUE,
-    SPEED_AUTO,
-    SPEED_LIST,
-    SPEED_OFF,
+    MODE_AUTO,
+    MODE_MANUAL,
+    OFF_VALUE,
+    ON_VALUE,
+    PRESET_MODES,
+    PRESET_MODE_AUTO,
+    PRESET_MODE_MANUAL,
+    PRESET_MODE_MANUAL_PLASMA,
+    PRESET_MODE_SLEEP,
 )
 
 
@@ -33,95 +40,201 @@ class WinixDeviceWrapper:
         self.info = device_stub
         self._state = None
         self._on = False
+        self._auto = False
+        self._manual = False
+        self._plasma_on = False
+        self._sleep = False
         self._logger = logger
 
     async def update(self) -> None:
         """Update the device data."""
         self._state = await self.driver.get_state()
-        self._on = self._state.get(ATTR_POWER) == ATTR_POWER_ON_VALUE
+        self._auto = self._manual = self._sleep = self._plasma_on = False
+
+        self._on = self._state.get(ATTR_POWER) == ON_VALUE
+        self._plasma_on = self._state[ATTR_PLASMA] == ON_VALUE
+
+        # Sleep: airflow=sleep, mode can be manual
+        # Auto: mode=auto, airflow can be anything
+        # Low: manual+low
+
+        if self._state.get(ATTR_MODE) == MODE_AUTO:
+            self._auto = True
+            self._manual = False
+        elif self._state.get(ATTR_MODE) == MODE_MANUAL:
+            self._auto = False
+            self._manual = True
+
+        if self._state.get(ATTR_AIRFLOW) == AIRFLOW_SLEEP:
+            self._sleep = True
 
         self._logger.debug(
-            "%s: updated, fan is %s",
+            "%s: updated on=%s, auto=%s, manual=%s, sleep=%s, airflow=%s, plasma=%s",
             self.info.alias,
-            ("on" if self._on else "off"),
+            self._on,
+            self._auto,
+            self._manual,
+            self._sleep,
+            self._state.get(ATTR_AIRFLOW),
+            self._plasma_on,
         )
 
     def get_state(self) -> Dict[str, str]:
         """Return the device data."""
         return self._state
 
+    @property
     def is_on(self) -> bool:
-        """Return true if fan is on."""
+        """Return if the purifier is on."""
         return self._on
 
-    async def async_turn_on(self) -> None:
-        """Turn the fan on."""
-        self._logger.debug("Turning on")
-        await self.driver.on()
-        self._on = True
+    @property
+    def is_auto(self) -> bool:
+        """Return if the purifier is in Auto mode."""
+        return self._auto
 
-    async def async_turn_off(self) -> None:
-        """Turn the purifier off."""
-        self._logger.debug("Turning off")
-        await self.driver.off()
-        self._on = False
+    @property
+    def is_manual(self) -> bool:
+        """Return if the purifier is in Manual mode."""
+        return self._manual
+
+    @property
+    def is_plasma_on(self) -> bool:
+        """Return if plasma is on."""
+        return self._plasma_on
+
+    @property
+    def is_sleep(self) -> bool:
+        """Return if the purifier is in Sleep mode."""
+        return self._sleep
 
     async def async_ensure_on(self) -> None:
-        """Turn purifier on, if not on."""
+        """Turn on the purifier."""
         if not self._on:
-            await self.async_turn_on()
+            self._on = True
 
-    async def async_plasmawave_on(self) -> None:
-        """Turn plasma wave on."""
+            self._logger.debug("%s: Turning on", self.info.alias)
+            await self.driver.turn_on()
+
+    async def async_turn_on(self) -> None:
+        """Turn on the purifier in Auto mode."""
         await self.async_ensure_on()
-        self._logger.debug("Turning plasmawave on")
-        await self.driver.plasmawave_on()
-        self._state[ATTR_PLASMA] = "on"
+        await self.async_auto()
 
-    async def async_plasmawave_off(self) -> None:
-        """Turn plasma wave off."""
-        self._logger.debug("Turning plasmawave off")
+    async def async_turn_off(self) -> None:
+        """Turn off the purifier."""
+        if self._on:
+            self._on = False
 
-        # Turning plasmawave off should not need to turn the fan on
-        await self.driver.plasmawave_off()
-        self._state[ATTR_PLASMA] = "off"
+            self._logger.debug("%s: Turning off", self.info.alias)
+            await self.driver.turn_off()
 
     async def async_auto(self) -> None:
-        """Turn the purifier on and put it in auto mode."""
+        """
+        Put the purifier in Auto mode with Low airflow.
 
-        await self.async_ensure_on()
+        Plasma state is left unchanged. The Winix server seems to sometimes
+        turns it on for Auto mode.
+        """
 
-        if self._state[ATTR_MODE] != "auto":
-            self._logger.debug("Setting auto mode")
+        if not self._auto:
+            self._auto = True
+            self._manual = False
+            self._sleep = False
+            self._state[ATTR_MODE] = MODE_AUTO
+            self._state[
+                ATTR_AIRFLOW
+            ] = AIRFLOW_LOW  # Something other than AIRFLOW_SLEEP
+
+            self._logger.debug("%s: Setting auto mode", self.info.alias)
             await self.driver.auto()
-            self._state[ATTR_MODE] = "auto"
+
+    async def async_plasmawave_on(self) -> None:
+        """Turn on plasma wave."""
+
+        if not self._plasma_on:
+            self._plasma_on = True
+            self._state[ATTR_PLASMA] = ON_VALUE
+
+            self._logger.debug("%s: Turning plasmawave on", self.info.alias)
+            await self.driver.plasmawave_on()
+
+    async def async_plasmawave_off(self) -> None:
+        """Turn off plasma wave."""
+
+        if self._plasma_on:
+            self._plasma_on = False
+            self._state[ATTR_PLASMA] = OFF_VALUE
+
+            self._logger.debug("%s: Turning plasmawave off", self.info.alias)
+            await self.driver.plasmawave_off()
 
     async def async_manual(self) -> None:
-        """Turn the purifier on and put it in manual mode."""
+        """
+        Put the purifier in Manual mode with Low airflow.
+        Plasma state is left unchanged.
+        """
+
+        if not self._manual:
+            self._manual = True
+            self._auto = False
+            self._sleep = False
+            self._state[ATTR_MODE] = MODE_MANUAL
+            self._state[
+                ATTR_AIRFLOW
+            ] = AIRFLOW_LOW  # Something other than AIRFLOW_SLEEP
+
+            self._logger.debug("%s: Setting manual mode", self.info.alias)
+            await self.driver.manual()
+
+    async def async_sleep(self) -> None:
+        """
+        Turn the purifier in Manual mode with Sleep airflow.
+        Plasma state is left unchanged.
+        """
+
+        if not self._sleep:
+            self._sleep = True
+            self._auto = False
+            self._manual = False
+            self._state[ATTR_AIRFLOW] = AIRFLOW_SLEEP
+            self._state[ATTR_MODE] = MODE_MANUAL
+
+            self._logger.debug("%s: Setting sleep mode", self.info.alias)
+            await self.driver.sleep()
+
+    async def async_set_speed(self, speed) -> None:
+        """Turn the purifier on, put it in Manual mode and set the speed."""
+
+        if self._state[ATTR_AIRFLOW] != speed:
+            self._state[ATTR_AIRFLOW] = speed
+
+            # Setting speed requires the fan to be in manual mode
+            await self.async_ensure_on()
+            await self.async_manual()
+
+            self._logger.debug("%s: Updated speed to '%s'", self.info.alias, speed)
+            await getattr(self.driver, speed)()
+
+    async def async_set_preset_mode(self, preset_mode: str) -> None:
+        """Turn the purifier on and put it in the new preset mode."""
+
+        if not preset_mode in PRESET_MODES:
+            self._logger.warning("'%s'is an invalid preset mode", preset_mode)
+            return
 
         await self.async_ensure_on()
 
-        if self._state[ATTR_MODE] != "manual":
-            self._logger.debug("Setting manual mode")
-            await self.driver.manual()
-            self._state[ATTR_MODE] = "manual"
-
-    async def async_set_speed(self, speed) -> None:
-        """Set the speed."""
-        if speed == SPEED_OFF:
-            await self.async_turn_off()
-        elif speed == SPEED_AUTO:
+        if preset_mode == PRESET_MODE_SLEEP:
+            await self.async_sleep()
+        elif preset_mode == PRESET_MODE_AUTO:
             await self.async_auto()
-        elif speed in SPEED_LIST:
-            # Setting speed requires the fan to be in manual mode
+        elif preset_mode == PRESET_MODE_MANUAL:
             await self.async_manual()
-
-            if self._state[ATTR_AIRFLOW] != speed:
-                self._logger.debug("Updated speed to '%s'", speed)
-                await getattr(self.driver, speed)()
-                self._state[ATTR_AIRFLOW] = speed
-        else:
-            self._logger.error("%s is an invalid speed option", speed)
+            await self.async_plasmawave_off()
+        elif preset_mode == PRESET_MODE_MANUAL_PLASMA:
+            await self.async_manual()
+            await self.async_plasmawave_on()
 
 
 # Modified from https://github.com/hfern/winix to support async operations
@@ -157,18 +270,18 @@ class WinixDevice:
         "air_quality": {"good": "01", "fair": "02", "poor": "03"},
     }
 
-    def __init__(self, id: str, client: aiohttp.ClientSession):
+    def __init__(self, device_id: str, client: aiohttp.ClientSession):
         """Create an instance of WinixDevice."""
-        self.id = id
+        self.device_id = device_id
         self._client = client
 
-    async def off(self):
+    async def turn_off(self):
         """Turn the device off."""
         await self._rpc_attr(
             self.category_keys["power"], self.state_keys["power"]["off"]
         )
 
-    async def on(self):
+    async def turn_on(self):
         """Turn the device on."""
         await self._rpc_attr(
             self.category_keys["power"], self.state_keys["power"]["on"]
@@ -230,7 +343,7 @@ class WinixDevice:
 
     async def _rpc_attr(self, attr: str, value: str):
         await self._client.get(
-            self.CTRL_URL.format(deviceid=self.id, attribute=attr, value=value)
+            self.CTRL_URL.format(deviceid=self.device_id, attribute=attr, value=value)
         )
         # requests.get(
         #     self.CTRL_URL.format(deviceid=self.id, attribute=attr, value=value)
@@ -238,7 +351,9 @@ class WinixDevice:
 
     async def get_state(self) -> Dict[str, str]:
         """Get device state."""
-        response = await self._client.get(self.STATE_URL.format(deviceid=self.id))
+        response = await self._client.get(
+            self.STATE_URL.format(deviceid=self.device_id)
+        )
         json = await response.json()
         payload = json["body"]["data"][0]["attributes"]
         # r = requests.get(self.STATE_URL.format(deviceid=self.id))
