@@ -22,7 +22,6 @@ from homeassistant.util.percentage import (
     ordered_list_item_to_percentage,
     percentage_to_ordered_list_item,
 )
-
 import voluptuous as vol
 
 from . import WinixDeviceWrapper, WinixManager
@@ -33,11 +32,11 @@ from .const import (
     ATTR_POWER,
     DOMAIN as WINIX_DOMAIN,
     ORDERED_NAMED_FAN_SPEEDS,
-    PRESET_MODES,
     PRESET_MODE_AUTO,
     PRESET_MODE_MANUAL,
     PRESET_MODE_MANUAL_PLASMA,
     PRESET_MODE_SLEEP,
+    PRESET_MODES,
     SERVICES,
     WINIX_DATA_KEY,
 )
