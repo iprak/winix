@@ -170,10 +170,7 @@ class WinixDeviceWrapper:
             await self.driver.plasmawave_off()
 
     async def async_manual(self) -> None:
-        """
-        Put the purifier in Manual mode with Low airflow.
-        Plasma state is left unchanged.
-        """
+        """Put the purifier in Manual mode with Low airflow. Plasma state is left unchanged."""
 
         if not self._manual:
             self._manual = True
@@ -188,10 +185,7 @@ class WinixDeviceWrapper:
             await self.driver.manual()
 
     async def async_sleep(self) -> None:
-        """
-        Turn the purifier in Manual mode with Sleep airflow.
-        Plasma state is left unchanged.
-        """
+        """Turn the purifier in Manual mode with Sleep airflow. Plasma state is left unchanged."""
 
         if not self._sleep:
             self._sleep = True
@@ -219,7 +213,7 @@ class WinixDeviceWrapper:
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Turn the purifier on and put it in the new preset mode."""
 
-        if not preset_mode in PRESET_MODES:
+        if preset_mode not in PRESET_MODES:
             self._logger.warning("'%s'is an invalid preset mode", preset_mode)
             return
 

@@ -150,10 +150,9 @@ class WinixPurifier(FanEntity):
 
     @property
     def device_info(self):
+        """Return device specific attributes."""
         return {
-            "identifiers": {
-                (WINIX_DOMAIN, self._wrapper.info.mac.lower())
-            },
+            "identifiers": {(WINIX_DOMAIN, self._wrapper.info.mac.lower())},
             "name": self._name,
         }
 
