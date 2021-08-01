@@ -12,7 +12,7 @@ from .const import ATTR_AIR_QUALITY, ATTR_AIR_QVALUE
 _LOGGER = logging.getLogger(__name__)
 SCAN_INTERVAL = timedelta(seconds=15)
 
-
+# pylint: disable=unused-argument
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the Winix sensor platform."""
     manager: WinixManager = hass.data[WINIX_DOMAIN]
@@ -59,10 +59,9 @@ class WinixPurifier(Entity):
 
     @property
     def device_info(self):
+        """Return device specific attributes."""
         return {
-            "identifiers": {
-                (WINIX_DOMAIN, self._wrapper.info.mac.lower())
-            },
+            "identifiers": {(WINIX_DOMAIN, self._wrapper.info.mac.lower())},
             "name": self._name,
         }
 

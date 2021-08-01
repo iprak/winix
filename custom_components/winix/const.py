@@ -14,32 +14,46 @@ ATTR_POWER = "power"
 ATTR_AIR_QUALITY = "air_quality"
 ATTR_AIR_QVALUE = "air_qvalue"
 
-ATTR_POWER_ON_VALUE = "on"
+OFF_VALUE = "off"
+ON_VALUE = "on"
 
 # The service name is the partial name of the method in WinixPurifier
 SERVICE_PLASMAWAVE_ON = "plasmawave_on"
 SERVICE_PLASMAWAVE_OFF = "plasmawave_off"
+SERVICE_PLASMAWAVE_TOGGLE = "plasmawave_toggle"
 SERVICE_REFRESH_ACCESS = "refresh_access"
-
-
 SERVICES = [
     SERVICE_PLASMAWAVE_ON,
     SERVICE_PLASMAWAVE_OFF,
+    SERVICE_PLASMAWAVE_TOGGLE,
 ]
 
-SPEED_OFF = "off"
-SPEED_AUTO = "auto"
-SPEED_LOW = "low"
-SPEED_MEDIUM = "medium"
-SPEED_HIGH = "high"
-SPEED_TURBO = "turbo"
-SPEED_SLEEP = "sleep"
-SPEED_LIST = [
-    SPEED_OFF,
-    SPEED_AUTO,
-    SPEED_LOW,
-    SPEED_MEDIUM,
-    SPEED_HIGH,
-    SPEED_TURBO,
-    SPEED_SLEEP,
+# airflow can contain the special preset values of manual and sleep
+# but we are not using those as fan speed.
+AIRFLOW_LOW = "low"
+AIRFLOW_MEDIUM = "medium"
+AIRFLOW_HIGH = "high"
+AIRFLOW_TURBO = "turbo"
+AIRFLOW_SLEEP = "sleep"
+
+ORDERED_NAMED_FAN_SPEEDS = [
+    AIRFLOW_LOW,
+    AIRFLOW_MEDIUM,
+    AIRFLOW_HIGH,
+    AIRFLOW_TURBO,
+]
+
+# mode can contain the special preset value of manual.
+MODE_AUTO = "auto"
+MODE_MANUAL = "manual"
+
+PRESET_MODE_AUTO = "Auto"
+PRESET_MODE_MANUAL = "Manual"
+PRESET_MODE_MANUAL_PLASMA = "Manual+Plasma"
+PRESET_MODE_SLEEP = "Sleep"
+PRESET_MODES = [
+    PRESET_MODE_AUTO,
+    PRESET_MODE_MANUAL,
+    PRESET_MODE_MANUAL_PLASMA,
+    PRESET_MODE_SLEEP,
 ]

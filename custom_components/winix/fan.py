@@ -5,13 +5,22 @@ from datetime import timedelta
 import logging
 from typing import Any, Callable, Optional
 
-from homeassistant.components.fan import DOMAIN, SUPPORT_SET_SPEED, FanEntity
+from homeassistant.components.fan import (
+    DOMAIN,
+    SUPPORT_PRESET_MODE,
+    SUPPORT_SET_SPEED,
+    FanEntity,
+)
 from homeassistant.const import ATTR_ENTITY_ID
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.typing import (
     ConfigType,
     DiscoveryInfoType,
     HomeAssistantType,
+)
+from homeassistant.util.percentage import (
+    ordered_list_item_to_percentage,
+    percentage_to_ordered_list_item,
 )
 import voluptuous as vol
 
@@ -22,15 +31,20 @@ from .const import (
     ATTR_LOCATION,
     ATTR_POWER,
     DOMAIN as WINIX_DOMAIN,
+    ORDERED_NAMED_FAN_SPEEDS,
+    PRESET_MODE_AUTO,
+    PRESET_MODE_MANUAL,
+    PRESET_MODE_MANUAL_PLASMA,
+    PRESET_MODE_SLEEP,
+    PRESET_MODES,
     SERVICES,
-    SPEED_LIST,
     WINIX_DATA_KEY,
 )
 
 _LOGGER = logging.getLogger(__name__)
 SCAN_INTERVAL = timedelta(seconds=15)
 
-
+# pylint: disable=unused-argument
 async def async_setup_platform(
     hass: HomeAssistantType,
     config: ConfigType,
@@ -53,15 +67,15 @@ async def async_setup_platform(
     hass.data[WINIX_DATA_KEY].extend(entities)
     async_add_entities(entities, False)
 
-    async def async_service_handler(service):
+    async def async_service_handler(service_call):
         """Service handler."""
-        method = "async_" + service.service
-        _LOGGER.debug("Service '%s' invoked", service)
+        method = "async_" + service_call.service
+        _LOGGER.debug("Service '%s' invoked", service_call.service)
 
         # The defined services do not accept any additional parameters
         params = {}
 
-        entity_ids = service.data.get(ATTR_ENTITY_ID)
+        entity_ids = service_call.data.get(ATTR_ENTITY_ID)
         if entity_ids:
             devices = [
                 entity
@@ -116,12 +130,11 @@ class WinixPurifier(FanEntity):
         """Return the state attributes."""
         attributes = {}
 
-        wrapperState = self._state
-        if wrapperState is not None:
-            for f, v in wrapperState.items():
+        if self._state is not None:
+            for key, value in self._state.items():
                 # The power attribute is the entity state, so skip it
-                if not f == ATTR_POWER:
-                    attributes[f] = v
+                if not key == ATTR_POWER:
+                    attributes[key] = value
 
         attributes[ATTR_LOCATION] = self._wrapper.info.location_code
         attributes[
@@ -137,10 +150,9 @@ class WinixPurifier(FanEntity):
 
     @property
     def device_info(self):
+        """Return device specific attributes."""
         return {
-            "identifiers": {
-                (WINIX_DOMAIN, self._wrapper.info.mac.lower())
-            },
+            "identifiers": {(WINIX_DOMAIN, self._wrapper.info.mac.lower())},
             "name": self._name,
         }
 
@@ -152,42 +164,100 @@ class WinixPurifier(FanEntity):
     @property
     def is_on(self) -> bool:
         """Return true if switch is on."""
-        return self._wrapper.is_on()
+        return self._wrapper.is_on
 
     @property
-    def speed_list(self) -> list:
-        """Get the list of available speeds."""
-        return SPEED_LIST
-
-    @property
-    def speed(self):
-        """Return the current speed."""
-        return None if self._state is None else self._state.get(ATTR_AIRFLOW)
-
-    @property
-    def supported_features(self):
-        """Flag supported features."""
-        return SUPPORT_SET_SPEED
-
-    async def async_turn_on(self, speed: Optional[str] = None, **kwargs):
-        """Turn the fan on."""
-        if speed:
-            await self._wrapper.async_set_speed(speed)
+    def percentage(self):
+        """Return the current speed percentage."""
+        if self._state is None:
+            return None
+        elif self._wrapper.is_sleep or self._wrapper.is_auto:
+            return None
         else:
-            await self._wrapper.async_ensure_on()
+            return ordered_list_item_to_percentage(
+                ORDERED_NAMED_FAN_SPEEDS, self._state.get(ATTR_AIRFLOW)
+            )
+
+    @property
+    def preset_mode(self):
+        """Return the current preset mode, e.g., auto, smart, interval, favorite."""
+        if self._state is None:
+            return None
+        if self._wrapper.is_sleep:
+            return PRESET_MODE_SLEEP
+        if self._wrapper.is_auto:
+            return PRESET_MODE_AUTO
+        if self._wrapper.is_manual:
+            return (
+                PRESET_MODE_MANUAL_PLASMA
+                if self._wrapper.is_plasma_on
+                else PRESET_MODE_MANUAL
+            )
+        else:
+            return None
+
+    @property
+    def preset_modes(self):
+        """Return a list of available preset modes."""
+        return PRESET_MODES
+
+    @property
+    def speed_count(self) -> int:
+        """Return the number of speeds the fan supports."""
+        return len(ORDERED_NAMED_FAN_SPEEDS)
+
+    # https://developers.home-assistant.io/docs/core/entity/fan/
+
+    @property
+    def supported_features(self) -> int:
+        """Flag supported features."""
+        return SUPPORT_PRESET_MODE | SUPPORT_SET_SPEED
+
+    async def async_set_percentage(self, percentage: int) -> None:
+        """Set the speed percentage of the fan."""
+        if percentage == 0:
+            await self.async_turn_off()
+        else:
+            await self._wrapper.async_set_speed(
+                percentage_to_ordered_list_item(ORDERED_NAMED_FAN_SPEEDS, percentage)
+            )
+
+    async def async_turn_on(
+        self,
+        speed: Optional[str] = None,
+        percentage: Optional[int] = None,
+        preset_mode: Optional[str] = None,
+        **kwargs: Any,
+    ) -> None:
+        """Turn on the purifier."""
+        if percentage:
+            await self.async_set_percentage(percentage)
+            return
+        if preset_mode:
+            await self._wrapper.async_set_preset_mode(preset_mode)
+        else:
+            await self._wrapper.async_turn_on()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn the fan off."""
+        """Turn off the purifier."""
         await self._wrapper.async_turn_off()
 
-    async def async_set_speed(self, speed: str):
-        """Set the speed of the fan."""
-        await self._wrapper.async_set_speed(speed)
-
-    async def async_plasmawave_on(self):
-        """Turn plasma wave on."""
+    async def async_plasmawave_on(self) -> None:
+        """Turn on plasma wave."""
         await self._wrapper.async_plasmawave_on()
 
-    async def async_plasmawave_off(self):
-        """Turn plasma wave off."""
+    async def async_plasmawave_off(self) -> None:
+        """Turn off plasma wave."""
         await self._wrapper.async_plasmawave_off()
+
+    async def async_plasmawave_toggle(self) -> None:
+        """Toggle plasma wave."""
+
+        if self._wrapper.is_plasma_on:
+            await self._wrapper.async_plasmawave_off()
+        else:
+            await self._wrapper.async_plasmawave_on()
+
+    async def async_set_preset_mode(self, preset_mode: str) -> None:
+        """Set new preset mode."""
+        await self._wrapper.async_set_preset_mode(preset_mode)
