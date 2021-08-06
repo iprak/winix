@@ -202,6 +202,10 @@ class WinixPurifier(FanEntity):
         return PRESET_MODES
 
     @property
+    def speed_list(self) -> list:
+        return ORDERED_NAMED_FAN_SPEEDS
+
+    @property
     def speed_count(self) -> int:
         """Return the number of speeds the fan supports."""
         return len(ORDERED_NAMED_FAN_SPEEDS)

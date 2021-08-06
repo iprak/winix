@@ -36,8 +36,7 @@ class WinixDeviceWrapper:
         logger,
     ):
         """Initialize the wrapper."""
-        self.driver = WinixDevice(device_stub.id, client)
-        self.info = device_stub
+        self._driver = WinixDevice(device_stub.id, client)
         self._state = None
         self._on = False
         self._auto = False
@@ -46,9 +45,11 @@ class WinixDeviceWrapper:
         self._sleep = False
         self._logger = logger
 
+        self.info = device_stub
+
     async def update(self) -> None:
         """Update the device data."""
-        self._state = await self.driver.get_state()
+        self._state = await self._driver.get_state()
         self._auto = self._manual = self._sleep = self._plasma_on = False
 
         self._on = self._state.get(ATTR_POWER) == ON_VALUE
@@ -114,7 +115,7 @@ class WinixDeviceWrapper:
             self._on = True
 
             self._logger.debug("%s: Turning on", self.info.alias)
-            await self.driver.turn_on()
+            await self._driver.turn_on()
 
     async def async_turn_on(self) -> None:
         """Turn on the purifier in Auto mode."""
@@ -127,7 +128,7 @@ class WinixDeviceWrapper:
             self._on = False
 
             self._logger.debug("%s: Turning off", self.info.alias)
-            await self.driver.turn_off()
+            await self._driver.turn_off()
 
     async def async_auto(self) -> None:
         """
@@ -147,7 +148,7 @@ class WinixDeviceWrapper:
             ] = AIRFLOW_LOW  # Something other than AIRFLOW_SLEEP
 
             self._logger.debug("%s: Setting auto mode", self.info.alias)
-            await self.driver.auto()
+            await self._driver.auto()
 
     async def async_plasmawave_on(self) -> None:
         """Turn on plasma wave."""
@@ -157,7 +158,7 @@ class WinixDeviceWrapper:
             self._state[ATTR_PLASMA] = ON_VALUE
 
             self._logger.debug("%s: Turning plasmawave on", self.info.alias)
-            await self.driver.plasmawave_on()
+            await self._driver.plasmawave_on()
 
     async def async_plasmawave_off(self) -> None:
         """Turn off plasma wave."""
@@ -167,7 +168,7 @@ class WinixDeviceWrapper:
             self._state[ATTR_PLASMA] = OFF_VALUE
 
             self._logger.debug("%s: Turning plasmawave off", self.info.alias)
-            await self.driver.plasmawave_off()
+            await self._driver.plasmawave_off()
 
     async def async_manual(self) -> None:
         """Put the purifier in Manual mode with Low airflow. Plasma state is left unchanged."""
@@ -182,7 +183,7 @@ class WinixDeviceWrapper:
             ] = AIRFLOW_LOW  # Something other than AIRFLOW_SLEEP
 
             self._logger.debug("%s: Setting manual mode", self.info.alias)
-            await self.driver.manual()
+            await self._driver.manual()
 
     async def async_sleep(self) -> None:
         """Turn the purifier in Manual mode with Sleep airflow. Plasma state is left unchanged."""
@@ -195,7 +196,7 @@ class WinixDeviceWrapper:
             self._state[ATTR_MODE] = MODE_MANUAL
 
             self._logger.debug("%s: Setting sleep mode", self.info.alias)
-            await self.driver.sleep()
+            await self._driver.sleep()
 
     async def async_set_speed(self, speed) -> None:
         """Turn the purifier on, put it in Manual mode and set the speed."""
@@ -208,7 +209,7 @@ class WinixDeviceWrapper:
             await self.async_manual()
 
             self._logger.debug("%s: Updated speed to '%s'", self.info.alias, speed)
-            await getattr(self.driver, speed)()
+            await getattr(self._driver, speed)()
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Turn the purifier on and put it in the new preset mode."""
