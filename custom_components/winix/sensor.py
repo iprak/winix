@@ -20,13 +20,13 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
     entities = []
     for wrapper in manager.get_device_wrappers():
-        entities.append(WinixPurifier(wrapper))
+        entities.append(WinixSensor(wrapper))
 
     async_add_entities(entities, False)
     _LOGGER.info("Added %s sensors", len(entities))
 
 
-class WinixPurifier(Entity):
+class WinixSensor(Entity):
     """Representation of a Winix Purifier air qValue sensor."""
 
     def __init__(self, wrapper: WinixDeviceWrapper) -> None:

@@ -22,9 +22,11 @@ from custom_components.winix.const import (
     PRESET_MODE_SLEEP,
 )
 
+WinixDriver_TypeName = "custom_components.winix.WinixDriver.WinixDriver"
+
 
 def build_mock_wrapper() -> WinixDeviceWrapper:
-    """Returns a mock WinixDeviceWrapper."""
+    """Return a mocked WinixDeviceWrapper instance."""
     client = Mock()
     device_stub = Mock()
 
@@ -82,10 +84,10 @@ def build_mock_wrapper() -> WinixDeviceWrapper:
 async def test_wrapper_update(
     mock_state, is_auto, is_manual, is_on, is_plasma_on, is_sleep
 ):
-    """Tests WinixDeviceWrapper states."""
+    """Tests device wrapper states."""
 
     with patch(
-        "custom_components.winix.WinixDevice.get_state",
+        f"{WinixDriver_TypeName}.get_state",
         AsyncMock(return_value=mock_state),
     ) as get_state:
         wrapper = build_mock_wrapper()
@@ -100,8 +102,9 @@ async def test_wrapper_update(
         assert wrapper.is_sleep == is_sleep
 
 
-async def test_async_turn_on():
-    with patch("custom_components.winix.WinixDevice.turn_on") as turn_on:
+async def test_async_ensure_on():
+    """Test ensuring device is on."""
+    with patch(f"{WinixDriver_TypeName}.turn_on") as turn_on:
         wrapper = build_mock_wrapper()
         assert not wrapper.is_on  # initially off
 
@@ -114,8 +117,9 @@ async def test_async_turn_on():
 
 
 async def test_async_turn_off():
-    with patch("custom_components.winix.WinixDevice.turn_on") as turn_on, patch(
-        "custom_components.winix.WinixDevice.turn_off"
+    """Test turning off."""
+    with patch(f"{WinixDriver_TypeName}.turn_on") as turn_on, patch(
+        f"{WinixDriver_TypeName}.turn_off"
     ) as turn_off:
         wrapper = build_mock_wrapper()
         assert not wrapper.is_on  # initially off
@@ -140,6 +144,7 @@ async def test_async_turn_off():
 
 
 async def test_async_turn_on():
+    """Test turning on."""
     wrapper = build_mock_wrapper()
 
     wrapper.async_ensure_on = AsyncMock()
@@ -152,8 +157,10 @@ async def test_async_turn_on():
 
 
 async def test_async_auto():
+    """Test setting auto mode."""
+
     # async_auto does not need the device to be turned on
-    with patch("custom_components.winix.WinixDevice.auto") as auto:
+    with patch(f"{WinixDriver_TypeName}.auto") as auto:
         wrapper = build_mock_wrapper()
 
         await wrapper.async_auto()
@@ -170,11 +177,11 @@ async def test_async_auto():
 
 
 async def test_async_plasmawave_on_off():
+    """Test turning plasmawave on."""
+
     # async_plasmawave does not need the device to be turned on
-    with patch(
-        "custom_components.winix.WinixDevice.plasmawave_on"
-    ) as plasmawave_on, patch(
-        "custom_components.winix.WinixDevice.plasmawave_off"
+    with patch(f"{WinixDriver_TypeName}.plasmawave_on") as plasmawave_on, patch(
+        f"{WinixDriver_TypeName}.plasmawave_off"
     ) as plasmawave_off:
         wrapper = build_mock_wrapper()
 
@@ -201,8 +208,10 @@ async def test_async_plasmawave_on_off():
 
 
 async def test_async_manual():
+    """Test setting manual mode."""
+
     # async_manual does not need the device to be turned on
-    with patch("custom_components.winix.WinixDevice.manual") as manual:
+    with patch(f"{WinixDriver_TypeName}.manual") as manual:
         wrapper = build_mock_wrapper()
 
         await wrapper.async_manual()
@@ -220,8 +229,10 @@ async def test_async_manual():
 
 
 async def test_async_sleep():
+    """Test setting sleep mode."""
+
     # async_sleep does not need the device to be turned on
-    with patch("custom_components.winix.WinixDevice.sleep") as sleep:
+    with patch(f"{WinixDriver_TypeName}.sleep") as sleep:
         wrapper = build_mock_wrapper()
 
         await wrapper.async_sleep()
@@ -239,10 +250,12 @@ async def test_async_sleep():
 
 
 async def test_async_set_speed():
-    with patch("custom_components.winix.WinixDevice.turn_on"), patch(
-        "custom_components.winix.WinixDevice.manual"
-    ), patch("custom_components.winix.WinixDevice.high") as high_speed, patch(
-        "custom_components.winix.WinixDevice.low"
+    """Test setting speed."""
+
+    with patch(f"{WinixDriver_TypeName}.turn_on"), patch(
+        f"{WinixDriver_TypeName}.manual"
+    ), patch(f"{WinixDriver_TypeName}.high") as high_speed, patch(
+        f"{WinixDriver_TypeName}.low"
     ) as low_speed:
         wrapper = build_mock_wrapper()
 
@@ -282,6 +295,8 @@ async def test_async_set_speed():
 async def test_async_set_preset_mode(
     preset_mode, sleep, auto, manual, plasmawave_off, plasmawave_on
 ):
+    """Test setting preset mode."""
+
     wrapper = build_mock_wrapper()
 
     wrapper.async_ensure_on = AsyncMock()
@@ -302,7 +317,16 @@ async def test_async_set_preset_mode(
 
 
 async def test_async_set_preset_mode_invalid():
-    wrapper = build_mock_wrapper()
+    """Test invalid preset mode."""
+
+    client = Mock()
+    device_stub = Mock()
+
+    logger = Mock()
+    logger.debug = Mock()
+    logger.warning = Mock()
+
+    wrapper = WinixDeviceWrapper(client, device_stub, logger)
 
     await wrapper.async_set_preset_mode("INVALID_PRESET")
-    wrapper._logger.warning.call_count == 1
+    logger.warning.call_count == 1
