@@ -37,7 +37,10 @@ class WinixDeviceWrapper:
     ):
         """Initialize the wrapper."""
         self._driver = WinixDevice(device_stub.id, client)
-        self._state = None
+
+        # Start as empty object in case fan was operated before it got updated
+        self._state = {}
+
         self._on = False
         self._auto = False
         self._manual = False
@@ -53,7 +56,7 @@ class WinixDeviceWrapper:
         self._auto = self._manual = self._sleep = self._plasma_on = False
 
         self._on = self._state.get(ATTR_POWER) == ON_VALUE
-        self._plasma_on = self._state[ATTR_PLASMA] == ON_VALUE
+        self._plasma_on = self._state.get(ATTR_PLASMA) == ON_VALUE
 
         # Sleep: airflow=sleep, mode can be manual
         # Auto: mode=auto, airflow can be anything
@@ -201,7 +204,7 @@ class WinixDeviceWrapper:
     async def async_set_speed(self, speed) -> None:
         """Turn the purifier on, put it in Manual mode and set the speed."""
 
-        if self._state[ATTR_AIRFLOW] != speed:
+        if self._state.get(ATTR_AIRFLOW) != speed:
             self._state[ATTR_AIRFLOW] = speed
 
             # Setting speed requires the fan to be in manual mode
