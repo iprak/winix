@@ -118,21 +118,21 @@ class WinixPurifier(FanEntity):
 
         self._unique_id = f"{DOMAIN}.{WINIX_DOMAIN}_{wrapper.info.mac.lower()}"
         self._name = f"Winix {self._wrapper.info.alias}"
-        self._state = None
 
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        self._state = self._wrapper.get_state()
-        return self._state is not None
+        state = self._wrapper.get_state()
+        return state is not None
 
     @property
     def device_state_attributes(self) -> None:
         """Return the state attributes."""
         attributes = {}
+        state = self._wrapper.get_state()
 
-        if self._state is not None:
-            for key, value in self._state.items():
+        if state is not None:
+            for key, value in state.items():
                 # The power attribute is the entity state, so skip it
                 if not key == ATTR_POWER:
                     attributes[key] = value
@@ -170,19 +170,21 @@ class WinixPurifier(FanEntity):
     @property
     def percentage(self):
         """Return the current speed percentage."""
-        if self._state is None:
+        state = self._wrapper.get_state()
+        if state is None:
             return None
         elif self._wrapper.is_sleep or self._wrapper.is_auto:
             return None
         else:
             return ordered_list_item_to_percentage(
-                ORDERED_NAMED_FAN_SPEEDS, self._state.get(ATTR_AIRFLOW)
+                ORDERED_NAMED_FAN_SPEEDS, state.get(ATTR_AIRFLOW)
             )
 
     @property
     def preset_mode(self):
         """Return the current preset mode, e.g., auto, smart, interval, favorite."""
-        if self._state is None:
+        state = self._wrapper.get_state()
+        if state is None:
             return None
         if self._wrapper.is_sleep:
             return PRESET_MODE_SLEEP
