@@ -17,7 +17,7 @@ from winix import WinixAccount
 from winix.auth import login, refresh
 from winix.cmd import Configuration
 
-from .WinixDeviceWrapper import WinixDeviceWrapper
+from .WinixDeviceWrapper import WinixDevice, WinixDeviceWrapper
 from .const import DOMAIN, SERVICE_REFRESH_ACCESS
 
 _LOGGER = logging.getLogger(__name__)

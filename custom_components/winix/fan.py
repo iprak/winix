@@ -44,6 +44,7 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 SCAN_INTERVAL = timedelta(seconds=15)
 
+
 # pylint: disable=unused-argument
 async def async_setup_platform(
     hass: HomeAssistantType,
@@ -203,6 +204,7 @@ class WinixPurifier(FanEntity):
 
     @property
     def speed_list(self) -> list:
+        """Get the list of available speeds."""
         return ORDERED_NAMED_FAN_SPEEDS
 
     @property
