@@ -11,6 +11,9 @@ from .const import ATTR_AIR_QUALITY, ATTR_AIR_QVALUE
 
 _LOGGER = logging.getLogger(__name__)
 SCAN_INTERVAL = timedelta(seconds=15)
+ICON = "mdi:cloud"
+UNIT_OF_MEASUREMENT = "QV"
+
 
 # pylint: disable=unused-argument
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
@@ -19,13 +22,13 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
     entities = []
     for wrapper in manager.get_device_wrappers():
-        entities.append(WinixPurifier(wrapper))
+        entities.append(WinixSensor(wrapper))
 
     async_add_entities(entities, False)
     _LOGGER.info("Added %s sensors", len(entities))
 
 
-class WinixPurifier(Entity):
+class WinixSensor(Entity):
     """Representation of a Winix Purifier air qValue sensor."""
 
     def __init__(self, wrapper: WinixDeviceWrapper) -> None:
@@ -34,21 +37,21 @@ class WinixPurifier(Entity):
 
         self._unique_id = f"{DOMAIN}.{WINIX_DOMAIN}_qvalue_{wrapper.info.mac.lower()}"
         self._name = f"Winix {self._wrapper.info.alias}"
-        self._state = None
 
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        self._state = self._wrapper.get_state()
-        return self._state is not None
+        state = self._wrapper.get_state()
+        return state is not None
 
     @property
     def device_state_attributes(self) -> None:
         """Return the state attributes."""
         attributes = {ATTR_AIR_QUALITY: None}
 
-        if self._state is not None:
-            attributes[ATTR_AIR_QUALITY] = self._state.get(ATTR_AIR_QUALITY)
+        state = self._wrapper.get_state()
+        if state is not None:
+            attributes[ATTR_AIR_QUALITY] = state.get(ATTR_AIR_QUALITY)
 
         return attributes
 
@@ -68,7 +71,7 @@ class WinixPurifier(Entity):
     @property
     def icon(self):
         """Return the icon to use for device if any."""
-        return "mdi:cloud"
+        return ICON
 
     @property
     def name(self) -> str:
@@ -78,9 +81,10 @@ class WinixPurifier(Entity):
     @property
     def state(self):
         """Return the state of the sensor."""
-        return None if self._state is None else self._state.get(ATTR_AIR_QVALUE)
+        state = self._wrapper.get_state()
+        return None if state is None else state.get(ATTR_AIR_QVALUE)
 
     @property
     def unit_of_measurement(self):
         """Return the unit of measurement of this entity, if any."""
-        return "QV"
+        return UNIT_OF_MEASUREMENT
