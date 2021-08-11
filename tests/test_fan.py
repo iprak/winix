@@ -9,6 +9,7 @@ from custom_components.winix.const import (
     AIRFLOW_HIGH,
     AIRFLOW_LOW,
     ATTR_AIRFLOW,
+    DOMAIN,
     ORDERED_NAMED_FAN_SPEEDS,
     PRESET_MODE_AUTO,
     PRESET_MODE_MANUAL,
@@ -16,7 +17,22 @@ from custom_components.winix.const import (
     PRESET_MODE_SLEEP,
     PRESET_MODES,
 )
-from custom_components.winix.fan import WinixPurifier
+from custom_components.winix.fan import WinixPurifier, async_setup_platform
+
+from tests import build_fake_manager
+
+
+async def test_setup_platform():
+    """Test platform setup."""
+
+    manager = build_fake_manager(3)
+    hass = Mock()
+    hass.data = {DOMAIN: manager}
+
+    async_add_entities = Mock()
+    await async_setup_platform(hass, None, async_add_entities, None)
+    assert async_add_entities.called
+    assert len(async_add_entities.call_args[0][0]) == 3
 
 
 def test_construction():

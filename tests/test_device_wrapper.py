@@ -22,19 +22,9 @@ from custom_components.winix.const import (
     PRESET_MODE_SLEEP,
 )
 
+from tests import build_mock_wrapper
+
 WinixDriver_TypeName = "custom_components.winix.WinixDriver.WinixDriver"
-
-
-def build_mock_wrapper() -> WinixDeviceWrapper:
-    """Return a mocked WinixDeviceWrapper instance."""
-    client = Mock()
-    device_stub = Mock()
-
-    logger = Mock()
-    logger.debug = Mock()
-    logger.warning = Mock()
-
-    return WinixDeviceWrapper(client, device_stub, logger)
 
 
 @pytest.mark.parametrize(
