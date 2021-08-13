@@ -175,6 +175,8 @@ class WinixPurifier(FanEntity):
             return None
         elif self._wrapper.is_sleep or self._wrapper.is_auto:
             return None
+        elif state.get(ATTR_AIRFLOW) is None:
+            return None
         else:
             return ordered_list_item_to_percentage(
                 ORDERED_NAMED_FAN_SPEEDS, state.get(ATTR_AIRFLOW)
