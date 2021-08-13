@@ -230,6 +230,8 @@ class WinixPurifier(FanEntity):
                 percentage_to_ordered_list_item(ORDERED_NAMED_FAN_SPEEDS, percentage)
             )
 
+        await self.async_update_ha_state()  # Update state without forcing a refresh
+
     async def async_turn_on(
         self,
         speed: Optional[str] = None,
@@ -246,17 +248,22 @@ class WinixPurifier(FanEntity):
         else:
             await self._wrapper.async_turn_on()
 
+        await self.async_update_ha_state()
+
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the purifier."""
         await self._wrapper.async_turn_off()
+        await self.async_update_ha_state()
 
     async def async_plasmawave_on(self) -> None:
         """Turn on plasma wave."""
         await self._wrapper.async_plasmawave_on()
+        await self.async_update_ha_state()
 
     async def async_plasmawave_off(self) -> None:
         """Turn off plasma wave."""
         await self._wrapper.async_plasmawave_off()
+        await self.async_update_ha_state()
 
     async def async_plasmawave_toggle(self) -> None:
         """Toggle plasma wave."""
@@ -266,6 +273,9 @@ class WinixPurifier(FanEntity):
         else:
             await self._wrapper.async_plasmawave_on()
 
+        await self.async_update_ha_state()
+
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set new preset mode."""
         await self._wrapper.async_set_preset_mode(preset_mode)
+        await self.async_update_ha_state()
