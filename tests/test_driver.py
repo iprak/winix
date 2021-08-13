@@ -1,16 +1,10 @@
 """Test WinixDevice component."""
-from unittest.mock import Mock, patch
+import unittest
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
 from custom_components.winix.WinixDriver import WinixDriver
-
-
-def build_mock_device() -> WinixDriver:
-    """Return a mocked WinixDeviceWrapper instance."""
-    client = Mock()
-    device_id = "device_1"
-    return WinixDriver(device_id, client)
 
 
 @patch("custom_components.winix.WinixDriver.WinixDriver._rpc_attr")
@@ -30,13 +24,30 @@ def build_mock_device() -> WinixDriver:
         ("sleep", "airflow", "sleep"),
     ],
 )
-async def test_turn_off(rpc_attr, method, category, value):
+async def test_turn_off(mock_rpc_attr, mock_driver, method, category, value):
     """Test various driver methods."""
-    device = build_mock_device()
 
-    await getattr(device, method)()
-    assert rpc_attr.call_count == 1
-    assert rpc_attr.call_args[0] == (
+    await getattr(mock_driver, method)()
+    assert mock_rpc_attr.call_count == 1
+    assert mock_rpc_attr.call_args[0] == (
         WinixDriver.category_keys[category],
         WinixDriver.state_keys[category][value],
     )
+
+
+@pytest.mark.parametrize(
+    "mock_driver_with_payload, expected",
+    [
+        ({"A02": "0"}, {"power": "off"}),
+        ({"A02": "1"}, {"power": "on"}),
+        ({"S08": "79"}, {"air_qvalue": 79}),  # air_qvalue
+    ],
+    indirect=["mock_driver_with_payload"],
+)
+async def test_get_state(mock_driver_with_payload, expected):
+    """Test get_state."""
+
+    # payload = {"A02": "0"}  # "A02" represents "power" and "0" means "off"
+
+    state = await mock_driver_with_payload.get_state()
+    assert state == expected

@@ -19,7 +19,7 @@ from custom_components.winix.const import (
 )
 from custom_components.winix.fan import WinixPurifier, async_setup_platform
 
-from tests import build_fake_manager
+from tests import build_fake_manager, build_purifier
 
 
 async def test_setup_platform():
@@ -131,75 +131,62 @@ def test_device_preset_mode(
     assert device.preset_mode is expected
 
 
-async def test_async_set_percentage_zero():
+async def test_async_set_percentage_zero(hass, mock_device_wrapper):
     """Test setting percentage speed."""
-    device_wrapper = Mock()
-    device_wrapper.async_set_speed = AsyncMock()
 
-    device = WinixPurifier(device_wrapper)
+    device = build_purifier(hass, mock_device_wrapper)
     device.async_turn_off = AsyncMock()
 
     await device.async_set_percentage(0)
     assert device.async_turn_off.call_count == 1
-    assert device_wrapper.async_set_speed.call_count == 0
+    assert mock_device_wrapper.async_set_speed.call_count == 0
 
 
-async def test_async_set_percentage_non_zero():
+async def test_async_set_percentage_non_zero(hass, mock_device_wrapper):
     """Test setting percentage speed."""
-    device_wrapper = Mock()
-    device_wrapper.async_set_speed = AsyncMock()
 
-    device = WinixPurifier(device_wrapper)
+    device = build_purifier(hass, mock_device_wrapper)
     device.async_turn_off = AsyncMock()
 
     await device.async_set_percentage(20)
     assert device.async_turn_off.call_count == 0
-    assert device_wrapper.async_set_speed.call_count == 1
+    assert mock_device_wrapper.async_set_speed.call_count == 1
 
 
-async def test_async_turn_on():
+async def test_async_turn_on(hass, mock_device_wrapper):
     """Test turning on."""
-    device_wrapper = Mock()
 
-    device = WinixPurifier(device_wrapper)
+    device = build_purifier(hass, mock_device_wrapper)
     device.async_set_percentage = AsyncMock()
-    device_wrapper.async_set_preset_mode = AsyncMock()
-    device_wrapper.async_turn_on = AsyncMock()
 
     await device.async_turn_on()
     assert device.async_set_percentage.call_count == 0
-    assert device_wrapper.async_set_preset_mode.call_count == 0
-    assert device_wrapper.async_turn_on.call_count == 1
+    assert mock_device_wrapper.async_set_preset_mode.call_count == 0
+    assert mock_device_wrapper.async_turn_on.call_count == 1
 
 
-async def test_async_turn_on_percentage():
+async def test_async_turn_on_percentage(hass, mock_device_wrapper):
     """Test turning on."""
-    device_wrapper = Mock()
 
-    device = WinixPurifier(device_wrapper)
+    device = build_purifier(hass, mock_device_wrapper)
     device.async_set_percentage = AsyncMock()
-    device_wrapper.async_set_preset_mode = AsyncMock()
-    device_wrapper.async_turn_on = AsyncMock()
 
     await device.async_turn_on(None, 25)
     assert device.async_set_percentage.call_count == 1
-    assert device_wrapper.async_set_preset_mode.call_count == 0
-    assert device_wrapper.async_turn_on.call_count == 0
+    assert mock_device_wrapper.async_set_preset_mode.call_count == 0
+    assert mock_device_wrapper.async_turn_on.call_count == 0
 
 
-async def test_async_turn_on_preset():
+async def test_async_turn_on_preset(hass, mock_device_wrapper):
     """Test turning on."""
-    device_wrapper = Mock()
-    device_wrapper.async_set_preset_mode = AsyncMock()
-    device_wrapper.async_turn_on = AsyncMock()
 
-    device = WinixPurifier(device_wrapper)
+    device = build_purifier(hass, mock_device_wrapper)
     device.async_set_percentage = AsyncMock()
 
     await device.async_turn_on(None, None, PRESET_MODE_MANUAL)
     assert device.async_set_percentage.call_count == 0
-    assert device_wrapper.async_set_preset_mode.call_count == 1
-    assert device_wrapper.async_turn_on.call_count == 0
+    assert mock_device_wrapper.async_set_preset_mode.call_count == 1
+    assert mock_device_wrapper.async_turn_on.call_count == 0
 
 
 @pytest.mark.parametrize(
@@ -211,14 +198,14 @@ async def test_async_turn_on_preset():
         (["async_set_preset_mode", PRESET_MODE_MANUAL]),
     ],
 )
-async def test_fan_operations(args):
+async def test_fan_operations(hass, mock_device_wrapper, args):
     """Test other fan operations."""
     mocked_method = AsyncMock()
-    device_wrapper = Mock()
     method = args[0]
 
-    with patch.object(device_wrapper, method, mocked_method):
-        device = WinixPurifier(device_wrapper)
+    with patch.object(mock_device_wrapper, method, mocked_method):
+        # device = WinixPurifier(device_wrapper)
+        device = build_purifier(hass, mock_device_wrapper)
 
         if len(args) == 2:
             await getattr(device, method)(args[1])
@@ -235,20 +222,17 @@ async def test_fan_operations(args):
         (False),
     ],
 )
-async def test_plasma_toggle(is_plasma_on):
+async def test_plasma_toggle(hass, mock_device_wrapper, is_plasma_on):
     """Test pasma toggle operation."""
-    device_wrapper = Mock()
-    device_wrapper.async_plasmawave_off = AsyncMock()
-    device_wrapper.async_plasmawave_on = AsyncMock()
+    type(mock_device_wrapper).is_plasma_on = is_plasma_on
 
-    type(device_wrapper).is_plasma_on = is_plasma_on
+    device = build_purifier(hass, mock_device_wrapper)
 
-    device = WinixPurifier(device_wrapper)
     await device.async_plasmawave_toggle()
 
     if is_plasma_on:
-        assert device_wrapper.async_plasmawave_off.call_count == 1
-        assert device_wrapper.async_plasmawave_on.call_count == 0
+        assert mock_device_wrapper.async_plasmawave_off.call_count == 1
+        assert mock_device_wrapper.async_plasmawave_on.call_count == 0
     else:
-        assert device_wrapper.async_plasmawave_off.call_count == 0
-        assert device_wrapper.async_plasmawave_on.call_count == 1
+        assert mock_device_wrapper.async_plasmawave_off.call_count == 0
+        assert mock_device_wrapper.async_plasmawave_on.call_count == 1
