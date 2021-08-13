@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, Mock
 
 from custom_components.winix import WinixManager
 from custom_components.winix.WinixDeviceWrapper import WinixDeviceWrapper
+from custom_components.winix.fan import WinixPurifier
 
 
 def build_mock_wrapper() -> WinixDeviceWrapper:
@@ -29,3 +30,14 @@ def build_fake_manager(wrapper_count) -> WinixManager:
     manager = MagicMock()
     manager.get_device_wrappers = Mock(return_value=wrappers)
     return manager
+
+
+def build_purifier(hass, device_wrapper: WinixDeviceWrapper) -> WinixPurifier:
+    """Return a WinixPurifier instance."""
+
+    device = WinixPurifier(device_wrapper)
+    device.add_to_platform_start(hass, None, None)
+
+    # Use unique_id as entity_id, this is required for async_update_ha_state
+    device.entity_id = device.unique_id
+    return device

@@ -51,27 +51,25 @@ def test_sensor_availability():
     assert sensor.available
 
 
-def test_sensor_attributes():
+def test_sensor_attributes(mock_device_wrapper):
     """Test sensor attributes."""
-    device_wrapper = Mock()
-    device_wrapper.get_state = MagicMock(return_value=None)
+    mock_device_wrapper.get_state = MagicMock(return_value=None)
 
-    sensor = WinixSensor(device_wrapper)
+    sensor = WinixSensor(mock_device_wrapper)
 
     assert sensor.device_state_attributes[ATTR_AIR_QUALITY] is None
 
-    device_wrapper.get_state = MagicMock(return_value={ATTR_AIR_QUALITY: 12})
+    mock_device_wrapper.get_state = MagicMock(return_value={ATTR_AIR_QUALITY: 12})
     assert sensor.device_state_attributes[ATTR_AIR_QUALITY] == 12
 
 
-def test_sensor_state():
+def test_sensor_state(mock_device_wrapper):
     """Test sensor state."""
-    device_wrapper = Mock()
-    device_wrapper.get_state = MagicMock(return_value=None)
+    mock_device_wrapper.get_state = MagicMock(return_value=None)
 
-    sensor = WinixSensor(device_wrapper)
+    sensor = WinixSensor(mock_device_wrapper)
 
     assert sensor.state is None
 
-    device_wrapper.get_state = MagicMock(return_value={ATTR_AIR_QVALUE: 100})
+    mock_device_wrapper.get_state = MagicMock(return_value={ATTR_AIR_QVALUE: 100})
     assert sensor.state == 100
