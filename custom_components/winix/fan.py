@@ -24,7 +24,9 @@ from homeassistant.util.percentage import (
 )
 import voluptuous as vol
 
-from . import WinixDeviceWrapper, WinixManager
+from custom_components.winix.device_wrapper import WinixDeviceWrapper
+from custom_components.winix.manager import WinixManager
+
 from .const import (
     ATTR_AIRFLOW,
     ATTR_FILTER_REPLACEMENT_DATE,

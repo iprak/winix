@@ -1,13 +1,13 @@
 """Test WinixDevice component."""
-import unittest
-from unittest.mock import AsyncMock, Mock, patch
+
+from unittest.mock import patch
 
 import pytest
 
-from custom_components.winix.WinixDriver import WinixDriver
+from custom_components.winix.driver import WinixDriver
 
 
-@patch("custom_components.winix.WinixDriver.WinixDriver._rpc_attr")
+@patch("custom_components.winix.driver.WinixDriver._rpc_attr")
 @pytest.mark.parametrize(
     "method, category, value",
     [

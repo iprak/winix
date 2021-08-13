@@ -3,6 +3,7 @@
 from unittest.mock import AsyncMock, Mock, patch
 
 from homeassistant.components.fan import SUPPORT_PRESET_MODE, SUPPORT_SET_SPEED
+from homeassistant.const import ATTR_ENTITY_ID
 import pytest
 
 from custom_components.winix.const import (
@@ -16,23 +17,75 @@ from custom_components.winix.const import (
     PRESET_MODE_MANUAL_PLASMA,
     PRESET_MODE_SLEEP,
     PRESET_MODES,
+    SERVICE_PLASMAWAVE_ON,
+    WINIX_DATA_KEY,
 )
 from custom_components.winix.fan import WinixPurifier, async_setup_platform
 
 from tests import build_fake_manager, build_purifier
 
 
-async def test_setup_platform():
+async def test_setup_platform(hass):
     """Test platform setup."""
 
     manager = build_fake_manager(3)
-    hass = Mock()
     hass.data = {DOMAIN: manager}
 
     async_add_entities = Mock()
+
     await async_setup_platform(hass, None, async_add_entities, None)
+
     assert async_add_entities.called
     assert len(async_add_entities.call_args[0][0]) == 3
+
+
+async def test_service(hass):
+    """Test platform setup."""
+
+    manager = build_fake_manager(2)
+    hass.data = {DOMAIN: manager}
+
+    async_add_entities = Mock()
+
+    await async_setup_platform(hass, None, async_add_entities, None)
+
+    first_entity_id = None
+
+    # Prepare the devices for serive call
+    for device in hass.data[WINIX_DATA_KEY]:
+        device.hass = hass
+        device.entity_id = device.unique_id
+
+        if first_entity_id is None:
+            first_entity_id = device.entity_id
+
+    # Test service call with a specific entity_id
+    with patch(
+        "custom_components.winix.fan.WinixPurifier.async_plasmawave_on"
+    ) as mock_plasmawave_on, patch(
+        "custom_components.winix.fan.WinixPurifier.async_update_ha_state"
+    ) as mock_update_ha_state:
+        service_data = {ATTR_ENTITY_ID: [first_entity_id]}
+        await hass.services.async_call(
+            DOMAIN, SERVICE_PLASMAWAVE_ON, service_data, blocking=True
+        )
+
+        assert mock_plasmawave_on.call_count == 1  # Should be called once
+
+        # Devices on which service call is made have their state updated
+        assert mock_update_ha_state.call_count == 1
+
+    # Test service call with no entity_id, call is made on all devices
+    with patch(
+        "custom_components.winix.fan.WinixPurifier.async_plasmawave_on"
+    ) as mock_plasmawave_on, patch(
+        "custom_components.winix.fan.WinixPurifier.async_update_ha_state"
+    ) as mock_update_ha_state:
+        await hass.services.async_call(DOMAIN, SERVICE_PLASMAWAVE_ON, {}, blocking=True)
+        assert mock_plasmawave_on.call_count == 2  # Called for each device
+
+        # Devices on which service call is made have their state updated
+        assert mock_update_ha_state.call_count == 2
 
 
 def test_construction():
@@ -92,6 +145,7 @@ def test_device_on(value):
         ({}, False, True, None),
         ({ATTR_AIRFLOW: AIRFLOW_LOW}, False, False, 25),
         ({ATTR_AIRFLOW: AIRFLOW_HIGH}, False, False, 75),
+        ({ATTR_AIRFLOW: None}, None, None, None),
     ],
 )
 def test_device_percentage(state, is_sleep, is_auto, expected):
@@ -204,7 +258,6 @@ async def test_fan_operations(hass, mock_device_wrapper, args):
     method = args[0]
 
     with patch.object(mock_device_wrapper, method, mocked_method):
-        # device = WinixPurifier(device_wrapper)
         device = build_purifier(hass, mock_device_wrapper)
 
         if len(args) == 2:

@@ -2,15 +2,21 @@
 
 from unittest.mock import MagicMock, Mock
 
-from custom_components.winix import WinixManager
-from custom_components.winix.WinixDeviceWrapper import WinixDeviceWrapper
+from voluptuous.validators import Number
+
+from custom_components.winix.device_wrapper import WinixDeviceWrapper
 from custom_components.winix.fan import WinixPurifier
+from custom_components.winix.manager import WinixManager
 
 
-def build_mock_wrapper() -> WinixDeviceWrapper:
+def build_mock_wrapper(index: Number = 0) -> WinixDeviceWrapper:
     """Return a mocked WinixDeviceWrapper instance."""
     client = Mock()
+
     device_stub = Mock()
+
+    device_stub.mac = f"f190d35456d{index}"
+    device_stub.alias = f"Purifier{index}"
 
     logger = Mock()
     logger.debug = Mock()
@@ -24,8 +30,8 @@ def build_fake_manager(wrapper_count) -> WinixManager:
     wrappers = []
 
     # Prepare fake wrappers
-    for x in range(0, wrapper_count):
-        wrappers.append(build_mock_wrapper())
+    for index in range(0, wrapper_count):
+        wrappers.append(build_mock_wrapper(index))
 
     manager = MagicMock()
     manager.get_device_wrappers = Mock(return_value=wrappers)

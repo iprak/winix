@@ -2,11 +2,10 @@
 
 from unittest.mock import AsyncMock, MagicMock, Mock
 
-import aiohttp
 import pytest
 
-from custom_components.winix.WinixDeviceWrapper import WinixDeviceWrapper
-from custom_components.winix.WinixDriver import WinixDriver
+from custom_components.winix.device_wrapper import WinixDeviceWrapper
+from custom_components.winix.driver import WinixDriver
 
 
 @pytest.fixture
