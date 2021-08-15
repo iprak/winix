@@ -1,12 +1,13 @@
 """The Winix C545 Air Purifier component."""
 
+
 from typing import Dict
 
 import aiohttp
 
+from custom_components.winix.driver import WinixDriver
 from winix import WinixDeviceStub
 
-from .WinixDriver import WinixDriver
 from .const import (
     AIRFLOW_LOW,
     AIRFLOW_SLEEP,

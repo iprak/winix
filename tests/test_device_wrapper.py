@@ -3,7 +3,6 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from custom_components.winix import WinixDeviceWrapper
 from custom_components.winix.const import (
     AIRFLOW_HIGH,
     AIRFLOW_LOW,
@@ -21,10 +20,11 @@ from custom_components.winix.const import (
     PRESET_MODE_MANUAL_PLASMA,
     PRESET_MODE_SLEEP,
 )
+from custom_components.winix.device_wrapper import WinixDeviceWrapper
 
 from tests import build_mock_wrapper
 
-WinixDriver_TypeName = "custom_components.winix.WinixDriver.WinixDriver"
+WinixDriver_TypeName = "custom_components.winix.driver.WinixDriver"
 
 
 @pytest.mark.parametrize(

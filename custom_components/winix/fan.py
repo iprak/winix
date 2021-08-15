@@ -24,7 +24,9 @@ from homeassistant.util.percentage import (
 )
 import voluptuous as vol
 
-from . import WinixDeviceWrapper, WinixManager
+from custom_components.winix.device_wrapper import WinixDeviceWrapper
+from custom_components.winix.manager import WinixManager
+
 from .const import (
     ATTR_AIRFLOW,
     ATTR_FILTER_REPLACEMENT_DATE,
@@ -175,6 +177,8 @@ class WinixPurifier(FanEntity):
             return None
         elif self._wrapper.is_sleep or self._wrapper.is_auto:
             return None
+        elif state.get(ATTR_AIRFLOW) is None:
+            return None
         else:
             return ordered_list_item_to_percentage(
                 ORDERED_NAMED_FAN_SPEEDS, state.get(ATTR_AIRFLOW)
@@ -230,6 +234,8 @@ class WinixPurifier(FanEntity):
                 percentage_to_ordered_list_item(ORDERED_NAMED_FAN_SPEEDS, percentage)
             )
 
+        await self.async_update_ha_state()  # Update state without forcing a refresh
+
     async def async_turn_on(
         self,
         speed: Optional[str] = None,
@@ -246,17 +252,22 @@ class WinixPurifier(FanEntity):
         else:
             await self._wrapper.async_turn_on()
 
+        await self.async_update_ha_state()
+
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the purifier."""
         await self._wrapper.async_turn_off()
+        await self.async_update_ha_state()
 
     async def async_plasmawave_on(self) -> None:
         """Turn on plasma wave."""
         await self._wrapper.async_plasmawave_on()
+        await self.async_update_ha_state()
 
     async def async_plasmawave_off(self) -> None:
         """Turn off plasma wave."""
         await self._wrapper.async_plasmawave_off()
+        await self.async_update_ha_state()
 
     async def async_plasmawave_toggle(self) -> None:
         """Toggle plasma wave."""
@@ -266,6 +277,9 @@ class WinixPurifier(FanEntity):
         else:
             await self._wrapper.async_plasmawave_on()
 
+        await self.async_update_ha_state()
+
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set new preset mode."""
         await self._wrapper.async_set_preset_mode(preset_mode)
+        await self.async_update_ha_state()

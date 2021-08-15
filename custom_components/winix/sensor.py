@@ -6,7 +6,10 @@ import logging
 from homeassistant.components.sensor import DOMAIN
 from homeassistant.helpers.entity import Entity
 
-from . import DOMAIN as WINIX_DOMAIN, WinixDeviceWrapper, WinixManager
+from custom_components.winix.device_wrapper import WinixDeviceWrapper
+from custom_components.winix.manager import WinixManager
+
+from . import DOMAIN as WINIX_DOMAIN
 from .const import ATTR_AIR_QUALITY, ATTR_AIR_QVALUE
 
 _LOGGER = logging.getLogger(__name__)
