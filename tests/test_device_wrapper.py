@@ -16,6 +16,7 @@ from custom_components.winix.const import (
     OFF_VALUE,
     ON_VALUE,
     PRESET_MODE_AUTO,
+    PRESET_MODE_AUTO_PLASMA,
     PRESET_MODE_MANUAL,
     PRESET_MODE_MANUAL_PLASMA,
     PRESET_MODE_SLEEP,
@@ -277,7 +278,8 @@ async def test_async_set_speed():
     "preset_mode, sleep, auto, manual, plasmawave_off, plasmawave_on",
     [
         (PRESET_MODE_SLEEP, 1, 0, 0, 0, 0),
-        (PRESET_MODE_AUTO, 0, 1, 0, 0, 0),
+        (PRESET_MODE_AUTO, 0, 1, 0, 1, 0),
+        (PRESET_MODE_AUTO_PLASMA, 0, 1, 0, 0, 1),
         (PRESET_MODE_MANUAL, 0, 0, 1, 1, 0),
         (PRESET_MODE_MANUAL_PLASMA, 0, 0, 1, 0, 1),
     ],

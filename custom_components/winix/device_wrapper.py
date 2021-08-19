@@ -20,6 +20,7 @@ from .const import (
     OFF_VALUE,
     ON_VALUE,
     PRESET_MODE_AUTO,
+    PRESET_MODE_AUTO_PLASMA,
     PRESET_MODE_MANUAL,
     PRESET_MODE_MANUAL_PLASMA,
     PRESET_MODE_SLEEP,
@@ -228,6 +229,10 @@ class WinixDeviceWrapper:
             await self.async_sleep()
         elif preset_mode == PRESET_MODE_AUTO:
             await self.async_auto()
+            await self.async_plasmawave_off()
+        elif preset_mode == PRESET_MODE_AUTO_PLASMA:
+            await self.async_auto()
+            await self.async_plasmawave_on()
         elif preset_mode == PRESET_MODE_MANUAL:
             await self.async_manual()
             await self.async_plasmawave_off()
