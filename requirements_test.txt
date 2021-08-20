@@ -3,19 +3,19 @@ winix==0.2.1
 
 # Pre-commit requirements
 bandit==1.7.0
-black==20.8b1
+black==21.7b0
 codespell==2.0.0
 flake8-docstrings==1.6.0
 flake8==3.9.2
-isort==5.8.0
+isort==5.9.3
 pydocstyle==6.0.0
-pyupgrade==2.23.0
+pyupgrade==2.23.3
 yamllint==1.26.1
 
 
 # Unit tests requirements
 pre-commit==2.13.0
-pylint==2.6.0
-pytest<6.0
-pytest-cov<3.0.0
+pylint==2.9.5
+pytest==6.2.4
+pytest-cov==2.12.1
 pytest-homeassistant-custom-component
