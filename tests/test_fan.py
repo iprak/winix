@@ -13,8 +13,9 @@ from custom_components.winix.const import (
     DOMAIN,
     ORDERED_NAMED_FAN_SPEEDS,
     PRESET_MODE_AUTO,
+    PRESET_MODE_AUTO_PLASMA_OFF,
     PRESET_MODE_MANUAL,
-    PRESET_MODE_MANUAL_PLASMA,
+    PRESET_MODE_MANUAL_PLASMA_OFF,
     PRESET_MODE_SLEEP,
     PRESET_MODES,
     SERVICE_PLASMAWAVE_ON,
@@ -160,18 +161,19 @@ def test_device_percentage(state, is_sleep, is_auto, expected):
 
 
 @pytest.mark.parametrize(
-    "state,is_sleep,is_auto,is_manual,is_plasma_on,expected",
+    "state,is_sleep,is_auto,is_manual,is_plasma_on,is_plasma_off,expected",
     [
-        (None, None, None, None, None, None),
-        ({}, True, False, False, False, PRESET_MODE_SLEEP),
-        ({}, False, False, False, False, None),
-        ({}, False, True, False, False, PRESET_MODE_AUTO),
-        ({}, False, False, True, False, PRESET_MODE_MANUAL),
-        ({}, False, False, True, True, PRESET_MODE_MANUAL_PLASMA),
+        (None, None, None, None, None, None, None),
+        ({}, True, False, False, False, False, PRESET_MODE_SLEEP),
+        ({}, False, False, False, False, False, None),
+        ({}, False, True, False, True, False, PRESET_MODE_AUTO),
+        ({}, False, True, False, False, True, PRESET_MODE_AUTO_PLASMA_OFF),
+        ({}, False, False, True, True, False, PRESET_MODE_MANUAL),
+        ({}, False, False, True, False, True, PRESET_MODE_MANUAL_PLASMA_OFF),
     ],
 )
 def test_device_preset_mode(
-    state, is_sleep, is_auto, is_manual, is_plasma_on, expected
+    state, is_sleep, is_auto, is_manual, is_plasma_on, is_plasma_off, expected
 ):
     """Test device preset mode."""
 
@@ -180,6 +182,7 @@ def test_device_preset_mode(
     type(device_wrapper).is_auto = is_auto
     type(device_wrapper).is_manual = is_manual
     type(device_wrapper).is_plasma_on = is_plasma_on
+    type(device_wrapper).is_plasma_off = is_plasma_off
     device_wrapper.get_state = Mock(return_value=state)
     device = WinixPurifier(device_wrapper)
     assert device.preset_mode is expected
