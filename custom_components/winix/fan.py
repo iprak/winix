@@ -35,9 +35,9 @@ from .const import (
     DOMAIN as WINIX_DOMAIN,
     ORDERED_NAMED_FAN_SPEEDS,
     PRESET_MODE_AUTO,
-    PRESET_MODE_AUTO_PLASMA,
+    PRESET_MODE_AUTO_PLASMA_OFF,
     PRESET_MODE_MANUAL,
-    PRESET_MODE_MANUAL_PLASMA,
+    PRESET_MODE_MANUAL_PLASMA_OFF,
     PRESET_MODE_SLEEP,
     PRESET_MODES,
     SERVICES,
@@ -195,15 +195,15 @@ class WinixPurifier(FanEntity):
             return PRESET_MODE_SLEEP
         if self._wrapper.is_auto:
             return (
-                PRESET_MODE_AUTO_PLASMA
+                PRESET_MODE_AUTO
                 if self._wrapper.is_plasma_on
-                else PRESET_MODE_AUTO
+                else PRESET_MODE_AUTO_PLASMA_OFF
             )
         if self._wrapper.is_manual:
             return (
-                PRESET_MODE_MANUAL_PLASMA
+                PRESET_MODE_MANUAL
                 if self._wrapper.is_plasma_on
-                else PRESET_MODE_MANUAL
+                else PRESET_MODE_MANUAL_PLASMA_OFF
             )
         else:
             return None
