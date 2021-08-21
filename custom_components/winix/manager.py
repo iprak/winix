@@ -135,8 +135,8 @@ class WinixManager:
     async def async_update(self, now=None) -> None:
         """Asynchronously update all the devices."""
         _LOGGER.info("Updating devices")
-        for device in self._device_wrappers:
-            await device.update()
+        for device_wrapper in self._device_wrappers:
+            await device_wrapper.update()
 
     def get_device_wrappers(self) -> List[WinixDeviceWrapper]:
         """Return the device wrapper objects."""

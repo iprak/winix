@@ -25,6 +25,7 @@ from .const import (
     PRESET_MODE_MANUAL_PLASMA_OFF,
     PRESET_MODE_SLEEP,
     PRESET_MODES,
+    NumericPresetModes,
 )
 
 
@@ -219,11 +220,21 @@ class WinixDeviceWrapper:
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Turn the purifier on and put it in the new preset mode."""
 
+        preset_mode = preset_mode.strip()
+
         if preset_mode not in PRESET_MODES:
-            self._logger.warning("'%s'is an invalid preset mode", preset_mode)
-            return
+            values = [item.value for item in NumericPresetModes]
+
+            # Convert the numeric preset mode to its corresponding key
+            if preset_mode in values:
+                index = int(preset_mode) - 1
+                preset_mode = PRESET_MODES[index]
+            else:
+                self._logger.warning("'%s' is an invalid preset mode", preset_mode)
+                return
 
         await self.async_ensure_on()
+        self._logger.debug("Setting mode to '%s'", preset_mode)
 
         if preset_mode == PRESET_MODE_SLEEP:
             await self.async_sleep()
