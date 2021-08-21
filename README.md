@@ -56,5 +56,12 @@ friendly_name: Winix Basement
   <img src="images/entity.png" alt="Entity" width="200"/>
 
 - The device data is fetched every 30 seconds.
-- There are 3 new services `winix.plasmawave_off, winix.plasmawave_on, plasmawave_toggle` in addition to the default fan services `fan.speed, fan.toggle, fan.turn_off, fan.turn_on`.
+- There are 3 new services `winix.plasmawave_off, winix.plasmawave_on, plasmawave_toggle` in addition to the default fan services `fan.speed, fan.toggle, fan.turn_off, fan.turn_on, fan.set_preset_mode`.
+  - The valid present modes are:
+    - `Auto` or `1`
+    - `Auto (PlasmaWave off)` or `2`
+    - `Manual` or `3`
+    - `Manual (PlasmaWave off)` or `4`
+    - `Sleep` or `5`
+
 - If purifiers are added/removed, then you would want to restart HomeAssistant.

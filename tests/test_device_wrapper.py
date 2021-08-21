@@ -20,6 +20,7 @@ from custom_components.winix.const import (
     PRESET_MODE_MANUAL,
     PRESET_MODE_MANUAL_PLASMA_OFF,
     PRESET_MODE_SLEEP,
+    NumericPresetModes,
 )
 from custom_components.winix.device_wrapper import WinixDeviceWrapper
 
@@ -282,6 +283,11 @@ async def test_async_set_speed():
         (PRESET_MODE_AUTO_PLASMA_OFF, 0, 1, 0, 1, 0),
         (PRESET_MODE_MANUAL, 0, 0, 1, 0, 1),
         (PRESET_MODE_MANUAL_PLASMA_OFF, 0, 0, 1, 1, 0),
+        (NumericPresetModes.PRESET_MODE_SLEEP, 1, 0, 0, 0, 0),
+        (NumericPresetModes.PRESET_MODE_AUTO, 0, 1, 0, 0, 1),
+        (NumericPresetModes.PRESET_MODE_AUTO_PLASMA_OFF, 0, 1, 0, 1, 0),
+        (NumericPresetModes.PRESET_MODE_MANUAL, 0, 0, 1, 0, 1),
+        (NumericPresetModes.PRESET_MODE_MANUAL_PLASMA_OFF, 0, 0, 1, 1, 0),
     ],
 )
 async def test_async_set_preset_mode(

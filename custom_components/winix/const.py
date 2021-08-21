@@ -1,5 +1,7 @@
 """Constants for the Winix C545 Air Purifier component."""
 
+from enum import Enum, unique
+
 DOMAIN = "winix"
 
 WINIX_CONFIG_FILE = "winix.json"
@@ -59,3 +61,17 @@ PRESET_MODES = [
     PRESET_MODE_MANUAL_PLASMA_OFF,
     PRESET_MODE_SLEEP,
 ]
+
+
+@unique
+class NumericPresetModes(str, Enum):
+    """Alternate numeric preset modes.
+
+    The value correspond to the index in PRESET_MODES.
+    """
+
+    PRESET_MODE_AUTO = "1"
+    PRESET_MODE_AUTO_PLASMA_OFF = "2"
+    PRESET_MODE_MANUAL = "3"
+    PRESET_MODE_MANUAL_PLASMA_OFF = "4"
+    PRESET_MODE_SLEEP = "5"
