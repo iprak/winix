@@ -1,10 +1,12 @@
 """Winix C545 Air Purfier Air QValue Sensor."""
 
+from collections.abc import Mapping
 from datetime import timedelta
 import logging
+from typing import Any, Union
 
 from homeassistant.components.sensor import DOMAIN
-from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.entity import DeviceInfo, Entity
 
 from custom_components.winix.device_wrapper import WinixDeviceWrapper
 from custom_components.winix.manager import WinixManager
@@ -48,7 +50,7 @@ class WinixSensor(Entity):
         return state is not None
 
     @property
-    def device_state_attributes(self) -> None:
+    def device_state_attributes(self) -> Union[Mapping[str, Any], None]:
         """Return the state attributes."""
         attributes = {ATTR_AIR_QUALITY: None}
 
@@ -59,12 +61,12 @@ class WinixSensor(Entity):
         return attributes
 
     @property
-    def unique_id(self) -> str:
+    def unique_id(self) -> Union[str, None]:
         """Return the unique id of the switch."""
         return self._unique_id
 
     @property
-    def device_info(self):
+    def device_info(self) -> DeviceInfo:
         """Return device specific attributes."""
         return {
             "identifiers": {(WINIX_DOMAIN, self._wrapper.info.mac.lower())},
@@ -72,7 +74,7 @@ class WinixSensor(Entity):
         }
 
     @property
-    def icon(self):
+    def icon(self) -> str:
         """Return the icon to use for device if any."""
         return ICON
 
@@ -82,12 +84,12 @@ class WinixSensor(Entity):
         return self._name
 
     @property
-    def state(self):
+    def state(self) -> Union[str, None]:
         """Return the state of the sensor."""
         state = self._wrapper.get_state()
         return None if state is None else state.get(ATTR_AIR_QVALUE)
 
     @property
-    def unit_of_measurement(self):
+    def unit_of_measurement(self) -> Union[str, None]:
         """Return the unit of measurement of this entity, if any."""
         return UNIT_OF_MEASUREMENT

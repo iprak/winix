@@ -1,9 +1,10 @@
 """Winix C545 Air Purifier Device."""
 
 import asyncio
+from collections.abc import Mapping
 from datetime import timedelta
 import logging
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Union
 
 from homeassistant.components.fan import (
     DOMAIN,
@@ -13,6 +14,7 @@ from homeassistant.components.fan import (
 )
 from homeassistant.const import ATTR_ENTITY_ID
 import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.typing import (
     ConfigType,
     DiscoveryInfoType,
@@ -129,7 +131,7 @@ class WinixPurifier(FanEntity):
         return state is not None
 
     @property
-    def device_state_attributes(self) -> None:
+    def device_state_attributes(self) -> Union[Mapping[str, Any], None]:
         """Return the state attributes."""
         attributes = {}
         state = self._wrapper.get_state()
@@ -153,7 +155,7 @@ class WinixPurifier(FanEntity):
         return self._unique_id
 
     @property
-    def device_info(self):
+    def device_info(self) -> DeviceInfo:
         """Return device specific attributes."""
         return {
             "identifiers": {(WINIX_DOMAIN, self._wrapper.info.mac.lower())},
@@ -171,7 +173,7 @@ class WinixPurifier(FanEntity):
         return self._wrapper.is_on
 
     @property
-    def percentage(self):
+    def percentage(self) -> Union[int, None]:
         """Return the current speed percentage."""
         state = self._wrapper.get_state()
         if state is None:
@@ -186,7 +188,7 @@ class WinixPurifier(FanEntity):
             )
 
     @property
-    def preset_mode(self):
+    def preset_mode(self) -> Union[str, None]:
         """Return the current preset mode, e.g., auto, smart, interval, favorite."""
         state = self._wrapper.get_state()
         if state is None:
@@ -209,7 +211,7 @@ class WinixPurifier(FanEntity):
             return None
 
     @property
-    def preset_modes(self):
+    def preset_modes(self) -> Union[list[str], None]:
         """Return a list of available preset modes."""
         return PRESET_MODES
 
