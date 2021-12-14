@@ -57,10 +57,10 @@ def test_sensor_attributes(mock_device_wrapper):
 
     sensor = WinixSensor(mock_device_wrapper)
 
-    assert sensor.device_state_attributes[ATTR_AIR_QUALITY] is None
+    assert sensor.extra_state_attributes[ATTR_AIR_QUALITY] is None
 
     mock_device_wrapper.get_state = MagicMock(return_value={ATTR_AIR_QUALITY: 12})
-    assert sensor.device_state_attributes[ATTR_AIR_QUALITY] == 12
+    assert sensor.extra_state_attributes[ATTR_AIR_QUALITY] == 12
 
 
 def test_sensor_state(mock_device_wrapper):

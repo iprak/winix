@@ -50,7 +50,7 @@ class WinixSensor(Entity):
         return state is not None
 
     @property
-    def device_state_attributes(self) -> Union[Mapping[str, Any], None]:
+    def extra_state_attributes(self) -> Union[Mapping[str, Any], None]:
         """Return the state attributes."""
         attributes = {ATTR_AIR_QUALITY: None}
 

@@ -122,10 +122,10 @@ def test_device_attributes():
     device_wrapper.get_state = Mock(return_value=None)
 
     device = WinixPurifier(device_wrapper)
-    assert device.device_state_attributes is not None
+    assert device.extra_state_attributes is not None
 
     device_wrapper.get_state = Mock(return_value={"DUMMY_ATTR": 12})
-    assert device.device_state_attributes["DUMMY_ATTR"] == 12
+    assert device.extra_state_attributes["DUMMY_ATTR"] == 12
 
 
 @pytest.mark.parametrize("value", [(True), (False)])

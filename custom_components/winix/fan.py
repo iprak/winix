@@ -131,7 +131,7 @@ class WinixPurifier(FanEntity):
         return state is not None
 
     @property
-    def device_state_attributes(self) -> Union[Mapping[str, Any], None]:
+    def extra_state_attributes(self) -> Union[Mapping[str, Any], None]:
         """Return the state attributes."""
         attributes = {}
         state = self._wrapper.get_state()

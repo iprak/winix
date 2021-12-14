@@ -1,11 +1,15 @@
 """The WinixDriver component."""
 
+import logging
 from typing import Dict
 
 import aiohttp
 
+_LOGGER = logging.getLogger(__name__)
 
 # Modified from https://github.com/hfern/winix to support async operations
+
+
 class WinixDriver:
     """WinixDevice driver."""
 
@@ -113,9 +117,6 @@ class WinixDriver:
         await self._client.get(
             self.CTRL_URL.format(deviceid=self.device_id, attribute=attr, value=value)
         )
-        # requests.get(
-        #     self.CTRL_URL.format(deviceid=self.id, attribute=attr, value=value)
-        # )
 
     async def get_state(self) -> Dict[str, str]:
         """Get device state."""
@@ -123,9 +124,12 @@ class WinixDriver:
             self.STATE_URL.format(deviceid=self.device_id)
         )
         json = await response.json()
-        payload = json["body"]["data"][0]["attributes"]
-        # r = requests.get(self.STATE_URL.format(deviceid=self.id))
-        # payload = r.json()["body"]["data"][0]["attributes"]
+
+        try:
+            payload = json["body"]["data"][0]["attributes"]
+        except Exception:  # pylint: disable=broad-except
+            _LOGGER.error("Error parsing response json, received %s", json)
+            return
 
         output = dict()
         for (payload_key, attribute) in payload.items():
