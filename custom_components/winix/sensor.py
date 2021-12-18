@@ -1,5 +1,7 @@
 """Winix C545 Air Purfier Air QValue Sensor."""
 
+from __future__ import annotations
+
 from collections.abc import Mapping
 from datetime import timedelta
 import logging
