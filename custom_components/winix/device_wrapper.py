@@ -1,5 +1,6 @@
 """The Winix C545 Air Purifier component."""
 
+from __future__ import annotations
 
 from typing import Dict
 
