@@ -8,6 +8,8 @@ mkdir -p /config
 
 FILE=".devcontainer/configuration.yaml"
 [ -f $FILE ] && { echo "Linking configuration.yaml"; ln -sfr $FILE /config/configuration.yaml; }
+FILE=".devcontainer/secrets.yaml"
+[ -f $FILE ] && { echo "Linking secrets.yaml"; ln -sfr $FILE /config/secrets.yaml; }
 
 echo "Linking custom_components"
 rm -rf /config/custom_components
