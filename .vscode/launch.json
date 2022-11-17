@@ -1,0 +1,20 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Home Assistant",
+			"type": "python",
+			"request": "launch",
+			"module": "homeassistant",
+			"justMyCode": false,
+			"args": [
+				"-c",
+				"/config"
+			],
+			"serverReadyAction": {
+				"action": "openExternally"
+			},
+			"console": "integratedTerminal"
+		}
+	]
+}
