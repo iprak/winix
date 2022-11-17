@@ -1,0 +1,5 @@
+.git
+config
+.devcontainer
+.vscode
+**/__pycache__
