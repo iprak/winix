@@ -1,20 +1,25 @@
 {
 	"name": "Home Assistant Custom Component Dev",
 	"context": "..",
-	"image": "ghcr.io/ludeeus/devcontainer/integration:stable",
+	"dockerFile": "../Dockerfile",
 	"appPort": "9123:8123",
-	"postCreateCommand": "python3 -m pip install -r requirements_test.txt && container install",
+	"containerUser": "root",
+	"remoteUser": "root",
+	"postCreateCommand": "scripts/setup.sh",
+	"containerEnv": {
+		"TZ": "America/Chicago"
+	},
 	"extensions": [
 		"ms-python.python",
-		"github.vscode-pull-request-github",
 		"ms-python.vscode-pylance",
-		"spmeesseman.vscode-taskexplorer"
+		"esbenp.prettier-vscode",
+		"littlefoxteam.vscode-python-test-adapter"
 	],
 	"settings": {
 		"files.eol": "\n",
 		"editor.tabSize": 4,
 		"terminal.integrated.shell.linux": "/bin/bash",
-		"python.pythonPath": "/usr/bin/python3",
+		"python.pythonPath": "/usr/local/bin/python",
 		"python.analysis.autoSearchPaths": false,
 		"python.linting.pylintEnabled": true,
 		"python.linting.enabled": true,
