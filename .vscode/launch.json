@@ -8,6 +8,7 @@
 			"module": "homeassistant",
 			"justMyCode": false,
 			"args": [
+				"--debug",
 				"-c",
 				"/config"
 			],

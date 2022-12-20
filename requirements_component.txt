@@ -1,2 +1,3 @@
 # Custom requirements
-homeassistant==2022.11.2
+numpy
+homeassistant==2022.12.7
