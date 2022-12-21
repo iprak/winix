@@ -1,0 +1,19 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "username": "[%key:common::config_flow::data::username%]",
+          "password": "[%key:common::config_flow::data::password%]"
+        },
+        "description": "Set up Winix integration. Login with yout mobile app credentials.",
+        "title": "Winix Purifier"
+      }
+    },
+    "error": {
+      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
+      "invalid_user": "[%key:common::config_flow::error::invalid_user%]",
+      "unknown": "[%key:common::config_flow::error::unknown%]"
+    }
+  }
+}
