@@ -1,12 +1,11 @@
-"""Winix C545 Air Purifier Device."""
+"""Winix Air Purifier Device."""
 
 from __future__ import annotations
 
 import asyncio
 from collections.abc import Mapping
-from datetime import timedelta
 import logging
-from typing import Any, Callable, Optional, Union
+from typing import Any, Optional, Union
 
 from homeassistant.components.fan import (
     DOMAIN,
@@ -14,14 +13,11 @@ from homeassistant.components.fan import (
     SUPPORT_SET_SPEED,
     FanEntity,
 )
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID
+from homeassistant.core import HomeAssistant
 import homeassistant.helpers.config_validation as cv
-from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.typing import (
-    ConfigType,
-    DiscoveryInfoType,
-    HomeAssistantType,
-)
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util.percentage import (
     ordered_list_item_to_percentage,
     percentage_to_ordered_list_item,
@@ -29,14 +25,13 @@ from homeassistant.util.percentage import (
 import voluptuous as vol
 
 from custom_components.winix.device_wrapper import WinixDeviceWrapper
-from custom_components.winix.manager import WinixManager
+from custom_components.winix.manager import WinixEntity, WinixManager
 
 from .const import (
     ATTR_AIRFLOW,
     ATTR_FILTER_REPLACEMENT_DATE,
     ATTR_LOCATION,
     ATTR_POWER,
-    DOMAIN as WINIX_DOMAIN,
     ORDERED_NAMED_FAN_SPEEDS,
     PRESET_MODE_AUTO,
     PRESET_MODE_AUTO_PLASMA_OFF,
@@ -45,35 +40,27 @@ from .const import (
     PRESET_MODE_SLEEP,
     PRESET_MODES,
     SERVICES,
+    WINIX_DATA_COORDINATOR,
     WINIX_DATA_KEY,
+    WINIX_DOMAIN,
 )
 
 _LOGGER = logging.getLogger(__name__)
-SCAN_INTERVAL = timedelta(seconds=15)
 
 
-# pylint: disable=unused-argument
-async def async_setup_platform(
-    hass: HomeAssistantType,
-    config: ConfigType,
-    async_add_entities: Callable,
-    discovery_info: Optional[DiscoveryInfoType] = None,
-) -> None:
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+):
     """Set up the Winix air purifiers."""
-
-    # Create WINIX_DATA_KEY entry if not present
-    if WINIX_DATA_KEY not in hass.data:
-        hass.data[WINIX_DATA_KEY] = []
-
-    manager: WinixManager = hass.data[WINIX_DOMAIN]
-
-    entities = []
-    for wrapper in manager.get_device_wrappers():
-        entities.append(WinixPurifier(wrapper))
-
-    # Keep track of etities in WINIX_DATA_KEY storage area for service processing
-    hass.data[WINIX_DATA_KEY].extend(entities)
-    async_add_entities(entities, False)
+    data = hass.data[WINIX_DOMAIN][entry.entry_id]
+    manager: WinixManager = data[WINIX_DATA_COORDINATOR]
+    entities = [
+        WinixPurifier(wrapper, manager) for wrapper in manager.get_device_wrappers()
+    ]
+    data[WINIX_DATA_KEY] = entities
+    async_add_entities(entities)
 
     async def async_service_handler(service_call):
         """Service handler."""
@@ -116,21 +103,18 @@ async def async_setup_platform(
     _LOGGER.info("Added %s Winix fans", len(entities))
 
 
-class WinixPurifier(FanEntity):
-    """Representation of a Winix Purifier device."""
+class WinixPurifier(WinixEntity, FanEntity):
+    """Representation of a Winix Purifier entity."""
 
-    def __init__(self, wrapper: WinixDeviceWrapper) -> None:
-        """Initialize the device."""
-        self._wrapper = wrapper
-
-        self._unique_id = f"{DOMAIN}.{WINIX_DOMAIN}_{wrapper.info.mac.lower()}"
-        self._name = f"Winix {self._wrapper.info.alias}"
+    def __init__(self, wrapper: WinixDeviceWrapper, coordinator: WinixManager) -> None:
+        """Initialize the entity."""
+        super().__init__(wrapper, coordinator)
+        self._unique_id = f"{DOMAIN}.{WINIX_DOMAIN}_{self._mac}"
 
     @property
-    def available(self) -> bool:
-        """Return True if entity is available."""
-        state = self._wrapper.get_state()
-        return state is not None
+    def unique_id(self) -> str:
+        """Return the unique id of the switch."""
+        return self._unique_id
 
     @property
     def extra_state_attributes(self) -> Union[Mapping[str, Any], None]:
@@ -144,30 +128,12 @@ class WinixPurifier(FanEntity):
                 if not key == ATTR_POWER:
                     attributes[key] = value
 
-        attributes[ATTR_LOCATION] = self._wrapper.info.location_code
+        attributes[ATTR_LOCATION] = self._wrapper.device_stub.location_code
         attributes[
             ATTR_FILTER_REPLACEMENT_DATE
-        ] = self._wrapper.info.filter_replace_date
+        ] = self._wrapper.device_stub.filter_replace_date
 
         return attributes
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id of the switch."""
-        return self._unique_id
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device specific attributes."""
-        return {
-            "identifiers": {(WINIX_DOMAIN, self._wrapper.info.mac.lower())},
-            "name": self._name,
-        }
-
-    @property
-    def name(self) -> str:
-        """Return the name of the switch."""
-        return self._name
 
     @property
     def is_on(self) -> bool:
@@ -180,14 +146,14 @@ class WinixPurifier(FanEntity):
         state = self._wrapper.get_state()
         if state is None:
             return None
-        elif self._wrapper.is_sleep or self._wrapper.is_auto:
+        if self._wrapper.is_sleep or self._wrapper.is_auto:
             return None
-        elif state.get(ATTR_AIRFLOW) is None:
+        if state.get(ATTR_AIRFLOW) is None:
             return None
-        else:
-            return ordered_list_item_to_percentage(
-                ORDERED_NAMED_FAN_SPEEDS, state.get(ATTR_AIRFLOW)
-            )
+
+        return ordered_list_item_to_percentage(
+            ORDERED_NAMED_FAN_SPEEDS, state.get(ATTR_AIRFLOW)
+        )
 
     @property
     def preset_mode(self) -> Union[str, None]:
@@ -209,8 +175,8 @@ class WinixPurifier(FanEntity):
                 if self._wrapper.is_plasma_on
                 else PRESET_MODE_MANUAL_PLASMA_OFF
             )
-        else:
-            return None
+
+        return None
 
     @property
     def preset_modes(self) -> Union[list[str], None]:
@@ -247,11 +213,11 @@ class WinixPurifier(FanEntity):
 
     async def async_turn_on(
         self,
-        speed: Optional[str] = None,
         percentage: Optional[int] = None,
         preset_mode: Optional[str] = None,
         **kwargs: Any,
     ) -> None:
+        # pylint: disable=unused-argument
         """Turn on the purifier."""
         if percentage:
             await self.async_set_percentage(percentage)

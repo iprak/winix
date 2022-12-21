@@ -15,6 +15,7 @@ _LOGGER = logging.getLogger(__name__)
 class WinixDriver:
     """WinixDevice driver."""
 
+    # pylint: disable=line-too-long
     CTRL_URL = "https://us.api.winix-iot.com/common/control/devices/{deviceid}/A211/{attribute}:{value}"
     STATE_URL = "https://us.api.winix-iot.com/common/event/sttus/devices/{deviceid}"
 
@@ -126,17 +127,20 @@ class WinixDriver:
             self.STATE_URL.format(deviceid=self.device_id)
         )
         json = await response.json()
+        output = {}
 
         try:
             payload = json["body"]["data"][0]["attributes"]
-        except Exception:  # pylint: disable=broad-except
-            _LOGGER.error("Error parsing response json, received %s", json)
-            return
+        except Exception as err:  # pylint: disable=broad-except
+            _LOGGER.error(
+                "Error parsing response json, received %s", json, exc_info=err
+            )
+            return output
 
-        output = dict()
         for (payload_key, attribute) in payload.items():
             for (category, local_key) in self.category_keys.items():
                 if payload_key == local_key:
+                    # pylint: disable=consider-iterating-dictionary
                     if category in self.state_keys.keys():
                         for (value_key, value) in self.state_keys[category].items():
                             if attribute == value:
