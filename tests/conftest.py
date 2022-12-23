@@ -13,8 +13,8 @@ def mock_device_wrapper() -> WinixDeviceWrapper:
     """Return a mocked WinixDeviceWrapper instance."""
 
     device_wrapper = MagicMock()
-    device_wrapper.info.mac = "f190d35456d0"
-    device_wrapper.info.alias = "Purifier1"
+    device_wrapper.device_stub.mac = "f190d35456d0"
+    device_wrapper.device_stub.alias = "Purifier1"
 
     device_wrapper.async_plasmawave_off = AsyncMock()
     device_wrapper.async_plasmawave_on = AsyncMock()

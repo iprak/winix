@@ -1,0 +1,4 @@
+# Custom requirements
+homeassistant==2022.12.7
+numpy
+winix==0.2.1

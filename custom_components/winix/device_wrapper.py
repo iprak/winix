@@ -1,13 +1,13 @@
-"""The Winix C545 Air Purifier component."""
+"""The Winix Air Purifier component."""
 
 from __future__ import annotations
 
+import dataclasses
 from typing import Dict
 
 import aiohttp
 
 from custom_components.winix.driver import WinixDriver
-from winix import WinixDeviceStub
 
 from .const import (
     AIRFLOW_LOW,
@@ -30,16 +30,32 @@ from .const import (
 )
 
 
+@dataclasses.dataclass
+class MyWinixDeviceStub:
+    """Winix purifier device information."""
+
+    id: str  # pylint: disable=invalid-name
+    mac: str
+    alias: str
+    location_code: str
+    filter_replace_date: str
+    model: str
+    sw_version: str
+
+
 class WinixDeviceWrapper:
     """Representation of the Winix device data."""
+
+    # pylint: disable=too-many-instance-attributes
 
     def __init__(
         self,
         client: aiohttp.ClientSession,
-        device_stub: WinixDeviceStub,
+        device_stub: MyWinixDeviceStub,
         logger,
     ):
         """Initialize the wrapper."""
+
         self._driver = WinixDriver(device_stub.id, client)
 
         # Start as empty object in case fan was operated before it got updated
@@ -52,7 +68,8 @@ class WinixDeviceWrapper:
         self._sleep = False
         self._logger = logger
 
-        self.info = device_stub
+        self.device_stub = device_stub
+        self._alias = device_stub.alias
 
     async def update(self) -> None:
         """Update the device data."""
@@ -78,7 +95,7 @@ class WinixDeviceWrapper:
 
         self._logger.debug(
             "%s: updated on=%s, auto=%s, manual=%s, sleep=%s, airflow=%s, plasma=%s",
-            self.info.alias,
+            self._alias,
             self._on,
             self._auto,
             self._manual,
@@ -121,7 +138,7 @@ class WinixDeviceWrapper:
         if not self._on:
             self._on = True
 
-            self._logger.debug("%s: Turning on", self.info.alias)
+            self._logger.debug("%s: Turning on", self._alias)
             await self._driver.turn_on()
 
     async def async_turn_on(self) -> None:
@@ -134,7 +151,7 @@ class WinixDeviceWrapper:
         if self._on:
             self._on = False
 
-            self._logger.debug("%s: Turning off", self.info.alias)
+            self._logger.debug("%s: Turning off", self._alias)
             await self._driver.turn_off()
 
     async def async_auto(self) -> None:
@@ -154,7 +171,7 @@ class WinixDeviceWrapper:
                 ATTR_AIRFLOW
             ] = AIRFLOW_LOW  # Something other than AIRFLOW_SLEEP
 
-            self._logger.debug("%s: Setting auto mode", self.info.alias)
+            self._logger.debug("%s: Setting auto mode", self._alias)
             await self._driver.auto()
 
     async def async_plasmawave_on(self) -> None:
@@ -164,7 +181,7 @@ class WinixDeviceWrapper:
             self._plasma_on = True
             self._state[ATTR_PLASMA] = ON_VALUE
 
-            self._logger.debug("%s: Turning plasmawave on", self.info.alias)
+            self._logger.debug("%s: Turning plasmawave on", self._alias)
             await self._driver.plasmawave_on()
 
     async def async_plasmawave_off(self) -> None:
@@ -174,7 +191,7 @@ class WinixDeviceWrapper:
             self._plasma_on = False
             self._state[ATTR_PLASMA] = OFF_VALUE
 
-            self._logger.debug("%s: Turning plasmawave off", self.info.alias)
+            self._logger.debug("%s: Turning plasmawave off", self._alias)
             await self._driver.plasmawave_off()
 
     async def async_manual(self) -> None:
@@ -189,7 +206,7 @@ class WinixDeviceWrapper:
                 ATTR_AIRFLOW
             ] = AIRFLOW_LOW  # Something other than AIRFLOW_SLEEP
 
-            self._logger.debug("%s: Setting manual mode", self.info.alias)
+            self._logger.debug("%s: Setting manual mode", self._alias)
             await self._driver.manual()
 
     async def async_sleep(self) -> None:
@@ -202,7 +219,7 @@ class WinixDeviceWrapper:
             self._state[ATTR_AIRFLOW] = AIRFLOW_SLEEP
             self._state[ATTR_MODE] = MODE_MANUAL
 
-            self._logger.debug("%s: Setting sleep mode", self.info.alias)
+            self._logger.debug("%s: Setting sleep mode", self._alias)
             await self._driver.sleep()
 
     async def async_set_speed(self, speed) -> None:
@@ -215,7 +232,7 @@ class WinixDeviceWrapper:
             await self.async_ensure_on()
             await self.async_manual()
 
-            self._logger.debug("%s: Updated speed to '%s'", self.info.alias, speed)
+            self._logger.debug("%s: Updated speed to '%s'", self._alias, speed)
             await getattr(self._driver, speed)()
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:

@@ -9,10 +9,6 @@ homeassistant:
   name: Home
 
 logger:
-  default: info
+  default: warn
   logs:
     custom_components.winix: debug
-
-winix:
-  username: !secret wininx_email
-  password: !secret wininx_password

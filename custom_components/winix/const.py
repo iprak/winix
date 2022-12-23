@@ -3,10 +3,13 @@
 from enum import Enum, unique
 from typing import Final
 
-DOMAIN: Final = "winix"
+WINIX_DOMAIN: Final = "winix"
 
-WINIX_CONFIG_FILE: Final = "winix.json"
+WINIX_NAME: Final = "Winix Purifier"
 WINIX_DATA_KEY: Final = "fan_winix_air_purifier"
+WINIX_DATA_COORDINATOR: Final = "coordinator"
+WINIX_AUTH_RESPONSE: Final = "WinixAuthResponse"
+WINIX_ACCESS_TOKEN_EXPIRATION: Final = "access_token_expiration"
 
 ATTR_AIRFLOW: Final = "airflow"
 ATTR_FILTER_REPLACEMENT_DATE: Final = "filter_replace_date"

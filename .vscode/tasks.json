@@ -2,28 +2,52 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Run Home Assistant on port 9123",
+            "label": "Pytest",
             "type": "shell",
-            "command": "container start",
+            "command": "pytest --timeout=10 tests",
+            "dependsOn": [
+                "Install all Test Requirements"
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
             "problemMatcher": []
         },
         {
-            "label": "Run Home Assistant configuration against /config",
+            "label": "Flake8",
             "type": "shell",
-            "command": "container check",
+            "command": "flake8",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
             "problemMatcher": []
         },
         {
-            "label": "Upgrade Home Assistant to latest dev",
+            "label": "Pylint",
             "type": "shell",
-            "command": "container install",
+            "command": "pylint custom_components",
+            "dependsOn": [
+                "Install all Requirements"
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
             "problemMatcher": []
         },
-        {
-            "label": "Install a specific version of Home Assistant",
-            "type": "shell",
-            "command": "container set-version",
-            "problemMatcher": []
-        }
     ]
 }
