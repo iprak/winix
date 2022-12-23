@@ -59,6 +59,7 @@ friendly_name: Winix Basement
     - `Sleep` or `5`
 
 - If purifiers are added/removed, then you would want to restart HomeAssistant.
+
 - Winix **does not support** simultaneous login from multiple devices. If you logged into the mobile app after configuring HomeAssistant, then the HomeAssistant session gets flagged as invalid and vice-versa.
 
 # Breaking Changes
