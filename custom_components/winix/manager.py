@@ -87,15 +87,15 @@ class WinixManager(DataUpdateCoordinator):
         await self.async_update()
 
     async def async_prepare_devices_wrappers(self) -> bool:
-        """Prepare device wrappers."""
+        """
+        Prepare device wrappers.
 
-        try:
-            device_stubs = await Helpers.async_get_device_stubs(
-                self.hass, self._auth_response.access_token
-            )
-        except Exception as err:  # pylint: disable=broad-except
-            _LOGGER.warning("Unable to get device stubs", exc_info=err)
-            return False
+        Raises WinixException.
+        """
+
+        device_stubs = await Helpers.async_get_device_stubs(
+            self.hass, self._auth_response.access_token
+        )
 
         if device_stubs:
             self._device_wrappers = []

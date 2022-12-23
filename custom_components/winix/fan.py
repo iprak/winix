@@ -74,11 +74,11 @@ async def async_setup_entry(
         if entity_ids:
             devices = [
                 entity
-                for entity in hass.data[WINIX_DATA_KEY]
+                for entity in data[WINIX_DATA_KEY]
                 if entity.entity_id in entity_ids
             ]
         else:
-            devices = hass.data[WINIX_DATA_KEY]
+            devices = data[WINIX_DATA_KEY]
 
         state_update_tasks = []
         for device in devices:
@@ -219,6 +219,7 @@ class WinixPurifier(WinixEntity, FanEntity):
     ) -> None:
         # pylint: disable=unused-argument
         """Turn on the purifier."""
+
         if percentage:
             await self.async_set_percentage(percentage)
             return

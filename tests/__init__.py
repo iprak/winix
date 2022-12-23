@@ -41,7 +41,7 @@ def build_fake_manager(wrapper_count) -> WinixManager:
 def build_purifier(hass, device_wrapper: WinixDeviceWrapper) -> WinixPurifier:
     """Return a WinixPurifier instance."""
 
-    device = WinixPurifier(device_wrapper)
+    device = WinixPurifier(device_wrapper, Mock())
     device.add_to_platform_start(hass, None, None)
 
     # Use unique_id as entity_id, this is required for async_update_ha_state

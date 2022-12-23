@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import logging
+from typing import Final
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import Platform
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 
-from custom_components.winix.helpers import Helpers
+from custom_components.winix.helpers import Helpers, WinixException
 from custom_components.winix.manager import WinixManager
 from winix import auth
 
@@ -16,6 +18,7 @@ from .const import WINIX_AUTH_RESPONSE, WINIX_DATA_COORDINATOR, WINIX_DOMAIN, WI
 
 _LOGGER = logging.getLogger(__name__)
 SUPPORTED_PLATFORMS = [Platform.FAN, Platform.SENSOR]
+DEFAULT_SCAN_INTERVAL: Final = 30
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
@@ -40,41 +43,83 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         )
         return False
 
-    # try:
-    #     new_auth_response = await Helpers.async_refresh_auth(hass, auth_response)
+    manager = WinixManager(hass, auth_response, DEFAULT_SCAN_INTERVAL)
+    try_login_once = True
+    try_prepare_devices_wrappers = True
 
-    #     auth_response.access_token = new_auth_response.access_token
-    #     auth_response.refresh_token = new_auth_response.refresh_token
-    #     auth_response.id_token = new_auth_response.id_token
+    while try_prepare_devices_wrappers:
+        try:
+            await manager.async_prepare_devices_wrappers()
+            break
+        except WinixException as err:
+            # 900:MULTI LOGIN: Same credentials were used to login elwsewhere. We need to
+            # login again and get new tokens.
+            # 400:The user is not valid.
+            if try_login_once and err.result_code in ("900", "400"):
+                try_login_once = False
 
-    # except AuthenticationError as err:
-    #     # Raising ConfigEntryAuthFailed will automatically put the config entry in a
-    #     # failure state and start a reauth flow.
-    #     # https://developers.home-assistant.io/docs/integration_setup_failures/
-    #     if err.error_code == "UserNotFoundException":
-    #         raise ConfigEntryAuthFailed from err
+                try:
+                    new_auth_response = await Helpers.async_login(
+                        hass, user_input[CONF_USERNAME], user_input[CONF_PASSWORD]
+                    )
 
-    #     _LOGGER.warning("Unable to authenticate", exc_info=True)
+                    # Copy over new values
+                    _LOGGER.debug(
+                        "access_token %s",
+                        "changed"
+                        if auth_response.access_token != new_auth_response.access_token
+                        else "unchanged",
+                    )
+                    _LOGGER.debug(
+                        "refresh_token %s",
+                        "changed"
+                        if auth_response.refresh_token
+                        != new_auth_response.refresh_token
+                        else "unchanged",
+                    )
+                    _LOGGER.debug(
+                        "id_token %s",
+                        "changed"
+                        if auth_response.id_token != new_auth_response.id_token
+                        else "unchanged",
+                    )
 
-    # except Exception as err:  # pylint: disable=broad-except
-    #     _LOGGER.warning("Unable to authenticate", exc_info=True)
-    #     raise ConfigEntryNotReady(
-    #         "Unable to authenticate. Sensi integration is not ready."
-    #     ) from err
+                    auth_response.access_token = new_auth_response.access_token
+                    auth_response.refresh_token = new_auth_response.refresh_token
+                    auth_response.id_token = new_auth_response.id_token
 
-    scan_interval = 30
-    manager = WinixManager(hass, auth_response, scan_interval)
+                    # Update tokens into entry.data
+                    hass.config_entries.async_update_entry(
+                        entry,
+                        data={**user_input, WINIX_AUTH_RESPONSE: auth_response},
+                    )
 
-    if await manager.async_prepare_devices_wrappers():
-        # await manager.async_setup_updates()
-        await manager.async_config_entry_first_refresh()
+                except WinixException as login_err:
+                    if login_err.result_code == "UserNotFoundException":
+                        raise ConfigEntryAuthFailed(
+                            "Wininx reported multi login"
+                        ) from login_err
 
-        hass.data[WINIX_DOMAIN][entry.entry_id] = {WINIX_DATA_COORDINATOR: manager}
-        await hass.config_entries.async_forward_entry_setups(entry, SUPPORTED_PLATFORMS)
-    else:
-        Helpers.send_notification(
-            hass, "async_setup_entry", WINIX_NAME, "Unable to obtain device data."
-        )
+                    _LOGGER.error(
+                        "Unable to log in. Device access previously failed with `%s`.",
+                        str(err),
+                        exc_info=True,
+                    )
+                    raise ConfigEntryNotReady("Unable to authenticate.") from login_err
+            else:
+                _LOGGER.error(
+                    "async_prepare_devices_wrappers failed with `%s`.", str(err)
+                )
+                try_prepare_devices_wrappers = False
+
+                # ConfigEntryNotReady will cause async_setup_entry to be invoked in background.
+                raise ConfigEntryNotReady("Unable to access device data.") from err
+
+    await manager.async_config_entry_first_refresh()
+
+    hass.data[WINIX_DOMAIN][entry.entry_id] = {WINIX_DATA_COORDINATOR: manager}
+    await hass.config_entries.async_forward_entry_setups(entry, SUPPORTED_PLATFORMS)
+
     return True
 
 
