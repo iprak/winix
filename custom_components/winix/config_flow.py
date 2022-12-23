@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, Mapping
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
@@ -79,37 +79,37 @@ class WinixFlowHandler(config_entries.ConfigFlow, domain=WINIX_DOMAIN):
             errors=errors,
         )
 
-    # async def async_step_reauth(self, entry_data: Mapping[str, Any]) -> FlowResult:
-    #     # pylint: disable=unused-argument
-    #     """Handle reauthentication."""
-    #     self._reauth_unique_id = self.context["unique_id"]
-    #     return await self.async_step_reauth_confirm()
+    async def async_step_reauth(self, entry_data: Mapping[str, Any]) -> FlowResult:
+        # pylint: disable=unused-argument
+        """Handle reauthentication."""
+        self._reauth_unique_id = self.context["unique_id"]
+        return await self.async_step_reauth_confirm()
 
-    # async def async_step_reauth_confirm(self, user_input=None):
-    #     """Handle reauthentication."""
-    #     errors = {}
-    #     existing_entry = await self.async_set_unique_id(self._reauth_unique_id)
-    #     username = existing_entry.data[CONF_USERNAME]
-    #     if user_input is not None:
-    #         password = user_input[CONF_PASSWORD]
-    #         errors_and_auth = await self._validate_input(username, password)
-    #         errors = errors_and_auth["errors"]
-    #         if not errors:
-    #             auth_response = errors_and_auth[WINIX_AUTH_RESPONSE]
-    #             self.hass.config_entries.async_update_entry(
-    #                 existing_entry,
-    #                 data={
-    #                     **existing_entry.data,
-    #                     CONF_PASSWORD: password,
-    #                     WINIX_AUTH_RESPONSE: auth_response,
-    #                 },
-    #             )
-    #             await self.hass.config_entries.async_reload(existing_entry.entry_id)
-    #             return self.async_abort(reason="reauth_successful")
+    async def async_step_reauth_confirm(self, user_input=None):
+        """Handle reauthentication."""
+        errors = {}
+        existing_entry = await self.async_set_unique_id(self._reauth_unique_id)
+        username = existing_entry.data[CONF_USERNAME]
+        if user_input is not None:
+            password = user_input[CONF_PASSWORD]
+            errors_and_auth = await self._validate_input(username, password)
+            errors = errors_and_auth["errors"]
+            if not errors:
+                auth_response = errors_and_auth[WINIX_AUTH_RESPONSE]
+                self.hass.config_entries.async_update_entry(
+                    existing_entry,
+                    data={
+                        **existing_entry.data,
+                        CONF_PASSWORD: password,
+                        WINIX_AUTH_RESPONSE: auth_response,
+                    },
+                )
+                await self.hass.config_entries.async_reload(existing_entry.entry_id)
+                return self.async_abort(reason="reauth_successful")
 
-    #     return self.async_show_form(
-    #         description_placeholders={CONF_USERNAME: username},
-    #         step_id="reauth_confirm",
-    #         data_schema=REAUTH_SCHEMA,
-    #         errors=errors,
-    #     )
+        return self.async_show_form(
+            description_placeholders={CONF_USERNAME: username},
+            step_id="reauth_confirm",
+            data_schema=REAUTH_SCHEMA,
+            errors=errors,
+        )
