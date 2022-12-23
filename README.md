@@ -6,17 +6,10 @@ A custom component to interact with Winix [C545](https://www.winixamerica.com/pr
 
 This can be installed by copying all the files from `custom_components/winix/` to `<config directory>/custom_components/winix/`.
 
-Next you would define the credentials in `configuration.yaml`. You will need to signup for a Winix account and add your purifiers in the mobile app.
+Next add Winix integration from `Add Integration`.
 
-Example:
-
-```yaml
-winix:
-  username: winix_email
-  password: winix_password
-```
-
-This will generate entities and sensors whose id is based on the mac address.
+- You should now see one device, 2 entities being created (fan + sensor).
+- This will generate entities and sensors whose id is based on the mac address.
 
 Sample `fan.winix_abcdefghijkl` entity:
 
@@ -57,6 +50,7 @@ friendly_name: Winix Basement
 
 - The device data is fetched every 30 seconds.
 - There are 3 new services `winix.plasmawave_off, winix.plasmawave_on, plasmawave_toggle` in addition to the default fan services `fan.speed, fan.toggle, fan.turn_off, fan.turn_on, fan.set_preset_mode`.
+
   - The valid present modes are:
     - `Auto` or `1`
     - `Auto (PlasmaWave off)` or `2`
@@ -65,3 +59,8 @@ friendly_name: Winix Basement
     - `Sleep` or `5`
 
 - If purifiers are added/removed, then you would want to restart HomeAssistant.
+- Winix **does not support** simultaneous login from multiple devices. If you logged into the mobile app after configuring HomeAssistant, then the HomeAssistant session gets flagged as invalid and vice-versa.
+
+# Breaking Changes
+
+- [1.0.0](https://github.com/iprak/winix/releases) introduces config flow and previous yaml based setup is no longer supported. You would want to delete that setup and proceed to setup the intgeration as mentioned in `Installation` section.
