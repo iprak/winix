@@ -135,6 +135,8 @@ class WinixDriver:
             _LOGGER.error(
                 "Error parsing response json, received %s", json, exc_info=err
             )
+
+            # Return empty object so that callers don't crash (#37)
             return output
 
         for (payload_key, attribute) in payload.items():
