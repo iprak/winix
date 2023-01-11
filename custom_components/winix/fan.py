@@ -106,6 +106,8 @@ async def async_setup_entry(
 class WinixPurifier(WinixEntity, FanEntity):
     """Representation of a Winix Purifier entity."""
 
+    _attr_has_entity_name = True
+
     def __init__(self, wrapper: WinixDeviceWrapper, coordinator: WinixManager) -> None:
         """Initialize the entity."""
         super().__init__(wrapper, coordinator)
@@ -115,6 +117,11 @@ class WinixPurifier(WinixEntity, FanEntity):
     def unique_id(self) -> str:
         """Return the unique id of the switch."""
         return self._unique_id
+
+    @property
+    def name(self) -> Union[str, None]:
+        """Entity Name (None, since this is the primary entity"""
+        return None
 
     @property
     def extra_state_attributes(self) -> Union[Mapping[str, Any], None]:

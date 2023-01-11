@@ -6,7 +6,7 @@ from collections.abc import Mapping
 import logging
 from typing import Any, Union
 
-from homeassistant.components.sensor import DOMAIN
+from homeassistant.components.sensor import DOMAIN, SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import Entity
@@ -44,7 +44,6 @@ class WinixSensor(WinixEntity, Entity):
     """Representation of a Winix Purifier air qValue sensor."""
 
     _attr_has_entity_name = True
-    _attr_name = "Air Quality"
     _attr_icon = ICON
 
     def __init__(self, wrapper: WinixDeviceWrapper, coordinator: WinixManager) -> None:
@@ -56,6 +55,11 @@ class WinixSensor(WinixEntity, Entity):
     def unique_id(self) -> str:
         """Return the unique id of the switch."""
         return self._unique_id
+
+    @property
+    def name(self) -> str:
+        """Entity name"""
+        return "Air Quality"
 
     @property
     def extra_state_attributes(self) -> Union[Mapping[str, Any], None]:
@@ -83,8 +87,6 @@ class WinixAqiSensor(WinixEntity, Entity):
     """Representation of a Winix Purifier air qValue sensor."""
 
     _attr_has_entity_name = True
-    _attr_name = "AQI"
-    _attr_icon = ICON
 
     def __init__(self, wrapper: WinixDeviceWrapper, coordinator: WinixManager) -> None:
         """Initialize the sensor."""
@@ -97,6 +99,11 @@ class WinixAqiSensor(WinixEntity, Entity):
         return self._unique_id
 
     @property
+    def name(self) -> str:
+        """Entity name"""
+        return "AQI"
+
+    @property
     def state(self) -> Union[str, None]:
         """Return the state of the sensor."""
         state = self._wrapper.get_state()
@@ -106,3 +113,8 @@ class WinixAqiSensor(WinixEntity, Entity):
     def unit_of_measurement(self) -> Union[str, None]:
         """Return the unit of measurement of this entity, if any."""
         return "AQI"
+
+    @property
+    def device_class(self) -> Union[str, None]:
+        """Return the device class of this entity"""
+        return SensorDeviceClass.AQI
