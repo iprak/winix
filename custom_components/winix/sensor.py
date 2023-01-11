@@ -16,7 +16,7 @@ from custom_components.winix.device_wrapper import WinixDeviceWrapper
 from custom_components.winix.manager import WinixEntity, WinixManager
 
 from . import WINIX_DOMAIN
-from .const import ATTR_AIR_QUALITY, ATTR_AIR_QVALUE, WINIX_DATA_COORDINATOR
+from .const import ATTR_AIR_QUALITY, ATTR_AIR_QVALUE, ATTR_AIR_AQI, WINIX_DATA_COORDINATOR
 
 _LOGGER = logging.getLogger(__name__)
 ICON = "mdi:cloud"
@@ -33,6 +33,8 @@ async def async_setup_entry(
     manager: WinixManager = data[WINIX_DATA_COORDINATOR]
     entities = [
         WinixSensor(wrapper, manager) for wrapper in manager.get_device_wrappers()
+    ] + [
+        WinixAqiSensor(wrapper, manager) for wrapper in manager.get_device_wrappers()
     ]
     async_add_entities(entities)
     _LOGGER.info("Added %s sensors", len(entities))
@@ -40,6 +42,10 @@ async def async_setup_entry(
 
 class WinixSensor(WinixEntity, Entity):
     """Representation of a Winix Purifier air qValue sensor."""
+
+    _attr_has_entity_name = True
+    _attr_name = "Air Quality"
+    _attr_icon = ICON
 
     def __init__(self, wrapper: WinixDeviceWrapper, coordinator: WinixManager) -> None:
         """Initialize the sensor."""
@@ -63,11 +69,6 @@ class WinixSensor(WinixEntity, Entity):
         return attributes
 
     @property
-    def icon(self) -> str:
-        """Return the icon to use for device if any."""
-        return ICON
-
-    @property
     def state(self) -> Union[str, None]:
         """Return the state of the sensor."""
         state = self._wrapper.get_state()
@@ -77,3 +78,31 @@ class WinixSensor(WinixEntity, Entity):
     def unit_of_measurement(self) -> Union[str, None]:
         """Return the unit of measurement of this entity, if any."""
         return UNIT_OF_MEASUREMENT
+
+class WinixAqiSensor(WinixEntity, Entity):
+    """Representation of a Winix Purifier air qValue sensor."""
+
+    _attr_has_entity_name = True
+    _attr_name = "AQI"
+    _attr_icon = ICON
+
+    def __init__(self, wrapper: WinixDeviceWrapper, coordinator: WinixManager) -> None:
+        """Initialize the sensor."""
+        super().__init__(wrapper, coordinator)
+        self._unique_id = f"{DOMAIN}.{WINIX_DOMAIN}_aqi_{self._mac}"
+
+    @property
+    def unique_id(self) -> str:
+        """Return the unique id of the switch."""
+        return self._unique_id
+
+    @property
+    def state(self) -> Union[str, None]:
+        """Return the state of the sensor."""
+        state = self._wrapper.get_state()
+        return None if state is None else state.get(ATTR_AIR_AQI)
+
+    @property
+    def unit_of_measurement(self) -> Union[str, None]:
+        """Return the unit of measurement of this entity, if any."""
+        return "AQI"

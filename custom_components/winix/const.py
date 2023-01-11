@@ -19,6 +19,7 @@ ATTR_PLASMA: Final = "plasma"
 ATTR_POWER: Final = "power"
 ATTR_AIR_QUALITY: Final = "air_quality"
 ATTR_AIR_QVALUE: Final = "air_qvalue"
+ATTR_AIR_AQI: Final = "aqi"
 
 OFF_VALUE: Final = "off"
 ON_VALUE: Final = "on"
