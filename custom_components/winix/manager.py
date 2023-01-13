@@ -23,7 +23,10 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class WinixEntity(CoordinatorEntity):
-    """Winix entity."""
+    """Represents a Winix entity."""
+
+    _attr_has_entity_name = True
+    _attr_attribution = "Data provided by Winix"
 
     def __init__(self, wrapper: WinixDeviceWrapper, coordinator: WinixManager) -> None:
         """Initialize the Winix entity."""
@@ -33,27 +36,14 @@ class WinixEntity(CoordinatorEntity):
 
         self._mac = device_stub.mac.lower()
         self._wrapper = wrapper
-        self._name = f"Winix {device_stub.alias}"
 
-        self._device_info: DeviceInfo = {
+        self._attr_device_info: DeviceInfo = {
             "identifiers": {(WINIX_DOMAIN, self._mac)},
-            "name": self._name,
+            "name": f"Winix {device_stub.alias}",
             "manufacturer": "Winix",
             "model": device_stub.model,
             "sw_version": device_stub.sw_version,
         }
-
-        self._attr_attribution = "Data provided by Winix"
-
-    @property
-    def name(self) -> str:
-        """Return the name of the entity."""
-        return self._name
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device specific attributes."""
-        return self._device_info
 
     @property
     def available(self) -> bool:
