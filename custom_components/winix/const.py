@@ -12,6 +12,7 @@ WINIX_AUTH_RESPONSE: Final = "WinixAuthResponse"
 WINIX_ACCESS_TOKEN_EXPIRATION: Final = "access_token_expiration"
 
 ATTR_AIRFLOW: Final = "airflow"
+ATTR_AIR_AQI: Final = "aqi"
 ATTR_AIR_QUALITY: Final = "air_quality"
 ATTR_AIR_QVALUE: Final = "air_qvalue"
 ATTR_FILTER_HOUR: Final = "filter_hour"
@@ -20,6 +21,10 @@ ATTR_LOCATION: Final = "location"
 ATTR_MODE: Final = "mode"
 ATTR_PLASMA: Final = "plasma"
 ATTR_POWER: Final = "power"
+
+SENSOR_AIR_QVALUE: Final = "air_qvalue"
+SENSOR_AQI: Final = "aqi"
+SENSOR_FILTER_LIFE: Final = "filter_life"
 
 OFF_VALUE: Final = "off"
 ON_VALUE: Final = "on"
