@@ -107,7 +107,9 @@ def test_construction():
     assert device.speed_count == len(ORDERED_NAMED_FAN_SPEEDS)
     assert device.supported_features == (SUPPORT_PRESET_MODE | SUPPORT_SET_SPEED)
     assert device.device_info is not None
-    assert device.name is not None
+    assert (
+        device.name is None
+    )  # name is should be None since purifier fan is the primary entity.
 
 
 def test_device_availability():

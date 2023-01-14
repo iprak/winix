@@ -2,8 +2,10 @@
 
 from unittest.mock import AsyncMock, MagicMock, Mock
 
+from homeassistant.components.sensor import SensorEntityDescription, SensorStateClass
 import pytest
 
+from custom_components.winix.const import SENSOR_AIR_QVALUE
 from custom_components.winix.device_wrapper import WinixDeviceWrapper
 from custom_components.winix.driver import WinixDriver
 
@@ -23,6 +25,18 @@ def mock_device_wrapper() -> WinixDeviceWrapper:
     device_wrapper.async_turn_on = AsyncMock()
 
     yield device_wrapper
+
+
+@pytest.fixture
+def mock_qvalue_description() -> SensorEntityDescription:
+    """Return a mocked SensorEntityDescription instance."""
+
+    yield SensorEntityDescription(
+        key=SENSOR_AIR_QVALUE,
+        name="Air QValue",
+        native_unit_of_measurement="qv",
+        state_class=SensorStateClass.MEASUREMENT,
+    )
 
 
 @pytest.fixture

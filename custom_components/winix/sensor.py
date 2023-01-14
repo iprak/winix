@@ -4,23 +4,61 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 import logging
-from typing import Any, Union
+from typing import Any, Final, Union
 
-from homeassistant.components.sensor import DOMAIN
+from homeassistant.components.sensor import (
+    DOMAIN,
+    SensorEntity,
+    SensorEntityDescription,
+    SensorStateClass,
+)
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import PERCENTAGE
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.typing import StateType
 
 from custom_components.winix.device_wrapper import WinixDeviceWrapper
 from custom_components.winix.manager import WinixEntity, WinixManager
 
 from . import WINIX_DOMAIN
-from .const import ATTR_AIR_QUALITY, ATTR_AIR_QVALUE, WINIX_DATA_COORDINATOR
+from .const import (
+    ATTR_AIR_AQI,
+    ATTR_AIR_QUALITY,
+    ATTR_AIR_QVALUE,
+    ATTR_FILTER_HOUR,
+    SENSOR_AIR_QVALUE,
+    SENSOR_AQI,
+    SENSOR_FILTER_LIFE,
+    WINIX_DATA_COORDINATOR,
+)
 
 _LOGGER = logging.getLogger(__name__)
-ICON = "mdi:cloud"
-UNIT_OF_MEASUREMENT = "QV"
+TOTAL_FILTER_LIFE: Final = 6480  # 9 months
+
+
+SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
+    SensorEntityDescription(
+        key=SENSOR_AIR_QVALUE,
+        icon="mdi:cloud",
+        name="Air QValue",
+        native_unit_of_measurement="qv",
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    SensorEntityDescription(
+        key=SENSOR_FILTER_LIFE,
+        icon="mdi:air-filter",
+        name="Filter Life",
+        native_unit_of_measurement=PERCENTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    SensorEntityDescription(
+        key=SENSOR_AQI,
+        icon="mdi:blur",
+        name="AQI",
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+)
 
 
 async def async_setup_entry(
@@ -31,49 +69,71 @@ async def async_setup_entry(
     """Set up the Winix sensors."""
     data = hass.data[WINIX_DOMAIN][entry.entry_id]
     manager: WinixManager = data[WINIX_DATA_COORDINATOR]
+
     entities = [
-        WinixSensor(wrapper, manager) for wrapper in manager.get_device_wrappers()
+        WinixSensor(wrapper, manager, description)
+        for description in SENSOR_TYPES
+        for wrapper in manager.get_device_wrappers()
     ]
     async_add_entities(entities)
     _LOGGER.info("Added %s sensors", len(entities))
 
 
-class WinixSensor(WinixEntity, Entity):
-    """Representation of a Winix Purifier air qValue sensor."""
+class WinixSensor(WinixEntity, SensorEntity):
+    """Representation of a Winix Purifier sensor."""
 
-    def __init__(self, wrapper: WinixDeviceWrapper, coordinator: WinixManager) -> None:
+    def __init__(
+        self,
+        wrapper: WinixDeviceWrapper,
+        coordinator: WinixManager,
+        description: SensorEntityDescription,
+    ) -> None:
         """Initialize the sensor."""
         super().__init__(wrapper, coordinator)
-        self._unique_id = f"{DOMAIN}.{WINIX_DOMAIN}_qvalue_{self._mac}"
+        self.entity_description = description
 
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id of the switch."""
-        return self._unique_id
+        self._attr_unique_id = (
+            f"{DOMAIN}.{WINIX_DOMAIN}_{description.key.lower()}_{self._mac}"
+        )
 
     @property
     def extra_state_attributes(self) -> Union[Mapping[str, Any], None]:
         """Return the state attributes."""
-        attributes = {ATTR_AIR_QUALITY: None}
 
-        state = self._wrapper.get_state()
-        if state is not None:
-            attributes[ATTR_AIR_QUALITY] = state.get(ATTR_AIR_QUALITY)
+        attributes = None
+        if self.entity_description.key == SENSOR_AIR_QVALUE:
+            attributes = {ATTR_AIR_QUALITY: None}
+
+            state = self._wrapper.get_state()
+            if state is not None:
+                attributes[ATTR_AIR_QUALITY] = state.get(ATTR_AIR_QUALITY)
 
         return attributes
 
     @property
-    def icon(self) -> str:
-        """Return the icon to use for device if any."""
-        return ICON
-
-    @property
-    def state(self) -> Union[str, None]:
+    def native_value(self) -> StateType:
         """Return the state of the sensor."""
         state = self._wrapper.get_state()
-        return None if state is None else state.get(ATTR_AIR_QVALUE)
+        if state is None:
+            return None
 
-    @property
-    def unit_of_measurement(self) -> Union[str, None]:
-        """Return the unit of measurement of this entity, if any."""
-        return UNIT_OF_MEASUREMENT
+        if self.entity_description.key == SENSOR_AIR_QVALUE:
+            return state.get(ATTR_AIR_QVALUE)
+
+        if self.entity_description.key == SENSOR_AQI:
+            return state.get(ATTR_AIR_AQI)
+
+        if self.entity_description.key == SENSOR_FILTER_LIFE:
+            hours: int = int(state.get(ATTR_FILTER_HOUR))
+            if hours > TOTAL_FILTER_LIFE:
+                _LOGGER.warning(
+                    "Reported filter life '%d' is more than max value '%d'.",
+                    hours,
+                    TOTAL_FILTER_LIFE,
+                )
+                return None
+
+            return int((TOTAL_FILTER_LIFE - hours) * 100 / TOTAL_FILTER_LIFE)
+
+        _LOGGER.error("Unhandled sensor '%s' encountered.", self.entity_description.key)
+        return None

@@ -18,6 +18,10 @@ class WinixDriver:
     # pylint: disable=line-too-long
     CTRL_URL = "https://us.api.winix-iot.com/common/control/devices/{deviceid}/A211/{attribute}:{value}"
     STATE_URL = "https://us.api.winix-iot.com/common/event/sttus/devices/{deviceid}"
+    PARAM_URL = "https://us.api.winix-iot.com/common/event/param/devices/{deviceid}"
+    CONNECTED_STATUS_URL = (
+        "https://us.api.winix-iot.com/common/event/connsttus/devices/{deviceid}"
+    )
 
     category_keys = {
         "power": "A02",
@@ -121,15 +125,68 @@ class WinixDriver:
             self.CTRL_URL.format(deviceid=self.device_id, attribute=attr, value=value)
         )
 
+    async def get_filter_life(self) -> int | None:
+        """Get the total filter life."""
+        response = await self._client.get(
+            self.PARAM_URL.format(deviceid=self.device_id)
+        )
+        json = await response.json()
+
+        # pylint: disable=pointless-string-statement
+        """
+        {
+            'statusCode': 200, 'headers': {'resultCode': 'S100', 'resultMessage': ''},
+            'body': {
+                'deviceId': '847207352CE0_364yr8i989', 'totalCnt': 1,
+                'data': [
+                    {
+                        'apiNo': 'A240', 'apiGroup': '004', 'modelId': 'C545', 'attributes': {'P01': '6480'}
+                    }
+                ]
+            }
+        }
+        """
+
+        try:
+            attributes = json["body"]["data"][0]["attributes"]
+            if attributes:
+                return int(attributes["P01"])
+        except Exception:  # pylint: disable=broad-except
+            return None
+
     async def get_state(self) -> Dict[str, str]:
         """Get device state."""
+
+        # All devices seem to have max 9 months filter life so don't need to call this API.
+        # await self.get_filter_life()
+
         response = await self._client.get(
             self.STATE_URL.format(deviceid=self.device_id)
         )
         json = await response.json()
+
+        # pylint: disable=pointless-string-statement
+        """
+        {
+            'statusCode': 200,
+            'headers': {'resultCode': 'S100', 'resultMessage': ''},
+            'body': {
+                'deviceId': '847207352CE0_364yr8i989', 'totalCnt': 1,
+                'data': [
+                    {
+                        'apiNo': 'A210', 'apiGroup': '001', 'deviceGroup': 'Air01', 'modelId': 'C545',
+                        'attributes': {'A02': '0', 'A03': '01', 'A04': '01', 'A05': '01', 'A07': '0', 'A21': '1257', 'S07': '01', 'S08': '74', 'S14': '121'},
+                        'rssi': '-55', 'creationTime': 1673449200634, 'utcDatetime': '2023-01-11 15:00:00', 'utcTimestamp': 1673449200
+                    }
+                ]
+            }
+        }
+        """
+
         output = {}
 
         try:
+            _LOGGER.debug(json)
             payload = json["body"]["data"][0]["attributes"]
         except Exception as err:  # pylint: disable=broad-except
             _LOGGER.error(

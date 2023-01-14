@@ -109,12 +109,16 @@ class WinixPurifier(WinixEntity, FanEntity):
     def __init__(self, wrapper: WinixDeviceWrapper, coordinator: WinixManager) -> None:
         """Initialize the entity."""
         super().__init__(wrapper, coordinator)
-        self._unique_id = f"{DOMAIN}.{WINIX_DOMAIN}_{self._mac}"
+        self._attr_unique_id = f"{DOMAIN}.{WINIX_DOMAIN}_{self._mac}"
 
     @property
-    def unique_id(self) -> str:
-        """Return the unique id of the switch."""
-        return self._unique_id
+    def name(self) -> Union[str, None]:
+        """
+        Entity Name.
+
+        Returning None, since this is the primary entity.
+        """
+        return None
 
     @property
     def extra_state_attributes(self) -> Union[Mapping[str, Any], None]:
