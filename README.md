@@ -10,6 +10,12 @@ This can be installed by copying all the files from `custom_components/winix/` t
 
 ![image](https://user-images.githubusercontent.com/6459774/212468308-e6e855ac-ad26-4405-b683-246ccf4c8ccc.png)
 
+
+- The `Air QValue` sensor reports the qValue reported by Winix purifier. This value is related to air quality although I am not exactly sure what it represents.
+- The `AQI` sensor matches the led light on the purifier.
+  - Good (Blue) = 1
+  - Fair (Amber) = 2
+  - Poor (Red) = 3
 - The `Filter Life` sensor represents the left filter life and is based on an initial life of 9 months.
 
 - The fan entity supports speed and preset modes
