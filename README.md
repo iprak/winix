@@ -4,64 +4,28 @@ A custom component to interact with Winix [C545](https://www.winixamerica.com/pr
 
 # Installation
 
-This can be installed by copying all the files from `custom_components/winix/` to `<config directory>/custom_components/winix/`.
+This can be installed by copying all the files from `custom_components/winix/` to `<config directory>/custom_components/winix/`. Next add Winix integration from `Add Integration` and use your credentials from Winix mobile app.
 
-Next add Winix integration from `Add Integration`.
+- You should now see one device and 4 entities being created.
 
-- You should now see one device, 2 entities being created (fan + sensor).
-- This will generate entities and sensors whose id is based on the mac address.
+![image](https://user-images.githubusercontent.com/6459774/212468308-e6e855ac-ad26-4405-b683-246ccf4c8ccc.png)
 
-Sample `fan.winix_abcdefghijkl` entity:
+- The `Filter Life` sensor represents the left filter life and is based on an initial life of 9 months.
 
-```
-speed_list:
-  - 'off'
-  - auto
-  - low
-  - medium
-  - high
-  - turbo
-  - sleep
-speed: low
-mode: auto
-airflow: low
-aqi: 1
-plasma: 'off'
-filter_hour: 126
-air_quality: good
-air_qvalue: 0
-ambient_light: 2
-location: MDNWI
-filter_replace_date: '2020-10-01 23:31:09.0'
-friendly_name: Winix Basement
-supported_features: 1
-```
+- The fan entity supports speed and preset modes
 
-Sample `sensor.winix_qvalue_abcdefghijkl` sensor:
-
-```
-air_quality: good
-friendly_name: Winix Basement
-```
-
-- The purifier entity supports speed and preset mode.
-
-  <img src="images/entity.png" alt="Entity" width="200"/>
+![image](https://user-images.githubusercontent.com/6459774/212468432-0b37cd09-af5b-418c-855d-a12c8b21efc3.png)
 
 - The device data is fetched every 30 seconds.
 - There are 3 new services `winix.plasmawave_off, winix.plasmawave_on, plasmawave_toggle` in addition to the default fan services `fan.speed, fan.toggle, fan.turn_off, fan.turn_on, fan.set_preset_mode`.
 
-  - The valid present modes are:
-    - `Auto` or `1`
-    - `Auto (PlasmaWave off)` or `2`
-    - `Manual` or `3`
-    - `Manual (PlasmaWave off)` or `4`
-    - `Sleep` or `5`
-
+## Note
 - If purifiers are added/removed, then you would want to restart HomeAssistant.
 
 - Winix **does not support** simultaneous login from multiple devices. If you logged into the mobile app after configuring HomeAssistant, then the HomeAssistant session gets flagged as invalid and vice-versa.
 
 # Breaking Changes
+
+- [1.1.0](https://github.com/iprak/winix/releases) changed the sensor implementation. The aqi sensor id might be different now.
 
 - [1.0.0](https://github.com/iprak/winix/releases) introduces config flow and previous yaml based setup is no longer supported. You would want to delete that setup and proceed to setup the intgeration as mentioned in `Installation` section.
