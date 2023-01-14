@@ -186,6 +186,7 @@ class WinixDriver:
         output = {}
 
         try:
+            _LOGGER.debug(json)
             payload = json["body"]["data"][0]["attributes"]
         except Exception as err:  # pylint: disable=broad-except
             _LOGGER.error(

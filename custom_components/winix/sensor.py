@@ -8,7 +8,6 @@ from typing import Any, Final, Union
 
 from homeassistant.components.sensor import (
     DOMAIN,
-    SensorDeviceClass,
     SensorEntity,
     SensorEntityDescription,
     SensorStateClass,
@@ -57,9 +56,7 @@ SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
         key=SENSOR_AQI,
         icon="mdi:blur",
         name="AQI",
-        native_unit_of_measurement="aqi",
         state_class=SensorStateClass.MEASUREMENT,
-        device_class=SensorDeviceClass.AQI,
     ),
 )
 
@@ -120,7 +117,6 @@ class WinixSensor(WinixEntity, SensorEntity):
         if state is None:
             return None
 
-        print(f"*** {self.entity_description.key}")
         if self.entity_description.key == SENSOR_AIR_QVALUE:
             return state.get(ATTR_AIR_QVALUE)
 
