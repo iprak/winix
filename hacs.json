@@ -1,8 +1,4 @@
 {
     "name": "Winix Purifier",
-    "domains": [
-        "sensor", "fan"
-    ],
-    "iot_class": "cloud_poll",
     "render_readme": true
 }
