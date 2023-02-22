@@ -174,20 +174,20 @@ class WinixDeviceWrapper:
             self._logger.debug("%s: Setting auto mode", self._alias)
             await self._driver.auto()
 
-    async def async_plasmawave_on(self) -> None:
+    async def async_plasmawave_on(self, force: bool = False) -> None:
         """Turn on plasma wave."""
 
-        if not self._plasma_on:
+        if force or not self._plasma_on:
             self._plasma_on = True
             self._state[ATTR_PLASMA] = ON_VALUE
 
             self._logger.debug("%s: Turning plasmawave on", self._alias)
             await self._driver.plasmawave_on()
 
-    async def async_plasmawave_off(self) -> None:
+    async def async_plasmawave_off(self, force: bool = False) -> None:
         """Turn off plasma wave."""
 
-        if self._plasma_on:
+        if force or self._plasma_on:
             self._plasma_on = False
             self._state[ATTR_PLASMA] = OFF_VALUE
 
@@ -261,10 +261,10 @@ class WinixDeviceWrapper:
             await self.async_plasmawave_on()
         elif preset_mode == PRESET_MODE_AUTO_PLASMA_OFF:
             await self.async_auto()
-            await self.async_plasmawave_off()
+            await self.async_plasmawave_off(True)
         elif preset_mode == PRESET_MODE_MANUAL:
             await self.async_manual()
             await self.async_plasmawave_on()
         elif preset_mode == PRESET_MODE_MANUAL_PLASMA_OFF:
             await self.async_manual()
-            await self.async_plasmawave_off()
+            await self.async_plasmawave_off(True)
