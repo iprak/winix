@@ -2,6 +2,7 @@
 
 from unittest.mock import AsyncMock, MagicMock, Mock
 
+from homeassistant import loader
 from homeassistant.components.sensor import SensorEntityDescription, SensorStateClass
 import pytest
 
@@ -61,3 +62,9 @@ def mock_driver_with_payload(request) -> WinixDriver:
 
     device_id = "device_1"
     yield WinixDriver(device_id, client)
+
+
+@pytest.fixture
+def enable_custom_integrations(hass):
+    """Enable custom integrations defined in the test dir."""
+    hass.data.pop(loader.DATA_CUSTOM_COMPONENTS)
