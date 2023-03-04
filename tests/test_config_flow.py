@@ -1,15 +1,13 @@
 """Test config flow."""
 from unittest.mock import AsyncMock, patch
 
-from homeassistant import config_entries, data_entry_flow
+from homeassistant import data_entry_flow
 from homeassistant.config_entries import SOURCE_USER
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
-from homeassistant.data_entry_flow import FlowResultType
 
-from custom_components.winix.const import WINIX_AUTH_RESPONSE, WINIX_DOMAIN
+from custom_components.winix.const import WINIX_DOMAIN
 from custom_components.winix.helpers import WinixException
-from winix import WinixAccount, auth
 
 TEST_USER_DATA = {
     CONF_USERNAME: "user_name",
