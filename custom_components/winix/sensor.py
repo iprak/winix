@@ -124,6 +124,10 @@ class WinixSensor(WinixEntity, SensorEntity):
             return state.get(ATTR_AIR_AQI)
 
         if self.entity_description.key == SENSOR_FILTER_LIFE:
+            value = state.get(ATTR_FILTER_HOUR)
+            if value is None:
+                return None
+
             hours: int = int(state.get(ATTR_FILTER_HOUR))
             if hours > TOTAL_FILTER_LIFE:
                 _LOGGER.warning(

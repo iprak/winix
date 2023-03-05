@@ -4,9 +4,10 @@ from unittest.mock import AsyncMock, MagicMock, Mock
 
 from homeassistant import loader
 from homeassistant.components.sensor import SensorEntityDescription, SensorStateClass
+from homeassistant.const import PERCENTAGE
 import pytest
 
-from custom_components.winix.const import SENSOR_AIR_QVALUE
+from custom_components.winix.const import SENSOR_AIR_QVALUE, SENSOR_FILTER_LIFE
 from custom_components.winix.device_wrapper import WinixDeviceWrapper
 from custom_components.winix.driver import WinixDriver
 
@@ -29,13 +30,36 @@ def mock_device_wrapper() -> WinixDeviceWrapper:
 
 
 @pytest.fixture
-def mock_qvalue_description() -> SensorEntityDescription:
+def mock_sensor_description(sensor_key) -> SensorEntityDescription:
     """Return a mocked SensorEntityDescription instance."""
+
+    yield SensorEntityDescription(
+        key=sensor_key,
+        name="Test sensor description",
+        state_class=SensorStateClass.MEASUREMENT,
+    )
+
+
+@pytest.fixture
+def mock_qvalue_description() -> SensorEntityDescription:
+    """Return a mocked qValue SensorEntityDescription instance."""
 
     yield SensorEntityDescription(
         key=SENSOR_AIR_QVALUE,
         name="Air QValue",
         native_unit_of_measurement="qv",
+        state_class=SensorStateClass.MEASUREMENT,
+    )
+
+
+@pytest.fixture
+def mock_filter_life_description() -> SensorEntityDescription:
+    """Return a mocked SensorEntityDescription instance."""
+
+    yield SensorEntityDescription(
+        key=SENSOR_FILTER_LIFE,
+        name="Filter Life",
+        native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
     )
 
