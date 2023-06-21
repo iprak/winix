@@ -1,17 +1,18 @@
 """Config flow for Winix purifier."""
 from __future__ import annotations
 
+from collections.abc import Mapping
 import logging
-from typing import Any, Mapping
+from typing import Any
 
-from homeassistant import config_entries
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
-from homeassistant.data_entry_flow import FlowResult
 import voluptuous as vol
+from winix import auth
 
 from custom_components.winix import Helpers
 from custom_components.winix.helpers import WinixException
-from winix import auth
+from homeassistant import config_entries
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from homeassistant.data_entry_flow import FlowResult
 
 from .const import WINIX_AUTH_RESPONSE, WINIX_DOMAIN, WINIX_NAME
 

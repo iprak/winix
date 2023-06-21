@@ -5,11 +5,11 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 import logging
 
-from homeassistant.core import HomeAssistant
 import requests
+from winix import WinixAccount, auth
 
 from custom_components.winix.device_wrapper import MyWinixDeviceStub
-from winix import WinixAccount, auth
+from homeassistant.core import HomeAssistant
 
 from .const import WINIX_DOMAIN
 
@@ -73,8 +73,7 @@ class Helpers:
     async def async_refresh_auth(
         hass: HomeAssistant, response: auth.WinixAuthResponse
     ) -> auth.WinixAuthResponse:
-        """
-        Refresh authentication.
+        """Refresh authentication.
 
         Raises WinixException.
         """
@@ -104,8 +103,7 @@ class Helpers:
 
     @staticmethod
     async def async_get_device_stubs(hass: HomeAssistant, access_token: str):
-        """
-        Get device list.
+        """Get device list.
 
         Raises WinixException.
         """
