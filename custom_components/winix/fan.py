@@ -7,6 +7,10 @@ from collections.abc import Mapping
 import logging
 from typing import Any, Optional, Union
 
+import voluptuous as vol
+
+from custom_components.winix.device_wrapper import WinixDeviceWrapper
+from custom_components.winix.manager import WinixEntity, WinixManager
 from homeassistant.components.fan import (
     DOMAIN,
     SUPPORT_PRESET_MODE,
@@ -22,10 +26,6 @@ from homeassistant.util.percentage import (
     ordered_list_item_to_percentage,
     percentage_to_ordered_list_item,
 )
-import voluptuous as vol
-
-from custom_components.winix.device_wrapper import WinixDeviceWrapper
-from custom_components.winix.manager import WinixEntity, WinixManager
 
 from .const import (
     ATTR_AIRFLOW,
@@ -113,8 +113,7 @@ class WinixPurifier(WinixEntity, FanEntity):
 
     @property
     def name(self) -> Union[str, None]:
-        """
-        Entity Name.
+        """Entity Name.
 
         Returning None, since this is the primary entity.
         """
@@ -129,7 +128,7 @@ class WinixPurifier(WinixEntity, FanEntity):
         if state is not None:
             for key, value in state.items():
                 # The power attribute is the entity state, so skip it
-                if not key == ATTR_POWER:
+                if key != ATTR_POWER:
                     attributes[key] = value
 
         attributes[ATTR_LOCATION] = self._wrapper.device_stub.location_code
@@ -213,7 +212,7 @@ class WinixPurifier(WinixEntity, FanEntity):
                 percentage_to_ordered_list_item(ORDERED_NAMED_FAN_SPEEDS, percentage)
             )
 
-        await self.async_update_ha_state(True)  # Update state
+        self.async_write_ha_state()
 
     async def async_turn_on(
         self,
@@ -231,22 +230,22 @@ class WinixPurifier(WinixEntity, FanEntity):
         else:
             await self._wrapper.async_turn_on()
 
-        await self.async_update_ha_state(True)
+        self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the purifier."""
         await self._wrapper.async_turn_off()
-        await self.async_update_ha_state(True)
+        self.async_write_ha_state()
 
     async def async_plasmawave_on(self) -> None:
         """Turn on plasma wave."""
         await self._wrapper.async_plasmawave_on()
-        await self.async_update_ha_state(True)
+        self.async_write_ha_state()
 
     async def async_plasmawave_off(self) -> None:
         """Turn off plasma wave."""
         await self._wrapper.async_plasmawave_off()
-        await self.async_update_ha_state(True)
+        self.async_write_ha_state()
 
     async def async_plasmawave_toggle(self) -> None:
         """Toggle plasma wave."""
@@ -256,9 +255,9 @@ class WinixPurifier(WinixEntity, FanEntity):
         else:
             await self._wrapper.async_plasmawave_on()
 
-        await self.async_update_ha_state(True)
+        self.async_write_ha_state()
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set new preset mode."""
         await self._wrapper.async_set_preset_mode(preset_mode)
-        await self.async_update_ha_state(True)
+        self.async_write_ha_state()
