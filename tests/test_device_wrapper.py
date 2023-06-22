@@ -23,7 +23,6 @@ from custom_components.winix.const import (
     NumericPresetModes,
 )
 from custom_components.winix.device_wrapper import WinixDeviceWrapper
-
 from tests import build_mock_wrapper
 
 WinixDriver_TypeName = "custom_components.winix.driver.WinixDriver"
@@ -326,5 +325,5 @@ async def test_async_set_preset_mode_invalid():
 
     wrapper = WinixDeviceWrapper(client, device_stub, logger)
 
-    await wrapper.async_set_preset_mode("INVALID_PRESET")
-    logger.warning.call_count == 1
+    with pytest.raises(ValueError):
+        await wrapper.async_set_preset_mode("INVALID_PRESET")

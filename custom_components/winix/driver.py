@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Dict
 
 import aiohttp
 
@@ -121,9 +120,13 @@ class WinixDriver:
         )
 
     async def _rpc_attr(self, attr: str, value: str):
-        await self._client.get(
-            self.CTRL_URL.format(deviceid=self.device_id, attribute=attr, value=value)
+        _LOGGER.debug("_rpc_attr attribute=%s, value=%s", attr, value)
+        resp = await self._client.get(
+            self.CTRL_URL.format(deviceid=self.device_id, attribute=attr, value=value),
+            raise_for_status=True,
         )
+        raw_resp = await resp.text()
+        _LOGGER.debug("_rpc_attr response=%s", raw_resp)
 
     async def get_filter_life(self) -> int | None:
         """Get the total filter life."""
@@ -154,7 +157,7 @@ class WinixDriver:
         except Exception:  # pylint: disable=broad-except
             return None
 
-    async def get_state(self) -> Dict[str, str]:
+    async def get_state(self) -> dict[str, str]:
         """Get device state."""
 
         # All devices seem to have max 9 months filter life so don't need to call this API.
@@ -196,12 +199,12 @@ class WinixDriver:
             # Return empty object so that callers don't crash (#37)
             return output
 
-        for (payload_key, attribute) in payload.items():
-            for (category, local_key) in self.category_keys.items():
+        for payload_key, attribute in payload.items():
+            for category, local_key in self.category_keys.items():
                 if payload_key == local_key:
                     # pylint: disable=consider-iterating-dictionary
-                    if category in self.state_keys.keys():
-                        for (value_key, value) in self.state_keys[category].items():
+                    if category in self.state_keys:
+                        for value_key, value in self.state_keys[category].items():
                             if attribute == value:
                                 output[category] = value_key
                     else:

@@ -2,7 +2,6 @@
 
 from unittest.mock import MagicMock, Mock
 
-from homeassistant.config_entries import ConfigEntry
 import pytest
 
 from custom_components.winix.const import (
@@ -20,7 +19,7 @@ from custom_components.winix.sensor import (
     WinixSensor,
     async_setup_entry,
 )
-
+from homeassistant.config_entries import ConfigEntry
 from tests import build_fake_manager
 
 

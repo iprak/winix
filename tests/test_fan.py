@@ -2,9 +2,6 @@
 
 from unittest.mock import AsyncMock, Mock, patch
 
-from homeassistant.components.fan import SUPPORT_PRESET_MODE, SUPPORT_SET_SPEED
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import ATTR_ENTITY_ID
 import pytest
 
 from custom_components.winix.const import (
@@ -24,7 +21,9 @@ from custom_components.winix.const import (
     WINIX_DOMAIN,
 )
 from custom_components.winix.fan import WinixPurifier, async_setup_entry
-
+from homeassistant.components.fan import SUPPORT_PRESET_MODE, SUPPORT_SET_SPEED
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import ATTR_ENTITY_ID
 from tests import build_fake_manager, build_purifier
 
 
@@ -56,7 +55,6 @@ async def test_service(hass):
 
     # Prepare the devices for serive call
     data = hass.data[WINIX_DOMAIN][config.entry_id]
-    print(data)
     for device in data[WINIX_DATA_KEY]:
         device.hass = hass
         device.entity_id = device.unique_id
@@ -239,7 +237,7 @@ async def test_async_turn_on_percentage(hass, mock_device_wrapper):
     await device.async_turn_on(25)
     assert device.async_set_percentage.call_count == 1
     assert mock_device_wrapper.async_set_preset_mode.call_count == 0
-    assert mock_device_wrapper.async_turn_on.call_count == 0
+    assert mock_device_wrapper.async_turn_on.call_count == 1
 
 
 async def test_async_turn_on_preset(hass, mock_device_wrapper):

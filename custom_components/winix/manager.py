@@ -4,8 +4,12 @@ from __future__ import annotations
 
 from datetime import timedelta
 import logging
-from typing import List
 
+from winix import auth
+
+from custom_components.winix.const import WINIX_DOMAIN
+from custom_components.winix.device_wrapper import WinixDeviceWrapper
+from custom_components.winix.helpers import Helpers
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import aiohttp_client
 from homeassistant.helpers.entity import DeviceInfo
@@ -13,11 +17,6 @@ from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
 )
-
-from custom_components.winix.const import WINIX_DOMAIN
-from custom_components.winix.device_wrapper import WinixDeviceWrapper
-from custom_components.winix.helpers import Helpers
-from winix import auth
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -75,7 +74,7 @@ class WinixManager(DataUpdateCoordinator):
     ) -> None:
         """Initialize the manager."""
 
-        self._device_wrappers: List[WinixDeviceWrapper] = None
+        self._device_wrappers: list[WinixDeviceWrapper] = None
         self._auth_response = auth_response
 
         super().__init__(
@@ -89,8 +88,7 @@ class WinixManager(DataUpdateCoordinator):
         await self.async_update()
 
     async def async_prepare_devices_wrappers(self) -> bool:
-        """
-        Prepare device wrappers.
+        """Prepare device wrappers.
 
         Raises WinixException.
         """
@@ -121,6 +119,6 @@ class WinixManager(DataUpdateCoordinator):
         for device_wrapper in self._device_wrappers:
             await device_wrapper.update()
 
-    def get_device_wrappers(self) -> List[WinixDeviceWrapper]:
+    def get_device_wrappers(self) -> list[WinixDeviceWrapper]:
         """Return the device wrapper objects."""
         return self._device_wrappers

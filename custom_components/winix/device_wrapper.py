@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Dict
 
 import aiohttp
 
@@ -104,7 +103,7 @@ class WinixDeviceWrapper:
             self._plasma_on,
         )
 
-    def get_state(self) -> Dict[str, str]:
+    def get_state(self) -> dict[str, str]:
         """Return the device data."""
         return self._state
 
@@ -155,8 +154,7 @@ class WinixDeviceWrapper:
             await self._driver.turn_off()
 
     async def async_auto(self) -> None:
-        """
-        Put the purifier in Auto mode with Low airflow.
+        """Put the purifier in Auto mode with Low airflow.
 
         Plasma state is left unchanged. The Winix server seems to sometimes
         turns it on for Auto mode.
@@ -248,8 +246,7 @@ class WinixDeviceWrapper:
                 index = int(preset_mode) - 1
                 preset_mode = PRESET_MODES[index]
             else:
-                self._logger.warning("'%s' is an invalid preset mode", preset_mode)
-                return
+                raise ValueError(f"Invalid preset mode: {preset_mode}")
 
         await self.async_ensure_on()
         self._logger.debug("%s => set mode=%s", self._alias, preset_mode)

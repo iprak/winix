@@ -6,6 +6,8 @@ from collections.abc import Mapping
 import logging
 from typing import Any, Final, Union
 
+from custom_components.winix.device_wrapper import WinixDeviceWrapper
+from custom_components.winix.manager import WinixEntity, WinixManager
 from homeassistant.components.sensor import (
     DOMAIN,
     SensorEntity,
@@ -17,9 +19,6 @@ from homeassistant.const import PERCENTAGE
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
-
-from custom_components.winix.device_wrapper import WinixDeviceWrapper
-from custom_components.winix.manager import WinixEntity, WinixManager
 
 from . import WINIX_DOMAIN
 from .const import (

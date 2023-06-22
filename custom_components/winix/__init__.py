@@ -5,14 +5,14 @@ from __future__ import annotations
 import logging
 from typing import Final
 
+from winix import auth
+
+from custom_components.winix.helpers import Helpers, WinixException
+from custom_components.winix.manager import WinixManager
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
-
-from custom_components.winix.helpers import Helpers, WinixException
-from custom_components.winix.manager import WinixManager
-from winix import auth
 
 from .const import WINIX_AUTH_RESPONSE, WINIX_DATA_COORDINATOR, WINIX_DOMAIN, WINIX_NAME
 
