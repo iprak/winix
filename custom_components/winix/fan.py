@@ -13,9 +13,8 @@ from .device_wrapper import WinixDeviceWrapper
 from .manager import WinixEntity, WinixManager
 from homeassistant.components.fan import (
     DOMAIN,
-    SUPPORT_PRESET_MODE,
-    SUPPORT_SET_SPEED,
     FanEntity,
+    FanEntityFeature
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID
@@ -106,6 +105,9 @@ async def async_setup_entry(
 class WinixPurifier(WinixEntity, FanEntity):
     """Representation of a Winix Purifier entity."""
 
+    # https://developers.home-assistant.io/docs/core/entity/fan/
+    _attr_supported_features = FanEntityFeature.PRESET_MODE | FanEntityFeature.SET_SPEED
+
     def __init__(self, wrapper: WinixDeviceWrapper, coordinator: WinixManager) -> None:
         """Initialize the entity."""
         super().__init__(wrapper, coordinator)
@@ -195,13 +197,6 @@ class WinixPurifier(WinixEntity, FanEntity):
     def speed_count(self) -> int:
         """Return the number of speeds the fan supports."""
         return len(ORDERED_NAMED_FAN_SPEEDS)
-
-    # https://developers.home-assistant.io/docs/core/entity/fan/
-
-    @property
-    def supported_features(self) -> int:
-        """Flag supported features."""
-        return SUPPORT_PRESET_MODE | SUPPORT_SET_SPEED
 
     async def async_set_percentage(self, percentage: int) -> None:
         """Set the speed percentage of the fan."""
