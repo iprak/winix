@@ -6,8 +6,8 @@
           "username": "Username",
           "password": "Password"
         },
-        "description": "Set up Winix integration. Login with yout mobile app credentials.",
-        "title": "Winix Purifier"
+        "description": "Set up Winix integration. Login with your mobile app credentials.",
+        "title": "Winix Air Purifier"
       }
     },
     "error": {
