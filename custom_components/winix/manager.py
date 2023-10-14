@@ -7,9 +7,9 @@ import logging
 
 from winix import auth
 
-from custom_components.winix.const import WINIX_DOMAIN
-from custom_components.winix.device_wrapper import WinixDeviceWrapper
-from custom_components.winix.helpers import Helpers
+from .const import WINIX_DOMAIN
+from .device_wrapper import WinixDeviceWrapper
+from .helpers import Helpers
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import aiohttp_client
 from homeassistant.helpers.entity import DeviceInfo

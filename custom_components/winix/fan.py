@@ -9,8 +9,8 @@ from typing import Any, Optional, Union
 
 import voluptuous as vol
 
-from custom_components.winix.device_wrapper import WinixDeviceWrapper
-from custom_components.winix.manager import WinixEntity, WinixManager
+from .device_wrapper import WinixDeviceWrapper
+from .manager import WinixEntity, WinixManager
 from homeassistant.components.fan import (
     DOMAIN,
     SUPPORT_PRESET_MODE,

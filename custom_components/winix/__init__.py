@@ -7,8 +7,8 @@ from typing import Final
 
 from winix import auth
 
-from custom_components.winix.helpers import Helpers, WinixException
-from custom_components.winix.manager import WinixManager
+from .helpers import Helpers, WinixException
+from .manager import WinixManager
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
 from homeassistant.core import HomeAssistant
@@ -101,15 +101,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
                         ) from login_err
 
                     _LOGGER.error(
-                        "Unable to log in. Device access previously failed with `%s`.",
+                        "Unable to log in. Device access previously failed with `%s`",
                         str(err),
                         exc_info=True,
                     )
                     raise ConfigEntryNotReady("Unable to authenticate.") from login_err
             else:
-                _LOGGER.error(
-                    "async_prepare_devices_wrappers failed with `%s`.", str(err)
-                )
                 try_prepare_devices_wrappers = False
 
                 # ConfigEntryNotReady will cause async_setup_entry to be invoked in background.
