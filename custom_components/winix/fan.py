@@ -86,7 +86,7 @@ async def async_setup_entry(
                 continue
 
             await getattr(device, method)(**params)
-            state_update_tasks.append(device.async_update_ha_state(True))
+            state_update_tasks.append(asyncio.create_task(device.async_update_ha_state(True)))
 
         if state_update_tasks:
             # Update device states in HA
