@@ -36,9 +36,7 @@
             "label": "Pylint",
             "type": "shell",
             "command": "pylint custom_components",
-            "dependsOn": [
-                "Install all Requirements"
-            ],
+            "dependsOn": [],
             "group": {
                 "kind": "test",
                 "isDefault": true
