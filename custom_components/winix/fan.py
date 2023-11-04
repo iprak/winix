@@ -9,13 +9,7 @@ from typing import Any, Optional, Union
 
 import voluptuous as vol
 
-from .device_wrapper import WinixDeviceWrapper
-from .manager import WinixEntity, WinixManager
-from homeassistant.components.fan import (
-    DOMAIN,
-    FanEntity,
-    FanEntityFeature
-)
+from homeassistant.components.fan import DOMAIN, FanEntity, FanEntityFeature
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import HomeAssistant
@@ -43,6 +37,8 @@ from .const import (
     WINIX_DATA_KEY,
     WINIX_DOMAIN,
 )
+from .device_wrapper import WinixDeviceWrapper
+from .manager import WinixEntity, WinixManager
 
 _LOGGER = logging.getLogger(__name__)
 

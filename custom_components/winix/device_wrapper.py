@@ -6,8 +6,6 @@ import dataclasses
 
 import aiohttp
 
-from .driver import WinixDriver
-
 from .const import (
     AIRFLOW_LOW,
     AIRFLOW_SLEEP,
@@ -27,6 +25,7 @@ from .const import (
     PRESET_MODES,
     NumericPresetModes,
 )
+from .driver import WinixDriver
 
 
 @dataclasses.dataclass

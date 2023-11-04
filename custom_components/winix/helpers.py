@@ -8,10 +8,10 @@ import logging
 import requests
 from winix import WinixAccount, auth
 
-from .device_wrapper import MyWinixDeviceStub
 from homeassistant.core import HomeAssistant
 
 from .const import WINIX_DOMAIN
+from .device_wrapper import MyWinixDeviceStub
 
 _LOGGER = logging.getLogger(__name__)
 DEFAULT_POST_TIMEOUT = 5

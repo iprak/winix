@@ -7,9 +7,6 @@ import logging
 
 from winix import auth
 
-from .const import WINIX_DOMAIN
-from .device_wrapper import WinixDeviceWrapper
-from .helpers import Helpers
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import aiohttp_client
 from homeassistant.helpers.entity import DeviceInfo
@@ -17,6 +14,10 @@ from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
 )
+
+from .const import WINIX_DOMAIN
+from .device_wrapper import WinixDeviceWrapper
+from .helpers import Helpers
 
 _LOGGER = logging.getLogger(__name__)
 

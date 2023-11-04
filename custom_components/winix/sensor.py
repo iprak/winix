@@ -6,8 +6,6 @@ from collections.abc import Mapping
 import logging
 from typing import Any, Final, Union
 
-from .device_wrapper import WinixDeviceWrapper
-from .manager import WinixEntity, WinixManager
 from homeassistant.components.sensor import (
     DOMAIN,
     SensorEntity,
@@ -31,6 +29,8 @@ from .const import (
     SENSOR_FILTER_LIFE,
     WINIX_DATA_COORDINATOR,
 )
+from .device_wrapper import WinixDeviceWrapper
+from .manager import WinixEntity, WinixManager
 
 _LOGGER = logging.getLogger(__name__)
 TOTAL_FILTER_LIFE: Final = 6480  # 9 months
