@@ -9,14 +9,7 @@ from typing import Any, Optional, Union
 
 import voluptuous as vol
 
-from custom_components.winix.device_wrapper import WinixDeviceWrapper
-from custom_components.winix.manager import WinixEntity, WinixManager
-from homeassistant.components.fan import (
-    DOMAIN,
-    SUPPORT_PRESET_MODE,
-    SUPPORT_SET_SPEED,
-    FanEntity,
-)
+from homeassistant.components.fan import DOMAIN, FanEntity, FanEntityFeature
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import HomeAssistant
@@ -44,6 +37,8 @@ from .const import (
     WINIX_DATA_KEY,
     WINIX_DOMAIN,
 )
+from .device_wrapper import WinixDeviceWrapper
+from .manager import WinixEntity, WinixManager
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -86,7 +81,7 @@ async def async_setup_entry(
                 continue
 
             await getattr(device, method)(**params)
-            state_update_tasks.append(device.async_update_ha_state(True))
+            state_update_tasks.append(asyncio.create_task(device.async_update_ha_state(True)))
 
         if state_update_tasks:
             # Update device states in HA
@@ -105,6 +100,9 @@ async def async_setup_entry(
 
 class WinixPurifier(WinixEntity, FanEntity):
     """Representation of a Winix Purifier entity."""
+
+    # https://developers.home-assistant.io/docs/core/entity/fan/
+    _attr_supported_features = FanEntityFeature.PRESET_MODE | FanEntityFeature.SET_SPEED
 
     def __init__(self, wrapper: WinixDeviceWrapper, coordinator: WinixManager) -> None:
         """Initialize the entity."""
@@ -195,13 +193,6 @@ class WinixPurifier(WinixEntity, FanEntity):
     def speed_count(self) -> int:
         """Return the number of speeds the fan supports."""
         return len(ORDERED_NAMED_FAN_SPEEDS)
-
-    # https://developers.home-assistant.io/docs/core/entity/fan/
-
-    @property
-    def supported_features(self) -> int:
-        """Flag supported features."""
-        return SUPPORT_PRESET_MODE | SUPPORT_SET_SPEED
 
     async def async_set_percentage(self, percentage: int) -> None:
         """Set the speed percentage of the fan."""

@@ -6,8 +6,6 @@ from collections.abc import Mapping
 import logging
 from typing import Any, Final, Union
 
-from custom_components.winix.device_wrapper import WinixDeviceWrapper
-from custom_components.winix.manager import WinixEntity, WinixManager
 from homeassistant.components.sensor import (
     DOMAIN,
     SensorEntity,
@@ -31,6 +29,8 @@ from .const import (
     SENSOR_FILTER_LIFE,
     WINIX_DATA_COORDINATOR,
 )
+from .device_wrapper import WinixDeviceWrapper
+from .manager import WinixEntity, WinixManager
 
 _LOGGER = logging.getLogger(__name__)
 TOTAL_FILTER_LIFE: Final = 6480  # 9 months
@@ -130,7 +130,7 @@ class WinixSensor(WinixEntity, SensorEntity):
             hours: int = int(state.get(ATTR_FILTER_HOUR))
             if hours > TOTAL_FILTER_LIFE:
                 _LOGGER.warning(
-                    "Reported filter life '%d' is more than max value '%d'.",
+                    "Reported filter life '%d' is more than max value '%d'",
                     hours,
                     TOTAL_FILTER_LIFE,
                 )
@@ -138,5 +138,5 @@ class WinixSensor(WinixEntity, SensorEntity):
 
             return int((TOTAL_FILTER_LIFE - hours) * 100 / TOTAL_FILTER_LIFE)
 
-        _LOGGER.error("Unhandled sensor '%s' encountered.", self.entity_description.key)
+        _LOGGER.error("Unhandled sensor '%s' encountered", self.entity_description.key)
         return None

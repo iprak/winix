@@ -8,10 +8,10 @@ import logging
 import requests
 from winix import WinixAccount, auth
 
-from custom_components.winix.device_wrapper import MyWinixDeviceStub
 from homeassistant.core import HomeAssistant
 
 from .const import WINIX_DOMAIN
+from .device_wrapper import MyWinixDeviceStub
 
 _LOGGER = logging.getLogger(__name__)
 DEFAULT_POST_TIMEOUT = 5
@@ -134,10 +134,12 @@ class Helpers:
                 result_message = err_data.get("resultMessage")
 
                 if result_code and result_message:
+                    # pylint: disable=broad-exception-raised
                     raise Exception(
                         f"Error while performing RPC get_device_info_list ({result_code}): {result_message}"
                     )
 
+                # pylint: disable=broad-exception-raised
                 raise Exception(
                     f"Error while performing RPC get_device_info_list ({err_data.result_code}): {resp.text}"
                 )
@@ -165,7 +167,7 @@ class Helpers:
 class WinixException(Exception):
     """Wiinx related operation exception."""
 
-    def __init__(self, values: dict):
+    def __init__(self, values: dict) -> None:
         """Create instance of WinixException."""
 
         super().__init__(values["message"])

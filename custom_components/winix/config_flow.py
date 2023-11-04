@@ -8,13 +8,12 @@ from typing import Any
 import voluptuous as vol
 from winix import auth
 
-from custom_components.winix import Helpers
-from custom_components.winix.helpers import WinixException
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.data_entry_flow import FlowResult
 
 from .const import WINIX_AUTH_RESPONSE, WINIX_DOMAIN, WINIX_NAME
+from .helpers import Helpers, WinixException
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,7 +32,7 @@ class WinixFlowHandler(config_entries.ConfigFlow, domain=WINIX_DOMAIN):
 
     VERSION = 1
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Start a config flow."""
         self._reauth_unique_id = None
 

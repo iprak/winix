@@ -6,8 +6,6 @@ import dataclasses
 
 import aiohttp
 
-from custom_components.winix.driver import WinixDriver
-
 from .const import (
     AIRFLOW_LOW,
     AIRFLOW_SLEEP,
@@ -27,6 +25,7 @@ from .const import (
     PRESET_MODES,
     NumericPresetModes,
 )
+from .driver import WinixDriver
 
 
 @dataclasses.dataclass
@@ -52,7 +51,7 @@ class WinixDeviceWrapper:
         client: aiohttp.ClientSession,
         device_stub: MyWinixDeviceStub,
         logger,
-    ):
+    ) -> None:
         """Initialize the wrapper."""
 
         self._driver = WinixDriver(device_stub.id, client)
