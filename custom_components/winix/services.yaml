@@ -1,8 +1,5 @@
 # Describes the format of available services.
 
-refresh_access:
-  description: Register the Cognito access token.
-
 plasmawave_on:
   description: Turn on plasmawave.
   fields:
