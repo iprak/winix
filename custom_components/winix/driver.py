@@ -122,7 +122,8 @@ class WinixDriver:
     async def _rpc_attr(self, attr: str, value: str):
         _LOGGER.debug("_rpc_attr attribute=%s, value=%s", attr, value)
         resp = await self._client.get(
-            self.CTRL_URL.format(deviceid=self.device_id, attribute=attr, value=value),
+            self.CTRL_URL.format(deviceid=self.device_id,
+                                 attribute=attr, value=value),
             raise_for_status=True,
         )
         raw_resp = await resp.text()

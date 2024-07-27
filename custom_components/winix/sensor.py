@@ -138,5 +138,6 @@ class WinixSensor(WinixEntity, SensorEntity):
 
             return int((TOTAL_FILTER_LIFE - hours) * 100 / TOTAL_FILTER_LIFE)
 
-        _LOGGER.error("Unhandled sensor '%s' encountered", self.entity_description.key)
+        _LOGGER.error("Unhandled sensor '%s' encountered",
+                      self.entity_description.key)
         return None

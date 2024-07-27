@@ -1,8 +1,5 @@
 # Describes the format of available services.
 
-refresh_access:
-  description: Register the Cognito access token.
-
 plasmawave_on:
   description: Turn on plasmawave.
   fields:
@@ -23,3 +20,6 @@ plasmawave_toggle:
     entity_id:
       description: Name(s) of Winix entities. Leave service data empty to use all Winix entities.
       example: "fan.winix_living_room"
+
+remove_stale_entities:
+  description: Remove Winix entities with unavailable state and associated devices.

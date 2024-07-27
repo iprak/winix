@@ -33,8 +33,8 @@ ON_VALUE: Final = "on"
 SERVICE_PLASMAWAVE_ON: Final = "plasmawave_on"
 SERVICE_PLASMAWAVE_OFF: Final = "plasmawave_off"
 SERVICE_PLASMAWAVE_TOGGLE: Final = "plasmawave_toggle"
-SERVICE_REFRESH_ACCESS: Final = "refresh_access"
-SERVICES: Final = [
+SERVICE_REMOVE_STALE_ENTITIES: Final = "remove_stale_entities"
+FAN_SERVICES: Final = [
     SERVICE_PLASMAWAVE_ON,
     SERVICE_PLASMAWAVE_OFF,
     SERVICE_PLASMAWAVE_TOGGLE,
