@@ -81,7 +81,8 @@ async def async_setup_entry(
                 continue
 
             await getattr(device, method)(**params)
-            state_update_tasks.append(asyncio.create_task(device.async_update_ha_state(True)))
+            state_update_tasks.append(asyncio.create_task(
+                device.async_update_ha_state(True)))
 
         if state_update_tasks:
             # Update device states in HA
@@ -200,7 +201,8 @@ class WinixPurifier(WinixEntity, FanEntity):
             await self.async_turn_off()
         else:
             await self._wrapper.async_set_speed(
-                percentage_to_ordered_list_item(ORDERED_NAMED_FAN_SPEEDS, percentage)
+                percentage_to_ordered_list_item(
+                    ORDERED_NAMED_FAN_SPEEDS, percentage)
             )
 
         self.async_write_ha_state()

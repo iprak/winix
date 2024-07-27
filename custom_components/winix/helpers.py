@@ -136,12 +136,14 @@ class Helpers:
                 if result_code and result_message:
                     # pylint: disable=broad-exception-raised
                     raise Exception(
-                        f"Error while performing RPC get_device_info_list ({result_code}): {result_message}"
+                        f"Error while performing RPC get_device_info_list ({result_code}): {
+                            result_message}"
                     )
 
                 # pylint: disable=broad-exception-raised
                 raise Exception(
-                    f"Error while performing RPC get_device_info_list ({err_data.result_code}): {resp.text}"
+                    f"Error while performing RPC get_device_info_list ({err_data.result_code}): {
+                        resp.text}"
                 )
 
             return [

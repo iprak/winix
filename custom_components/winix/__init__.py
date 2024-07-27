@@ -104,12 +104,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
                         "Unable to log in. Device access previously failed with `%s`",
                         str(err)
                     )
-                    raise ConfigEntryNotReady("Unable to authenticate.") from login_err
+                    raise ConfigEntryNotReady(
+                        "Unable to authenticate.") from login_err
             else:
                 try_prepare_devices_wrappers = False
 
                 # ConfigEntryNotReady will cause async_setup_entry to be invoked in background.
-                raise ConfigEntryNotReady("Unable to access device data.") from err
+                raise ConfigEntryNotReady(
+                    "Unable to access device data.") from err
 
     await manager.async_config_entry_first_refresh()
 
