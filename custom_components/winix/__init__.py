@@ -2,17 +2,30 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 import logging
 from typing import Final
 
 from winix import auth
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
-from homeassistant.core import HomeAssistant
+from homeassistant.const import (
+    CONF_PASSWORD,
+    CONF_USERNAME,
+    STATE_UNAVAILABLE,
+    Platform,
+)
+from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from homeassistant.helpers import device_registry as dr, entity_registry as er
 
-from .const import WINIX_AUTH_RESPONSE, WINIX_DATA_COORDINATOR, WINIX_DOMAIN, WINIX_NAME
+from .const import (
+    SERVICE_REMOVE_STALE_ENTITIES,
+    WINIX_AUTH_RESPONSE,
+    WINIX_DATA_COORDINATOR,
+    WINIX_DOMAIN,
+    WINIX_NAME,
+)
 from .helpers import Helpers, WinixException
 from .manager import WinixManager
 
@@ -91,7 +104,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
                     # Update tokens into entry.data
                     hass.config_entries.async_update_entry(
                         entry,
-                        data={**user_input, WINIX_AUTH_RESPONSE: auth_response},
+                        data={**user_input,
+                              WINIX_AUTH_RESPONSE: auth_response},
                     )
 
                 except WinixException as login_err:
@@ -115,10 +129,61 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     await manager.async_config_entry_first_refresh()
 
-    hass.data[WINIX_DOMAIN][entry.entry_id] = {WINIX_DATA_COORDINATOR: manager}
+    hass.data[WINIX_DOMAIN][entry.entry_id] = {
+        WINIX_DATA_COORDINATOR: manager}
     await hass.config_entries.async_forward_entry_setups(entry, SUPPORTED_PLATFORMS)
 
+    def remove_stale_entities(call: ServiceCall) -> None:
+        """Remove stale entities."""
+        device_registry = dr.async_get(hass)
+        entity_registry = er.async_get(hass)
+
+        # Using set to avoid duplicates
+        entity_ids = set()
+        device_ids = set()
+
+        for state in hass.states.async_all(SUPPORTED_PLATFORMS):
+            entity_id = state.entity_id
+            entity = entity_registry.async_get(entity_id)
+
+            if (entity.unique_id.startswith(f"{entity.domain}.{WINIX_DOMAIN}_")):
+                device_id = entity.device_id
+                device = device_registry.async_get(device_id)
+
+                if state.state == STATE_UNAVAILABLE or not device:
+                    entity_ids.add(entity_id)
+                    device_ids.add(device_id)
+
+        if entity_ids:
+            hass.add_job(async_remove,
+                         entity_registry, device_registry, entity_ids, device_ids)
+        else:
+            _LOGGER.debug("Nothing to remove")
+
+    hass.services.async_register(
+        WINIX_DOMAIN,
+        SERVICE_REMOVE_STALE_ENTITIES,
+        remove_stale_entities
+    )
+
     return True
+
+
+@callback
+def async_remove(
+    entity_registry: er.EntityRegistry,
+    device_registry: dr.DeviceRegistry,
+    entity_ids: Iterable[str],
+    device_ids: Iterable[str]
+) -> None:
+    """Remove devices and entities."""
+    for entity_id in entity_ids:
+        entity_registry.async_remove(entity_id)
+        _LOGGER.debug(f"Removing entity {entity_id}")
+
+    for device_id in device_ids:
+        device_registry.async_remove_device(device_id)
+        _LOGGER.debug(f"Removing device {device_id}")
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
