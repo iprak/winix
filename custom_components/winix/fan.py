@@ -25,6 +25,7 @@ from .const import (
     ATTR_FILTER_REPLACEMENT_DATE,
     ATTR_LOCATION,
     ATTR_POWER,
+    FAN_SERVICES,
     ORDERED_NAMED_FAN_SPEEDS,
     PRESET_MODE_AUTO,
     PRESET_MODE_AUTO_PLASMA_OFF,
@@ -32,7 +33,6 @@ from .const import (
     PRESET_MODE_MANUAL_PLASMA_OFF,
     PRESET_MODE_SLEEP,
     PRESET_MODES,
-    SERVICES,
     WINIX_DATA_COORDINATOR,
     WINIX_DATA_KEY,
     WINIX_DOMAIN,
@@ -88,7 +88,7 @@ async def async_setup_entry(
             # Update device states in HA
             await asyncio.wait(state_update_tasks)
 
-    for service in SERVICES:
+    for service in FAN_SERVICES:
         hass.services.async_register(
             WINIX_DOMAIN,
             service,

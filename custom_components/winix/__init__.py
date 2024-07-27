@@ -8,7 +8,7 @@ from typing import Final
 
 from winix import auth
 
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.const import (
     CONF_PASSWORD,
     CONF_USERNAME,
@@ -20,6 +20,7 @@ from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr, entity_registry as er
 
 from .const import (
+    FAN_SERVICES,
     SERVICE_REMOVE_STALE_ENTITIES,
     WINIX_AUTH_RESPONSE,
     WINIX_DATA_COORDINATOR,
@@ -187,6 +188,21 @@ def async_remove(
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    # pylint: disable=unused-argument
     """Unload a config entry."""
-    hass.data.pop(WINIX_DOMAIN)
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, SUPPORTED_PLATFORMS)
+    if unload_ok:
+        hass.data.pop(WINIX_DOMAIN)
+
+    loaded_entries = [
+        entry
+        for entry in hass.config_entries.async_entries(WINIX_DOMAIN)
+        if entry.state == ConfigEntryState.LOADED
+    ]
+    if len(loaded_entries) == 1:
+        # If this is the last loaded instance, then unregister services
+        hass.services.async_remove(WINIX_DOMAIN, SERVICE_REMOVE_STALE_ENTITIES)
+
+        for service_name in FAN_SERVICES:
+            hass.services.async_remove(WINIX_DOMAIN, service_name)
+
+    return unload_ok
