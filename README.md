@@ -10,7 +10,6 @@ This can be installed by copying all the files from `custom_components/winix/` t
 
 ![image](https://user-images.githubusercontent.com/6459774/212468308-e6e855ac-ad26-4405-b683-246ccf4c8ccc.png)
 
-
 - The `Air QValue` sensor reports the qValue reported by Winix purifier. This value is related to air quality although I am not exactly sure what it represents.
 - The `AQI` sensor matches the led light on the purifier.
   - Good (Blue) = 1
@@ -23,9 +22,11 @@ This can be installed by copying all the files from `custom_components/winix/` t
 ![image](https://user-images.githubusercontent.com/6459774/212468432-0b37cd09-af5b-418c-855d-a12c8b21efc3.png)
 
 - The device data is fetched every 30 seconds.
-- There are 3 new services `winix.plasmawave_off, winix.plasmawave_on, plasmawave_toggle` in addition to the default fan services `fan.speed, fan.toggle, fan.turn_off, fan.turn_on, fan.set_preset_mode`.
+- There are 4 services `winix.plasmawave_off, winix.plasmawave_on, plasmawave_toggle and remove_stale_entities` in addition to the default fan services `fan.speed, fan.toggle, fan.turn_off, fan.turn_on, fan.set_preset_mode`.
+  - `remove_stale_entities` can be used to remove entities which appear unavaialble when the associated device is removed from the account.
 
 ## Note
+
 - If purifiers are added/removed, then you would want to restart HomeAssistant.
 
 - Winix **does not support** simultaneous login from multiple devices. If you logged into the mobile app after configuring HomeAssistant, then the HomeAssistant session gets flagged as invalid and vice-versa.
