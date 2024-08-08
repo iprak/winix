@@ -3,6 +3,7 @@
 from unittest.mock import MagicMock, Mock
 
 import pytest
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.winix.const import (
     ATTR_AIR_AQI,
@@ -19,7 +20,6 @@ from custom_components.winix.sensor import (
     WinixSensor,
     async_setup_entry,
 )
-from homeassistant.config_entries import ConfigEntry
 from tests import build_fake_manager
 
 
@@ -28,7 +28,7 @@ async def test_setup_platform():
 
     manager = build_fake_manager(3)
     hass = Mock()
-    config = ConfigEntry(1, WINIX_DOMAIN, "", {}, "Test", entry_id="id1")
+    config = MockConfigEntry(domain=WINIX_DOMAIN, data={}, entry_id="id1")
     hass.data = {WINIX_DOMAIN: {"id1": {WINIX_DATA_COORDINATOR: manager}}}
 
     async_add_entities = Mock()
@@ -68,13 +68,15 @@ def test_sensor_attributes(mock_device_wrapper, mock_qvalue_description):
     mock_device_wrapper.get_state = MagicMock(return_value=None)
     coordinator = Mock()
 
-    sensor = WinixSensor(mock_device_wrapper, coordinator, mock_qvalue_description)
+    sensor = WinixSensor(mock_device_wrapper, coordinator,
+                         mock_qvalue_description)
 
     # Initially we will have no value
     assert sensor.extra_state_attributes is not None
     assert sensor.extra_state_attributes[ATTR_AIR_QUALITY] is None
 
-    mock_device_wrapper.get_state = MagicMock(return_value={ATTR_AIR_QUALITY: 12})
+    mock_device_wrapper.get_state = MagicMock(
+        return_value={ATTR_AIR_QUALITY: 12})
     assert sensor.extra_state_attributes[ATTR_AIR_QUALITY] == 12
 
 
@@ -92,10 +94,12 @@ def test_sensor_native_value(
     mock_device_wrapper.get_state = MagicMock(return_value=None)
     coordinator = Mock()
 
-    sensor = WinixSensor(mock_device_wrapper, coordinator, mock_sensor_description)
+    sensor = WinixSensor(mock_device_wrapper, coordinator,
+                         mock_sensor_description)
     assert sensor.state is None
 
-    mock_device_wrapper.get_state = MagicMock(return_value={state_key: state_value})
+    mock_device_wrapper.get_state = MagicMock(
+        return_value={state_key: state_value})
     assert sensor.native_value == expected
 
 
@@ -114,7 +118,8 @@ def test_filter_life_sensor_native_value(
     mock_device_wrapper.get_state = MagicMock(return_value=None)
     coordinator = Mock()
 
-    sensor = WinixSensor(mock_device_wrapper, coordinator, mock_filter_life_description)
+    sensor = WinixSensor(mock_device_wrapper, coordinator,
+                         mock_filter_life_description)
 
     mock_device_wrapper.get_state = MagicMock(
         return_value={} if filter_hour is None else {ATTR_FILTER_HOUR: filter_hour}
