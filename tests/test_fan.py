@@ -3,6 +3,7 @@
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.winix.const import (
     AIRFLOW_HIGH,
@@ -21,8 +22,7 @@ from custom_components.winix.const import (
     WINIX_DOMAIN,
 )
 from custom_components.winix.fan import WinixPurifier, async_setup_entry
-from homeassistant.components.fan import SUPPORT_PRESET_MODE, SUPPORT_SET_SPEED
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.components.fan import FanEntityFeature
 from homeassistant.const import ATTR_ENTITY_ID
 from tests import build_fake_manager, build_purifier
 
@@ -31,7 +31,7 @@ async def test_setup_platform(hass):
     """Test platform setup."""
 
     manager = build_fake_manager(3)
-    config = ConfigEntry(1, WINIX_DOMAIN, "", {}, "Test", entry_id="id1")
+    config = MockConfigEntry(domain=WINIX_DOMAIN, data={}, entry_id="id1")
     hass.data = {WINIX_DOMAIN: {"id1": {WINIX_DATA_COORDINATOR: manager}}}
     async_add_entities = Mock()
 
@@ -45,7 +45,7 @@ async def test_service(hass):
     """Test platform setup."""
 
     manager = build_fake_manager(2)
-    config = ConfigEntry(1, WINIX_DOMAIN, "", {}, "Test", entry_id="id1")
+    config = MockConfigEntry(domain=WINIX_DOMAIN, data={}, entry_id="id1")
     hass.data = {WINIX_DOMAIN: {"id1": {WINIX_DATA_COORDINATOR: manager}}}
     async_add_entities = Mock()
 
@@ -103,7 +103,9 @@ def test_construction():
     assert device.preset_modes == PRESET_MODES
     assert device.speed_list == ORDERED_NAMED_FAN_SPEEDS
     assert device.speed_count == len(ORDERED_NAMED_FAN_SPEEDS)
-    assert device.supported_features == (SUPPORT_PRESET_MODE | SUPPORT_SET_SPEED)
+    assert device.supported_features == (
+        FanEntityFeature.PRESET_MODE | FanEntityFeature.SET_SPEED | FanEntityFeature.TURN_ON | FanEntityFeature.TURN_OFF)
+
     assert device.device_info is not None
     assert (
         device.name is None
