@@ -180,11 +180,11 @@ def async_remove(
     """Remove devices and entities."""
     for entity_id in entity_ids:
         entity_registry.async_remove(entity_id)
-        _LOGGER.debug(f"Removing entity {entity_id}")
+        _LOGGER.debug("Removing entity %s", entity_id)
 
     for device_id in device_ids:
         device_registry.async_remove_device(device_id)
-        _LOGGER.debug(f"Removing device {device_id}")
+        _LOGGER.debug("Removing device %s",  device_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
