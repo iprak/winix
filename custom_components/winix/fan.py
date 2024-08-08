@@ -103,7 +103,7 @@ class WinixPurifier(WinixEntity, FanEntity):
     """Representation of a Winix Purifier entity."""
 
     # https://developers.home-assistant.io/docs/core/entity/fan/
-    _attr_supported_features = FanEntityFeature.PRESET_MODE | FanEntityFeature.SET_SPEED
+    _attr_supported_features = FanEntityFeature.PRESET_MODE | FanEntityFeature.SET_SPEED | FanEntityFeature.TURN_ON | FanEntityFeature.TURN_OFF
 
     def __init__(self, wrapper: WinixDeviceWrapper, coordinator: WinixManager) -> None:
         """Initialize the entity."""
