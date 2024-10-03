@@ -5,7 +5,7 @@
 
 ## Summary
 
-A custom component to interact with Winix [C545](https://www.winixamerica.com/product/certified-refurbished-c545-air-purifier/) Air Purifier. This has also been reported to work with these models: [AM90](https://www.winixamerica.com/product/am90/), [HR1000](https://www.amazon.com/Winix-HR1000-5-Stage-Enabled-Cleaner/dp/B01FWS0HSY), [C909 ](https://www.costco.com/winix-c909-4-stage-air-purifier-with-wi-fi-%2526-plasmawave-technology.product.100842491.html)
+A custom component to interact with Winix [C545](https://www.winixamerica.com/product/certified-refurbished-c545-air-purifier/) Air Purifier. This has also been reported to work with these models: [AM90](https://www.winixamerica.com/product/am90/), [HR1000](https://www.amazon.com/Winix-HR1000-5-Stage-Enabled-Cleaner/dp/B01FWS0HSY), [C610](https://www.winixamerica.com/product/c610/), [C909 ](https://www.costco.com/winix-c909-4-stage-air-purifier-with-wi-fi-%2526-plasmawave-technology.product.100842491.html)
 
 ## Installation
 
