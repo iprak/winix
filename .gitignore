@@ -1,10 +1,37 @@
 __pycache__
 *.py.b*
 secrets.yaml
-venv
-.pytest_cache
+
+# Logs
+*.log
+pip-log.txt
+
+# Unit test / coverage reports
 .coverage
+coverage.xml
+nosetests.xml
+htmlcov/
+test-reports/
+test-results.xml
+test-output.xml
+pytest-*.txt
+
+# venv stuff
+pyvenv.cfg
+pip-selfcheck.json
+venv
+.venv
+Pipfile*
+share/*
+
+# Visual Studio Code
+.vscode/*
+.env
 
 # mypy
 /.mypy_cache/*
 /.dmypy.json
+
+# These come from the image
+pyproject.toml
+pylint/
