@@ -148,13 +148,13 @@ class Helpers:
 
             return [
                 MyWinixDeviceStub(
-                    id=d["deviceId"],
-                    mac=d["mac"],
-                    alias=d["deviceAlias"],
-                    location_code=d["deviceLocCode"],
-                    filter_replace_date=d["filterReplaceDate"],
-                    model=d["modelName"],
-                    sw_version=d["mcuVer"],
+                    id=d.get("deviceId"),
+                    mac=d.get("mac"),
+                    alias=d.get("deviceAlias"),
+                    location_code=d.get("deviceLocCode"),
+                    filter_replace_date=d.get("filterReplaceDate"),
+                    model=d.get("modelName"),
+                    sw_version=d.get("mcuVer"),
                 )
                 for d in resp.json()["deviceInfoList"]
             ]
