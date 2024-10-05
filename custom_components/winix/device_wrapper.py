@@ -32,7 +32,7 @@ from .driver import WinixDriver
 class MyWinixDeviceStub:
     """Winix purifier device information."""
 
-    id: str  # pylint: disable=invalid-name
+    id: str
     mac: str
     alias: str
     location_code: str
