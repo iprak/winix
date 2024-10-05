@@ -164,9 +164,9 @@ class WinixDeviceWrapper:
             self._manual = False
             self._sleep = False
             self._state[ATTR_MODE] = MODE_AUTO
-            self._state[
-                ATTR_AIRFLOW
-            ] = AIRFLOW_LOW  # Something other than AIRFLOW_SLEEP
+            self._state[ATTR_AIRFLOW] = (
+                AIRFLOW_LOW  # Something other than AIRFLOW_SLEEP
+            )
 
             self._logger.debug("%s => set mode=auto", self._alias)
             await self._driver.auto()
@@ -199,9 +199,9 @@ class WinixDeviceWrapper:
             self._auto = False
             self._sleep = False
             self._state[ATTR_MODE] = MODE_MANUAL
-            self._state[
-                ATTR_AIRFLOW
-            ] = AIRFLOW_LOW  # Something other than AIRFLOW_SLEEP
+            self._state[ATTR_AIRFLOW] = (
+                AIRFLOW_LOW  # Something other than AIRFLOW_SLEEP
+            )
 
             self._logger.debug("%s => set mode=manual", self._alias)
             await self._driver.manual()
