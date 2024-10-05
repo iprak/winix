@@ -1,13 +1,10 @@
 {
-    "python.formatting.provider": "black",
-    "editor.formatOnPaste": false,
-    "editor.formatOnSave": true,
-    "files.trimTrailingWhitespace": true,
-    "git.ignoreLimitWarning": true,
-    "python.testing.pytestEnabled": true,
-    "python.testing.unittestEnabled": false,
-    "python.testing.pytestArgs": [
-        "tests"
-    ],
-    "files.eol": "\r\n"
+  // Please keep this file in sync with settings in home-assistant/.devcontainer/devcontainer.json
+  // Added --no-cov to work around TypeError: message must be set
+  // https://github.com/microsoft/vscode-python/issues/14067
+  "python.testing.pytestArgs": ["--no-cov"],
+  // https://code.visualstudio.com/docs/python/testing#_pytest-configuration-settings
+  "python.testing.pytestEnabled": false,
+  // https://code.visualstudio.com/docs/python/linting#_general-settings
+  "pylint.importStrategy": "fromEnvironment"
 }

@@ -5,7 +5,7 @@
 	"appPort": "9123:8123",
 	"containerUser": "root",
 	"remoteUser": "root",
-	"postCreateCommand": "scripts/setup.sh",
+	"postCreateCommand": "/container_content/scripts/setup.sh",
 	"initializeCommand": "docker image pull ghcr.io/iprak/custom-integration-image:main",
 	"containerEnv": {
 		"TZ": "America/Chicago"
@@ -13,31 +13,22 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"ms-python.python",
-				"ms-python.vscode-pylance",
-				"esbenp.prettier-vscode",
-				"littlefoxteam.vscode-python-test-adapter"
+				"charliermarsh.ruff",
+				"ms-python.pylint",
+				"ms-python.vscode-pylance"
 			],
 			"settings": {
-				"files.eol": "\n",
-				"editor.tabSize": 4,
-				"terminal.integrated.shell.linux": "/bin/bash",
 				"python.pythonPath": "/usr/local/bin/python",
-				"python.analysis.autoSearchPaths": false,
-				"python.linting.pylintEnabled": true,
-				"python.linting.enabled": true,
-				"python.linting.pylintArgs": [
-					"--disable",
-					"import-error"
-				],
-				"python.formatting.provider": "black",
 				"python.testing.pytestArgs": [
 					"--no-cov"
 				],
 				"editor.formatOnPaste": false,
 				"editor.formatOnSave": true,
 				"editor.formatOnType": true,
-				"files.trimTrailingWhitespace": true
+				"files.trimTrailingWhitespace": true,
+				"[python]": {
+					"editor.defaultFormatter": "charliermarsh.ruff"
+				}
 			}
 		}
 	}
