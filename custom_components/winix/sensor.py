@@ -110,6 +110,7 @@ class WinixSensor(WinixEntity, SensorEntity):
         return attributes
 
     @property
+    # pylint: disable=too-many-return-statements
     def native_value(self) -> StateType:
         """Return the state of the sensor."""
         state = self._wrapper.get_state()
