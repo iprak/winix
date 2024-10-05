@@ -6,8 +6,6 @@ from collections.abc import Iterable
 import logging
 from typing import Final
 
-from winix import auth
-
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.const import (
     CONF_PASSWORD,
@@ -18,6 +16,8 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr, entity_registry as er
+
+from winix import auth
 
 from .const import (
     FAN_SERVICES,
@@ -105,8 +105,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
                     # Update tokens into entry.data
                     hass.config_entries.async_update_entry(
                         entry,
-                        data={**user_input,
-                              WINIX_AUTH_RESPONSE: auth_response},
+                        data={**user_input, WINIX_AUTH_RESPONSE: auth_response},
                     )
 
                 except WinixException as login_err:
@@ -117,21 +116,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
                     _LOGGER.exception(
                         "Unable to log in. Device access previously failed with `%s`",
-                        str(err)
+                        str(err),
                     )
-                    raise ConfigEntryNotReady(
-                        "Unable to authenticate.") from login_err
+                    raise ConfigEntryNotReady("Unable to authenticate.") from login_err
             else:
                 try_prepare_devices_wrappers = False
 
                 # ConfigEntryNotReady will cause async_setup_entry to be invoked in background.
-                raise ConfigEntryNotReady(
-                    "Unable to access device data.") from err
+                raise ConfigEntryNotReady("Unable to access device data.") from err
 
     await manager.async_config_entry_first_refresh()
 
-    hass.data[WINIX_DOMAIN][entry.entry_id] = {
-        WINIX_DATA_COORDINATOR: manager}
+    hass.data[WINIX_DOMAIN][entry.entry_id] = {WINIX_DATA_COORDINATOR: manager}
     await hass.config_entries.async_forward_entry_setups(entry, SUPPORTED_PLATFORMS)
 
     def remove_stale_entities(call: ServiceCall) -> None:
@@ -147,7 +143,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
             entity_id = state.entity_id
             entity = entity_registry.async_get(entity_id)
 
-            if (entity.unique_id.startswith(f"{entity.domain}.{WINIX_DOMAIN}_")):
+            if entity.unique_id.startswith(f"{entity.domain}.{WINIX_DOMAIN}_"):
                 device_id = entity.device_id
                 device = device_registry.async_get(device_id)
 
@@ -156,15 +152,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
                     device_ids.add(device_id)
 
         if entity_ids:
-            hass.add_job(async_remove,
-                         entity_registry, device_registry, entity_ids, device_ids)
+            hass.add_job(
+                async_remove, entity_registry, device_registry, entity_ids, device_ids
+            )
         else:
             _LOGGER.debug("Nothing to remove")
 
     hass.services.async_register(
-        WINIX_DOMAIN,
-        SERVICE_REMOVE_STALE_ENTITIES,
-        remove_stale_entities
+        WINIX_DOMAIN, SERVICE_REMOVE_STALE_ENTITIES, remove_stale_entities
     )
 
     return True
@@ -175,7 +170,7 @@ def async_remove(
     entity_registry: er.EntityRegistry,
     device_registry: dr.DeviceRegistry,
     entity_ids: Iterable[str],
-    device_ids: Iterable[str]
+    device_ids: Iterable[str],
 ) -> None:
     """Remove devices and entities."""
     for entity_id in entity_ids:
@@ -184,12 +179,14 @@ def async_remove(
 
     for device_id in device_ids:
         device_registry.async_remove_device(device_id)
-        _LOGGER.debug("Removing device %s",  device_id)
+        _LOGGER.debug("Removing device %s", device_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, SUPPORTED_PLATFORMS)
+    unload_ok = await hass.config_entries.async_unload_platforms(
+        entry, SUPPORTED_PLATFORMS
+    )
     if unload_ok:
         hass.data.pop(WINIX_DOMAIN)
 

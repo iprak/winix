@@ -81,8 +81,9 @@ async def async_setup_entry(
                 continue
 
             await getattr(device, method)(**params)
-            state_update_tasks.append(asyncio.create_task(
-                device.async_update_ha_state(True)))
+            state_update_tasks.append(
+                asyncio.create_task(device.async_update_ha_state(True))
+            )
 
         if state_update_tasks:
             # Update device states in HA
@@ -103,7 +104,12 @@ class WinixPurifier(WinixEntity, FanEntity):
     """Representation of a Winix Purifier entity."""
 
     # https://developers.home-assistant.io/docs/core/entity/fan/
-    _attr_supported_features = FanEntityFeature.PRESET_MODE | FanEntityFeature.SET_SPEED | FanEntityFeature.TURN_ON | FanEntityFeature.TURN_OFF
+    _attr_supported_features = (
+        FanEntityFeature.PRESET_MODE
+        | FanEntityFeature.SET_SPEED
+        | FanEntityFeature.TURN_ON
+        | FanEntityFeature.TURN_OFF
+    )
 
     def __init__(self, wrapper: WinixDeviceWrapper, coordinator: WinixManager) -> None:
         """Initialize the entity."""
@@ -131,9 +137,9 @@ class WinixPurifier(WinixEntity, FanEntity):
                     attributes[key] = value
 
         attributes[ATTR_LOCATION] = self._wrapper.device_stub.location_code
-        attributes[
-            ATTR_FILTER_REPLACEMENT_DATE
-        ] = self._wrapper.device_stub.filter_replace_date
+        attributes[ATTR_FILTER_REPLACEMENT_DATE] = (
+            self._wrapper.device_stub.filter_replace_date
+        )
 
         return attributes
 
@@ -201,8 +207,7 @@ class WinixPurifier(WinixEntity, FanEntity):
             await self.async_turn_off()
         else:
             await self._wrapper.async_set_speed(
-                percentage_to_ordered_list_item(
-                    ORDERED_NAMED_FAN_SPEEDS, percentage)
+                percentage_to_ordered_list_item(ORDERED_NAMED_FAN_SPEEDS, percentage)
             )
 
         self.async_write_ha_state()
