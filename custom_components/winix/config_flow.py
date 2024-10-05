@@ -7,11 +7,12 @@ import logging
 from typing import Any
 
 import voluptuous as vol
-from winix import auth
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.data_entry_flow import FlowResult
+
+from winix import auth
 
 from .const import WINIX_AUTH_RESPONSE, WINIX_DOMAIN, WINIX_NAME
 from .helpers import Helpers, WinixException

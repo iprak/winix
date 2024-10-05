@@ -5,8 +5,6 @@ from __future__ import annotations
 from datetime import timedelta
 import logging
 
-from winix import auth
-
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import aiohttp_client
 from homeassistant.helpers.entity import DeviceInfo
@@ -14,6 +12,8 @@ from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
 )
+
+from winix import auth
 
 from .const import WINIX_DOMAIN
 from .device_wrapper import WinixDeviceWrapper
