@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 import logging
-
+from http import HTTPStatus
 import requests
 
 from homeassistant.core import HomeAssistant
@@ -128,22 +128,23 @@ class Helpers:
                 timeout=DEFAULT_POST_TIMEOUT,
             )
 
-            if resp.status_code != 200:
+            if resp.status_code != HTTPStatus.OK:
                 err_data = resp.json()
                 result_code = err_data.get("resultCode")
                 result_message = err_data.get("resultMessage")
 
-                if result_code and result_message:
-                    # pylint: disable=broad-exception-raised
-                    raise Exception(
-                        f"Error while performing RPC get_device_info_list ({result_code}): {
-                            result_message}"
-                    )
+                _LOGGER.error(
+                    "Error obtaining device list %s:%s",
+                    result_code,
+                    result_message,
+                )
 
-                # pylint: disable=broad-exception-raised
-                raise Exception(
-                    f"Error while performing RPC get_device_info_list ({err_data.result_code}): {
-                        resp.text}"
+                raise WinixException(
+                    {
+                        "message": "Failed to get device list",
+                        "result_code": result_code,
+                        "result_message": result_message,
+                    }
                 )
 
             return [
@@ -162,8 +163,8 @@ class Helpers:
         try:
             _LOGGER.debug("Obtaining device list")
             return await hass.async_add_executor_job(get_device_info_list, access_token)
-        except Exception as err:
-            raise WinixException.from_winix_exception(err) from err
+        except WinixException as err:
+            raise err
 
 
 class WinixException(Exception):
