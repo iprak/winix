@@ -6,13 +6,17 @@ from collections.abc import Iterable
 import logging
 from typing import Final
 
+from awesomeversion import AwesomeVersion
+
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.const import (
     CONF_PASSWORD,
     CONF_USERNAME,
     STATE_UNAVAILABLE,
     Platform,
+    __version__,
 )
+from homeassistant.components import persistent_notification
 from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr, entity_registry as er
@@ -26,6 +30,7 @@ from .const import (
     WINIX_DATA_COORDINATOR,
     WINIX_DOMAIN,
     WINIX_NAME,
+    __min_ha_version__,
 )
 from .helpers import Helpers, WinixException
 from .manager import WinixManager
@@ -37,6 +42,19 @@ DEFAULT_SCAN_INTERVAL: Final = 30
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up the Winix component."""
+
+    if not is_valid_ha_version():
+        msg = (
+            "This integration require at least HomeAssistant version "
+            f" {__min_ha_version__}, you are running version {__version__}."
+            " Please upgrade HomeAssistant to continue use this integration."
+        )
+
+        _LOGGER.warning(msg)
+        persistent_notification.async_create(
+            hass, msg, WINIX_NAME, f"{WINIX_DOMAIN}.inv_ha_version"
+        )
+        return False
 
     hass.data.setdefault(WINIX_DOMAIN, {})
     user_input = entry.data
@@ -203,3 +221,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             hass.services.async_remove(WINIX_DOMAIN, service_name)
 
     return unload_ok
+
+
+def is_valid_ha_version() -> bool:
+    """Check if HA version is valid for this integration."""
+    return AwesomeVersion(__version__) >= AwesomeVersion(__min_ha_version__)

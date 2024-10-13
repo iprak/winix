@@ -3,6 +3,8 @@
 from enum import Enum, unique
 from typing import Final
 
+__min_ha_version__ = "2024.8"
+
 WINIX_DOMAIN: Final = "winix"
 
 WINIX_NAME: Final = "Winix Purifier"

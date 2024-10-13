@@ -1,4 +1,5 @@
 {
-    "name": "Winix Purifier",
-    "render_readme": true
+  "name": "Winix Purifier",
+  "render_readme": true,
+  "homeassistant": "2024.8.0"
 }
