@@ -5,6 +5,8 @@ from __future__ import annotations
 from datetime import timedelta
 import logging
 
+from winix import auth
+
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import aiohttp_client
 from homeassistant.helpers.entity import DeviceInfo
@@ -12,8 +14,6 @@ from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
 )
-
-from winix import auth
 
 from .const import WINIX_DOMAIN
 from .device_wrapper import WinixDeviceWrapper
@@ -98,8 +98,9 @@ class WinixManager(DataUpdateCoordinator):
             self.hass, self._auth_response.access_token
         )
 
+        self._device_wrappers = []  # initialize even if we have no device_stubs
+
         if device_stubs:
-            self._device_wrappers = []
             client = aiohttp_client.async_get_clientsession(self.hass)
 
             for device_stub in device_stubs:

@@ -7,12 +7,11 @@ import logging
 from typing import Any
 
 import voluptuous as vol
+from winix import auth
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.data_entry_flow import FlowResult
-
-from winix import auth
 
 from .const import WINIX_AUTH_RESPONSE, WINIX_DOMAIN, WINIX_NAME
 from .helpers import Helpers, WinixException
@@ -42,7 +41,6 @@ class WinixFlowHandler(config_entries.ConfigFlow, domain=WINIX_DOMAIN):
         """Validate the user input."""
         try:
             auth_response = await Helpers.async_login(self.hass, username, password)
-            return {"errors": None, WINIX_AUTH_RESPONSE: auth_response}
         except WinixException as err:
             if err.result_code == "UserNotFoundException":
                 return {"errors": {"base": "invalid_user"}, WINIX_AUTH_RESPONSE: None}
@@ -51,6 +49,8 @@ class WinixFlowHandler(config_entries.ConfigFlow, domain=WINIX_DOMAIN):
                 "errors": {"base": "invalid_auth"},
                 WINIX_AUTH_RESPONSE: None,
             }
+        else:
+            return {"errors": None, WINIX_AUTH_RESPONSE: auth_response}
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None

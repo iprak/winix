@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 import logging
-from typing import Any, Final, Union
+from typing import Any, Final
 
 from homeassistant.components.sensor import (
-    DOMAIN,
+    DOMAIN as SENSOR_DOMAIN,
     SensorEntity,
     SensorEntityDescription,
     SensorStateClass,
@@ -92,11 +92,11 @@ class WinixSensor(WinixEntity, SensorEntity):
         self.entity_description = description
 
         self._attr_unique_id = (
-            f"{DOMAIN}.{WINIX_DOMAIN}_{description.key.lower()}_{self._mac}"
+            f"{SENSOR_DOMAIN}.{WINIX_DOMAIN}_{description.key.lower()}_{self._mac}"
         )
 
     @property
-    def extra_state_attributes(self) -> Union[Mapping[str, Any], None]:
+    def extra_state_attributes(self) -> Mapping[str, Any] | None:
         """Return the state attributes."""
 
         attributes = None

@@ -30,8 +30,7 @@ def build_fake_manager(wrapper_count) -> WinixManager:
     wrappers = []
 
     # Prepare fake wrappers
-    for index in range(0, wrapper_count):
-        wrappers.append(build_mock_wrapper(index))
+    wrappers = {build_mock_wrapper(index) for index in range(wrapper_count)}
 
     manager = MagicMock()
     manager.get_device_wrappers = Mock(return_value=wrappers)

@@ -104,7 +104,11 @@ def test_construction():
     assert device.speed_list == ORDERED_NAMED_FAN_SPEEDS
     assert device.speed_count == len(ORDERED_NAMED_FAN_SPEEDS)
     assert device.supported_features == (
-        FanEntityFeature.PRESET_MODE | FanEntityFeature.SET_SPEED | FanEntityFeature.TURN_ON | FanEntityFeature.TURN_OFF)
+        FanEntityFeature.PRESET_MODE
+        | FanEntityFeature.SET_SPEED
+        | FanEntityFeature.TURN_ON
+        | FanEntityFeature.TURN_OFF
+    )
 
     assert device.device_info is not None
     assert (
@@ -147,7 +151,7 @@ def test_device_on(value):
 
 
 @pytest.mark.parametrize(
-    "state,is_sleep,is_auto,expected",
+    ("state", "is_sleep", "is_auto", "expected"),
     [
         (None, None, None, None),
         ({}, True, False, None),
@@ -169,7 +173,15 @@ def test_device_percentage(state, is_sleep, is_auto, expected):
 
 
 @pytest.mark.parametrize(
-    "state,is_sleep,is_auto,is_manual,is_plasma_on,is_plasma_off,expected",
+    (
+        "state",
+        "is_sleep",
+        "is_auto",
+        "is_manual",
+        "is_plasma_on",
+        "is_plasma_off",
+        "expected",
+    ),
     [
         (None, None, None, None, None, None, None),
         ({}, True, False, False, False, False, PRESET_MODE_SLEEP),
