@@ -161,11 +161,9 @@ class Helpers:
                 for d in resp.json()["deviceInfoList"]
             ]
 
-        try:
-            _LOGGER.debug("Obtaining device list")
-            return await hass.async_add_executor_job(get_device_info_list, access_token)
-        except WinixException as err:
-            raise err
+        # Pass through all exceptions
+        _LOGGER.debug("Obtaining device list")
+        return await hass.async_add_executor_job(get_device_info_list, access_token)
 
 
 class WinixException(Exception):
@@ -224,6 +222,7 @@ class WinixException(Exception):
                     "result_code": response.get("Error", {}).get("Code"),
                 }
 
-            return None
         except AttributeError:
             return {"message": message}
+        else:
+            return None

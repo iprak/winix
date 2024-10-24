@@ -154,7 +154,7 @@ class WinixDriver:
             attributes = json["body"]["data"][0]["attributes"]
             if attributes:
                 return int(attributes["P01"])
-        except Exception:  # pylint: disable=broad-except
+        except Exception:  # pylint: disable=broad-except # noqa: BLE001
             return None
 
     async def get_state(self) -> dict[str, str]:
@@ -191,7 +191,7 @@ class WinixDriver:
         try:
             _LOGGER.debug(json)
             payload = json["body"]["data"][0]["attributes"]
-        except Exception as err:  # pylint: disable=broad-except
+        except Exception as err:  # pylint: disable=broad-except # noqa: BLE001
             _LOGGER.error(
                 "Error parsing response json, received %s", json, exc_info=err
             )

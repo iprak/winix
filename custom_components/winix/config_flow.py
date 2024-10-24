@@ -41,7 +41,6 @@ class WinixFlowHandler(config_entries.ConfigFlow, domain=WINIX_DOMAIN):
         """Validate the user input."""
         try:
             auth_response = await Helpers.async_login(self.hass, username, password)
-            return {"errors": None, WINIX_AUTH_RESPONSE: auth_response}
         except WinixException as err:
             if err.result_code == "UserNotFoundException":
                 return {"errors": {"base": "invalid_user"}, WINIX_AUTH_RESPONSE: None}
@@ -50,6 +49,8 @@ class WinixFlowHandler(config_entries.ConfigFlow, domain=WINIX_DOMAIN):
                 "errors": {"base": "invalid_auth"},
                 WINIX_AUTH_RESPONSE: None,
             }
+        else:
+            return {"errors": None, WINIX_AUTH_RESPONSE: auth_response}
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None

@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Mapping
 import logging
-from typing import Any, Optional, Union
+from typing import Any
 
 import voluptuous as vol
 
@@ -117,7 +117,7 @@ class WinixPurifier(WinixEntity, FanEntity):
         self._attr_unique_id = f"{DOMAIN}.{WINIX_DOMAIN}_{self._mac}"
 
     @property
-    def name(self) -> Union[str, None]:
+    def name(self) -> str | None:
         """Entity Name.
 
         Returning None, since this is the primary entity.
@@ -125,16 +125,16 @@ class WinixPurifier(WinixEntity, FanEntity):
         return None
 
     @property
-    def extra_state_attributes(self) -> Union[Mapping[str, Any], None]:
+    def extra_state_attributes(self) -> Mapping[str, Any] | None:
         """Return the state attributes."""
         attributes = {}
         state = self._wrapper.get_state()
 
         if state is not None:
-            for key, value in state.items():
-                # The power attribute is the entity state, so skip it
-                if key != ATTR_POWER:
-                    attributes[key] = value
+            # The power attribute is the entity state, so skip it
+            attributes = {
+                key: value for key, value in state.items() if key != ATTR_POWER
+            }
 
         attributes[ATTR_LOCATION] = self._wrapper.device_stub.location_code
         attributes[ATTR_FILTER_REPLACEMENT_DATE] = (
@@ -149,7 +149,7 @@ class WinixPurifier(WinixEntity, FanEntity):
         return self._wrapper.is_on
 
     @property
-    def percentage(self) -> Union[int, None]:
+    def percentage(self) -> int | None:
         """Return the current speed percentage."""
         state = self._wrapper.get_state()
         if state is None:
@@ -164,7 +164,7 @@ class WinixPurifier(WinixEntity, FanEntity):
         )
 
     @property
-    def preset_mode(self) -> Union[str, None]:
+    def preset_mode(self) -> str | None:
         """Return the current preset mode, e.g., auto, smart, interval, favorite."""
         state = self._wrapper.get_state()
         if state is None:
@@ -187,7 +187,7 @@ class WinixPurifier(WinixEntity, FanEntity):
         return None
 
     @property
-    def preset_modes(self) -> Union[list[str], None]:
+    def preset_modes(self) -> list[str] | None:
         """Return a list of available preset modes."""
         return PRESET_MODES
 
@@ -214,8 +214,8 @@ class WinixPurifier(WinixEntity, FanEntity):
 
     async def async_turn_on(
         self,
-        percentage: Optional[int] = None,
-        preset_mode: Optional[str] = None,
+        percentage: int | None = None,
+        preset_mode: str | None = None,
         **kwargs: Any,
     ) -> None:
         # pylint: disable=unused-argument

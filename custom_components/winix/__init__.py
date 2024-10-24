@@ -132,8 +132,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
                         ) from login_err
 
                     _LOGGER.exception(
-                        "Unable to log in. Device access previously failed with `%s`",
-                        str(err),
+                        "Unable to log in. Device access previously failed"
                     )
                     raise ConfigEntryNotReady("Unable to authenticate.") from login_err
             else:
