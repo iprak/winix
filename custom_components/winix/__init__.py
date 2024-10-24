@@ -7,7 +7,9 @@ import logging
 from typing import Final
 
 from awesomeversion import AwesomeVersion
+from winix import auth
 
+from homeassistant.components import persistent_notification
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.const import (
     CONF_PASSWORD,
@@ -16,12 +18,9 @@ from homeassistant.const import (
     Platform,
     __version__,
 )
-from homeassistant.components import persistent_notification
 from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr, entity_registry as er
-
-from winix import auth
 
 from .const import (
     FAN_SERVICES,

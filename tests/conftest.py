@@ -25,14 +25,14 @@ def mock_device_wrapper() -> WinixDeviceWrapper:
     device_wrapper.async_set_speed = AsyncMock()
     device_wrapper.async_turn_on = AsyncMock()
 
-    yield device_wrapper
+    return device_wrapper
 
 
 @pytest.fixture
 def mock_sensor_description(sensor_key) -> SensorEntityDescription:
     """Return a mocked SensorEntityDescription instance."""
 
-    yield SensorEntityDescription(
+    return SensorEntityDescription(
         key=sensor_key,
         name="Test sensor description",
         state_class=SensorStateClass.MEASUREMENT,
@@ -43,7 +43,7 @@ def mock_sensor_description(sensor_key) -> SensorEntityDescription:
 def mock_qvalue_description() -> SensorEntityDescription:
     """Return a mocked qValue SensorEntityDescription instance."""
 
-    yield SensorEntityDescription(
+    return SensorEntityDescription(
         key=SENSOR_AIR_QVALUE,
         name="Air QValue",
         native_unit_of_measurement="qv",
@@ -55,7 +55,7 @@ def mock_qvalue_description() -> SensorEntityDescription:
 def mock_filter_life_description() -> SensorEntityDescription:
     """Return a mocked SensorEntityDescription instance."""
 
-    yield SensorEntityDescription(
+    return SensorEntityDescription(
         key=SENSOR_FILTER_LIFE,
         name="Filter Life",
         native_unit_of_measurement=PERCENTAGE,
@@ -68,7 +68,7 @@ def mock_driver() -> WinixDriver:
     """Return a mocked WinixDriver instance."""
     client = Mock()
     device_id = "device_1"
-    yield WinixDriver(device_id, client)
+    return WinixDriver(device_id, client)
 
 
 @pytest.fixture
@@ -84,4 +84,4 @@ def mock_driver_with_payload(request) -> WinixDriver:
     client.get = AsyncMock(return_value=response)
 
     device_id = "device_1"
-    yield WinixDriver(device_id, client)
+    return WinixDriver(device_id, client)

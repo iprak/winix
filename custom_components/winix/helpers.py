@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta
-import logging
 from http import HTTPStatus
+import logging
+
 import requests
+from winix import WinixAccount, auth
 
 from homeassistant.core import HomeAssistant
-from winix import WinixAccount, auth
 
 from .const import WINIX_DOMAIN
 from .device_wrapper import MyWinixDeviceStub
