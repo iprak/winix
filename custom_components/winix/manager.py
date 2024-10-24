@@ -98,8 +98,9 @@ class WinixManager(DataUpdateCoordinator):
             self.hass, self._auth_response.access_token
         )
 
+        self._device_wrappers = []  # initialize even if we have no device_stubs
+
         if device_stubs:
-            self._device_wrappers = []
             client = aiohttp_client.async_get_clientsession(self.hass)
 
             for device_stub in device_stubs:
