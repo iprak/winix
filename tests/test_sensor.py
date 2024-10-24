@@ -68,20 +68,18 @@ def test_sensor_attributes(mock_device_wrapper, mock_qvalue_description):
     mock_device_wrapper.get_state = MagicMock(return_value=None)
     coordinator = Mock()
 
-    sensor = WinixSensor(mock_device_wrapper, coordinator,
-                         mock_qvalue_description)
+    sensor = WinixSensor(mock_device_wrapper, coordinator, mock_qvalue_description)
 
     # Initially we will have no value
     assert sensor.extra_state_attributes is not None
     assert sensor.extra_state_attributes[ATTR_AIR_QUALITY] is None
 
-    mock_device_wrapper.get_state = MagicMock(
-        return_value={ATTR_AIR_QUALITY: 12})
+    mock_device_wrapper.get_state = MagicMock(return_value={ATTR_AIR_QUALITY: 12})
     assert sensor.extra_state_attributes[ATTR_AIR_QUALITY] == 12
 
 
 @pytest.mark.parametrize(
-    "sensor_key, state_key, state_value, expected",
+    ("sensor_key", "state_key", "state_value", "expected"),
     [
         (SENSOR_AIR_QVALUE, ATTR_AIR_QVALUE, 100, 100),
         (SENSOR_AQI, ATTR_AIR_AQI, 100, 100),
@@ -94,17 +92,15 @@ def test_sensor_native_value(
     mock_device_wrapper.get_state = MagicMock(return_value=None)
     coordinator = Mock()
 
-    sensor = WinixSensor(mock_device_wrapper, coordinator,
-                         mock_sensor_description)
+    sensor = WinixSensor(mock_device_wrapper, coordinator, mock_sensor_description)
     assert sensor.state is None
 
-    mock_device_wrapper.get_state = MagicMock(
-        return_value={state_key: state_value})
+    mock_device_wrapper.get_state = MagicMock(return_value={state_key: state_value})
     assert sensor.native_value == expected
 
 
 @pytest.mark.parametrize(
-    "filter_hour, expected",
+    ("filter_hour", "expected"),
     [
         (None, None),
         (100, 98),  # 100 hour
@@ -118,8 +114,7 @@ def test_filter_life_sensor_native_value(
     mock_device_wrapper.get_state = MagicMock(return_value=None)
     coordinator = Mock()
 
-    sensor = WinixSensor(mock_device_wrapper, coordinator,
-                         mock_filter_life_description)
+    sensor = WinixSensor(mock_device_wrapper, coordinator, mock_filter_life_description)
 
     mock_device_wrapper.get_state = MagicMock(
         return_value={} if filter_hour is None else {ATTR_FILTER_HOUR: filter_hour}

@@ -1,4 +1,5 @@
 """Test WinixDeviceWrapper component."""
+
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -29,7 +30,7 @@ WinixDriver_TypeName = "custom_components.winix.driver.WinixDriver"
 
 
 @pytest.mark.parametrize(
-    "mock_state, is_auto, is_manual, is_on, is_plasma_on, is_sleep",
+    ("mock_state", "is_auto", "is_manual", "is_on", "is_plasma_on", "is_sleep"),
     [
         # On
         ({}, False, False, False, False, False),
@@ -275,7 +276,7 @@ async def test_async_set_speed():
 
 
 @pytest.mark.parametrize(
-    "preset_mode, sleep, auto, manual, plasmawave_off, plasmawave_on",
+    ("preset_mode", "sleep", "auto", "manual", "plasmawave_off", "plasmawave_on"),
     [
         (PRESET_MODE_SLEEP, 1, 0, 0, 0, 0),
         (PRESET_MODE_AUTO, 0, 1, 0, 0, 1),

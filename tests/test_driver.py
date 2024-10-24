@@ -9,7 +9,7 @@ from custom_components.winix.driver import WinixDriver
 
 @patch("custom_components.winix.driver.WinixDriver._rpc_attr")
 @pytest.mark.parametrize(
-    "method, category, value",
+    ("method", "category", "value"),
     [
         ("turn_off", "power", "off"),
         ("turn_on", "power", "on"),
@@ -36,7 +36,7 @@ async def test_turn_off(mock_rpc_attr, mock_driver, method, category, value):
 
 
 @pytest.mark.parametrize(
-    "mock_driver_with_payload, expected",
+    ("mock_driver_with_payload", "expected"),
     [
         ({"A02": "0"}, {"power": "off"}),
         ({"A02": "1"}, {"power": "on"}),
