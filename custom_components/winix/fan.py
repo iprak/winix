@@ -9,7 +9,11 @@ from typing import Any
 
 import voluptuous as vol
 
-from homeassistant.components.fan import DOMAIN, FanEntity, FanEntityFeature
+from homeassistant.components.fan import (
+    DOMAIN as FAN_DOMAIN,
+    FanEntity,
+    FanEntityFeature,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import HomeAssistant
@@ -114,7 +118,7 @@ class WinixPurifier(WinixEntity, FanEntity):
     def __init__(self, wrapper: WinixDeviceWrapper, coordinator: WinixManager) -> None:
         """Initialize the entity."""
         super().__init__(wrapper, coordinator)
-        self._attr_unique_id = f"{DOMAIN}.{WINIX_DOMAIN}_{self._mac}"
+        self._attr_unique_id = f"{FAN_DOMAIN}.{WINIX_DOMAIN}_{self._mac}"
 
     @property
     def name(self) -> str | None:

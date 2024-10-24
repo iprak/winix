@@ -7,7 +7,7 @@ import logging
 from typing import Any, Final
 
 from homeassistant.components.sensor import (
-    DOMAIN,
+    DOMAIN as SENSOR_DOMAIN,
     SensorEntity,
     SensorEntityDescription,
     SensorStateClass,
@@ -92,7 +92,7 @@ class WinixSensor(WinixEntity, SensorEntity):
         self.entity_description = description
 
         self._attr_unique_id = (
-            f"{DOMAIN}.{WINIX_DOMAIN}_{description.key.lower()}_{self._mac}"
+            f"{SENSOR_DOMAIN}.{WINIX_DOMAIN}_{description.key.lower()}_{self._mac}"
         )
 
     @property
