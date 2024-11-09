@@ -75,7 +75,9 @@ class WinixManager(DataUpdateCoordinator):
     ) -> None:
         """Initialize the manager."""
 
-        self._device_wrappers: list[WinixDeviceWrapper] = None
+        # Always initialize _device_wrappers in case async_prepare_devices_wrappers
+        # was not invoked.
+        self._device_wrappers: list[WinixDeviceWrapper] = []
         self._auth_response = auth_response
 
         super().__init__(
@@ -88,17 +90,17 @@ class WinixManager(DataUpdateCoordinator):
     async def _async_update_data(self):
         await self.async_update()
 
-    async def async_prepare_devices_wrappers(self) -> bool:
+    async def async_prepare_devices_wrappers(self) -> None:
         """Prepare device wrappers.
 
         Raises WinixException.
         """
 
+        self._device_wrappers = []  # Reset device_stubs
+
         device_stubs = await Helpers.async_get_device_stubs(
             self.hass, self._auth_response.access_token
         )
-
-        self._device_wrappers = []  # initialize even if we have no device_stubs
 
         if device_stubs:
             client = aiohttp_client.async_get_clientsession(self.hass)
@@ -111,8 +113,6 @@ class WinixManager(DataUpdateCoordinator):
             _LOGGER.info("%d purifiers found", len(self._device_wrappers))
         else:
             _LOGGER.info("No purifiers found")
-
-        return True
 
     async def async_update(self, now=None) -> None:
         # pylint: disable=unused-argument
