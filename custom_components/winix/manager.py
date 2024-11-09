@@ -88,6 +88,7 @@ class WinixManager(DataUpdateCoordinator):
         )
 
     async def _async_update_data(self):
+        """Fetch the latest data from the source. This overrides the method in DataUpdateCoordinator."""
         await self.async_update()
 
     async def async_prepare_devices_wrappers(self) -> None:
@@ -115,7 +116,6 @@ class WinixManager(DataUpdateCoordinator):
             _LOGGER.info("No purifiers found")
 
     async def async_update(self, now=None) -> None:
-        # pylint: disable=unused-argument
         """Asynchronously update all the devices."""
         _LOGGER.info("Updating devices")
         for device_wrapper in self._device_wrappers:
