@@ -6,7 +6,7 @@
 	"containerUser": "root",
 	"remoteUser": "root",
 	"postCreateCommand": "/container_content/scripts/setup.sh",
-	"initializeCommand": "docker image pull ghcr.io/iprak/custom-integration-image:main",
+	"initializeCommand": "docker image pull ghcr.io/iprak/custom-integration-image:latest",
 	"containerEnv": {
 		"TZ": "America/Chicago"
 	},

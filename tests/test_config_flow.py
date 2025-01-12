@@ -1,4 +1,5 @@
 """Test config flow."""
+
 from unittest.mock import AsyncMock, patch
 
 from custom_components.winix.const import WINIX_DOMAIN
@@ -79,4 +80,4 @@ async def test_create_entry(hass: HomeAssistant, enable_custom_integrations) -> 
             WINIX_DOMAIN, context={"source": SOURCE_USER}, data=TEST_USER_DATA
         )
 
-        assert result["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
+        assert result["type"] == data_entry_flow.FlowResultType.CREATE_ENTRY
