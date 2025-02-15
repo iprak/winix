@@ -206,12 +206,12 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if unload_ok:
         hass.data.pop(WINIX_DOMAIN)
 
-    loaded_entries = [
-        entry
-        for entry in hass.config_entries.async_entries(WINIX_DOMAIN)
-        if entry.state == ConfigEntryState.LOADED
+    other_loaded_entries = [
+        _entry
+        for _entry in hass.config_entries.async_loaded_entries(WINIX_DOMAIN)
+        if _entry.entry_id != entry.entry_id
     ]
-    if len(loaded_entries) == 1:
+    if not other_loaded_entries:
         # If this is the last loaded instance, then unregister services
         hass.services.async_remove(WINIX_DOMAIN, SERVICE_REMOVE_STALE_ENTITIES)
 
