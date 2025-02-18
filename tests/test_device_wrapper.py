@@ -25,7 +25,7 @@ from custom_components.winix.const import (
 )
 from custom_components.winix.device_wrapper import WinixDeviceWrapper
 
-from . import build_mock_wrapper
+from .common import build_mock_wrapper
 
 WinixDriver_TypeName = "custom_components.winix.driver.WinixDriver"
 
@@ -111,9 +111,10 @@ async def test_async_ensure_on() -> None:
 
 async def test_async_turn_off() -> None:
     """Test turning off."""
-    with patch(f"{WinixDriver_TypeName}.turn_on") as turn_on, patch(
-        f"{WinixDriver_TypeName}.turn_off"
-    ) as turn_off:
+    with (
+        patch(f"{WinixDriver_TypeName}.turn_on") as turn_on,
+        patch(f"{WinixDriver_TypeName}.turn_off") as turn_off,
+    ):
         wrapper = build_mock_wrapper()
         assert not wrapper.is_on  # initially off
 
@@ -173,9 +174,10 @@ async def test_async_plasmawave_on_off() -> None:
     """Test turning plasmawave on."""
 
     # async_plasmawave does not need the device to be turned on
-    with patch(f"{WinixDriver_TypeName}.plasmawave_on") as plasmawave_on, patch(
-        f"{WinixDriver_TypeName}.plasmawave_off"
-    ) as plasmawave_off:
+    with (
+        patch(f"{WinixDriver_TypeName}.plasmawave_on") as plasmawave_on,
+        patch(f"{WinixDriver_TypeName}.plasmawave_off") as plasmawave_off,
+    ):
         wrapper = build_mock_wrapper()
 
         await wrapper.async_plasmawave_on()
@@ -245,11 +247,12 @@ async def test_async_sleep() -> None:
 async def test_async_set_speed() -> None:
     """Test setting speed."""
 
-    with patch(f"{WinixDriver_TypeName}.turn_on"), patch(
-        f"{WinixDriver_TypeName}.manual"
-    ), patch(f"{WinixDriver_TypeName}.high") as high_speed, patch(
-        f"{WinixDriver_TypeName}.low"
-    ) as low_speed:
+    with (
+        patch(f"{WinixDriver_TypeName}.turn_on"),
+        patch(f"{WinixDriver_TypeName}.manual"),
+        patch(f"{WinixDriver_TypeName}.high") as high_speed,
+        patch(f"{WinixDriver_TypeName}.low") as low_speed,
+    ):
         wrapper = build_mock_wrapper()
 
         await wrapper.async_set_speed(AIRFLOW_LOW)

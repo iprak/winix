@@ -24,7 +24,7 @@ from custom_components.winix.const import (
 from custom_components.winix.fan import WinixPurifier, async_setup_entry
 from homeassistant.components.fan import FanEntityFeature
 from homeassistant.const import ATTR_ENTITY_ID
-from tests import build_fake_manager, build_purifier
+from .common import build_fake_manager, build_purifier
 
 
 async def test_setup_platform(hass):
@@ -63,11 +63,14 @@ async def test_service(hass):
             first_entity_id = device.entity_id
 
     # Test service call with a specific entity_id
-    with patch(
-        "custom_components.winix.fan.WinixPurifier.async_plasmawave_on"
-    ) as mock_plasmawave_on, patch(
-        "custom_components.winix.fan.WinixPurifier.async_update_ha_state"
-    ) as mock_update_ha_state:
+    with (
+        patch(
+            "custom_components.winix.fan.WinixPurifier.async_plasmawave_on"
+        ) as mock_plasmawave_on,
+        patch(
+            "custom_components.winix.fan.WinixPurifier.async_update_ha_state"
+        ) as mock_update_ha_state,
+    ):
         service_data = {ATTR_ENTITY_ID: [first_entity_id]}
         await hass.services.async_call(
             WINIX_DOMAIN, SERVICE_PLASMAWAVE_ON, service_data, blocking=True
@@ -79,11 +82,14 @@ async def test_service(hass):
         assert mock_update_ha_state.call_count == 1
 
     # Test service call with no entity_id, call is made on all devices
-    with patch(
-        "custom_components.winix.fan.WinixPurifier.async_plasmawave_on"
-    ) as mock_plasmawave_on, patch(
-        "custom_components.winix.fan.WinixPurifier.async_update_ha_state"
-    ) as mock_update_ha_state:
+    with (
+        patch(
+            "custom_components.winix.fan.WinixPurifier.async_plasmawave_on"
+        ) as mock_plasmawave_on,
+        patch(
+            "custom_components.winix.fan.WinixPurifier.async_update_ha_state"
+        ) as mock_update_ha_state,
+    ):
         await hass.services.async_call(
             WINIX_DOMAIN, SERVICE_PLASMAWAVE_ON, {}, blocking=True
         )

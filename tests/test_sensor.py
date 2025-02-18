@@ -20,7 +20,7 @@ from custom_components.winix.sensor import (
     WinixSensor,
     async_setup_entry,
 )
-from tests import build_fake_manager
+from .common import build_fake_manager
 
 
 async def test_setup_platform():
