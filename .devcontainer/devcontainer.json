@@ -3,10 +3,7 @@
 	"context": "..",
 	"dockerFile": "../Dockerfile",
 	"appPort": "9123:8123",
-	"containerUser": "root",
-	"remoteUser": "root",
-	"postCreateCommand": "/container_content/scripts/setup.sh",
-	"initializeCommand": "docker image pull ghcr.io/iprak/custom-integration-image:latest",
+	"postCreateCommand": "git config --global --add safe.directory ${containerWorkspaceFolder} && /workspaces/container_content/scripts/setup.sh",
 	"containerEnv": {
 		"TZ": "America/Chicago"
 	},
