@@ -20,10 +20,11 @@ from custom_components.winix.sensor import (
     WinixSensor,
     async_setup_entry,
 )
+
 from .common import build_fake_manager
 
 
-async def test_setup_platform():
+async def test_setup_platform() -> None:
     """Test platform setup."""
 
     manager = build_fake_manager(3)
@@ -37,7 +38,7 @@ async def test_setup_platform():
     assert len(async_add_entities.call_args[0][0]) == 9  # 3 sensors per device
 
 
-def test_sensor_construction(mock_qvalue_description):
+def test_sensor_construction(mock_qvalue_description) -> None:
     """Test sensor construction."""
     device_wrapper = Mock()
     device_wrapper.get_state = MagicMock(return_value={})
@@ -50,7 +51,7 @@ def test_sensor_construction(mock_qvalue_description):
     assert sensor.unit_of_measurement == "qv"
 
 
-def test_sensor_availability(mock_qvalue_description):
+def test_sensor_availability(mock_qvalue_description) -> None:
     """Test sensor availability."""
     device_wrapper = Mock()
     device_wrapper.get_state = MagicMock(return_value=None)
@@ -63,7 +64,7 @@ def test_sensor_availability(mock_qvalue_description):
     assert sensor.available
 
 
-def test_sensor_attributes(mock_device_wrapper, mock_qvalue_description):
+def test_sensor_attributes(mock_device_wrapper, mock_qvalue_description) -> None:
     """Test sensor attributes."""
     mock_device_wrapper.get_state = MagicMock(return_value=None)
     coordinator = Mock()
@@ -87,7 +88,7 @@ def test_sensor_attributes(mock_device_wrapper, mock_qvalue_description):
 )
 def test_sensor_native_value(
     state_key, state_value, expected, mock_sensor_description, mock_device_wrapper
-):
+) -> None:
     """Test sensor native state values."""
     mock_device_wrapper.get_state = MagicMock(return_value=None)
     coordinator = Mock()
@@ -109,7 +110,7 @@ def test_sensor_native_value(
 )
 def test_filter_life_sensor_native_value(
     filter_hour, expected, mock_device_wrapper, mock_filter_life_description
-):
+) -> None:
     """Test filter life sensor state."""
     mock_device_wrapper.get_state = MagicMock(return_value=None)
     coordinator = Mock()
