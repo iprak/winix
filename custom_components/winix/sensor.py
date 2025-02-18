@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
+from dataclasses import dataclass
 import logging
 from typing import Any, Final
 
@@ -36,28 +37,69 @@ _LOGGER = logging.getLogger(__name__)
 TOTAL_FILTER_LIFE: Final = 6480  # 9 months
 
 
-SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
-    SensorEntityDescription(
+@dataclass(frozen=True, kw_only=True)
+class WininxSensorEntityDescription(SensorEntityDescription):
+    """Describe VeSync sensor entity."""
+
+    value_fn: Callable[[WinixDeviceWrapper], StateType]
+    extra_state_attributes_fn: Callable[[WinixDeviceWrapper], Mapping[str, Any] | None]
+
+
+SENSOR_TYPES: tuple[WininxSensorEntityDescription, ...] = (
+    WininxSensorEntityDescription(
         key=SENSOR_AIR_QVALUE,
         icon="mdi:cloud",
         name="Air QValue",
         native_unit_of_measurement="qv",
         state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda state: state.get(ATTR_AIR_QVALUE),
+        extra_state_attributes_fn=lambda state: get_air_quality_attr,
     ),
-    SensorEntityDescription(
+    WininxSensorEntityDescription(
         key=SENSOR_FILTER_LIFE,
         icon="mdi:air-filter",
         name="Filter Life",
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda state: get_filter_life,
+        extra_state_attributes_fn=None,
     ),
-    SensorEntityDescription(
+    WininxSensorEntityDescription(
         key=SENSOR_AQI,
         icon="mdi:blur",
         name="AQI",
         state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda state: state.get(ATTR_AIR_AQI),
+        extra_state_attributes_fn=None,
     ),
 )
+
+
+def get_air_quality_attr(state: dict[str, str]) -> Mapping[str, Any] | None:
+    """Get air quality attribute."""
+    attributes = {ATTR_AIR_QUALITY: None}
+    if state is not None:
+        attributes[ATTR_AIR_QUALITY] = state.get(ATTR_AIR_QUALITY)
+
+    return attributes
+
+
+def get_filter_life(state: dict[str, str]) -> StateType:
+    """Get filter life."""
+    value = state.get(ATTR_FILTER_HOUR)
+    if value is None:
+        return None
+
+    hours: int = int(value)
+    if hours > TOTAL_FILTER_LIFE:
+        _LOGGER.warning(
+            "Reported filter life '%d' is more than max value '%d'",
+            hours,
+            TOTAL_FILTER_LIFE,
+        )
+        return None
+
+    return int((TOTAL_FILTER_LIFE - hours) * 100 / TOTAL_FILTER_LIFE)
 
 
 async def async_setup_entry(
@@ -81,11 +123,13 @@ async def async_setup_entry(
 class WinixSensor(WinixEntity, SensorEntity):
     """Representation of a Winix Purifier sensor."""
 
+    entity_description: WininxSensorEntityDescription
+
     def __init__(
         self,
         wrapper: WinixDeviceWrapper,
         coordinator: WinixManager,
-        description: SensorEntityDescription,
+        description: WininxSensorEntityDescription,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(wrapper, coordinator)
@@ -99,45 +143,18 @@ class WinixSensor(WinixEntity, SensorEntity):
     def extra_state_attributes(self) -> Mapping[str, Any] | None:
         """Return the state attributes."""
 
-        attributes = None
-        if self.entity_description.key == SENSOR_AIR_QVALUE:
-            attributes = {ATTR_AIR_QUALITY: None}
+        if self.entity_description.extra_state_attributes_fn is None:
+            return None
 
-            state = self._wrapper.get_state()
-            if state is not None:
-                attributes[ATTR_AIR_QUALITY] = state.get(ATTR_AIR_QUALITY)
-
-        return attributes
+        return self.entity_description.extra_state_attributes_fn(
+            self._wrapper.get_state()
+        )
 
     @property
-    # pylint: disable=too-many-return-statements
     def native_value(self) -> StateType:
         """Return the state of the sensor."""
         state = self._wrapper.get_state()
         if state is None:
             return None
 
-        if self.entity_description.key == SENSOR_AIR_QVALUE:
-            return state.get(ATTR_AIR_QVALUE)
-
-        if self.entity_description.key == SENSOR_AQI:
-            return state.get(ATTR_AIR_AQI)
-
-        if self.entity_description.key == SENSOR_FILTER_LIFE:
-            value = state.get(ATTR_FILTER_HOUR)
-            if value is None:
-                return None
-
-            hours: int = int(state.get(ATTR_FILTER_HOUR))
-            if hours > TOTAL_FILTER_LIFE:
-                _LOGGER.warning(
-                    "Reported filter life '%d' is more than max value '%d'",
-                    hours,
-                    TOTAL_FILTER_LIFE,
-                )
-                return None
-
-            return int((TOTAL_FILTER_LIFE - hours) * 100 / TOTAL_FILTER_LIFE)
-
-        _LOGGER.error("Unhandled sensor '%s' encountered", self.entity_description.key)
-        return None
+        return self.entity_description.value_fn(state)
