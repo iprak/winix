@@ -41,11 +41,11 @@ TOTAL_FILTER_LIFE: Final = 6480  # 9 months
 class WininxSensorEntityDescription(SensorEntityDescription):
     """Describe VeSync sensor entity."""
 
-    value_fn: Callable[[WinixDeviceWrapper], StateType]
+    value_fn: Callable[[dict[str, str]], StateType]
     extra_state_attributes_fn: Callable[[WinixDeviceWrapper], Mapping[str, Any] | None]
 
 
-SENSOR_TYPES: tuple[WininxSensorEntityDescription, ...] = (
+SENSOR_DESCRIPTIONS: tuple[WininxSensorEntityDescription, ...] = (
     WininxSensorEntityDescription(
         key=SENSOR_AIR_QVALUE,
         icon="mdi:cloud",
@@ -113,7 +113,7 @@ async def async_setup_entry(
 
     entities = [
         WinixSensor(wrapper, manager, description)
-        for description in SENSOR_TYPES
+        for description in SENSOR_DESCRIPTIONS
         for wrapper in manager.get_device_wrappers()
     ]
     async_add_entities(entities)
