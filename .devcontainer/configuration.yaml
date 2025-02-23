@@ -7,6 +7,7 @@ logbook:
 
 homeassistant:
   name: Home
+  country: US
 
 logger:
   default: warn
