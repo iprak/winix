@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from datetime import datetime, timedelta
 from http import HTTPStatus
 import logging
@@ -103,7 +104,7 @@ class Helpers:
         return await hass.async_add_executor_job(_refresh, response)
 
     @staticmethod
-    async def async_get_device_stubs(hass: HomeAssistant, access_token: str):
+    async def async_get_device_stubs(hass: HomeAssistant, access_token: str) -> None:
         """Get device list.
 
         Raises WinixException.
@@ -180,17 +181,17 @@ class WinixException(Exception):
         """Error code message."""
 
     @staticmethod
-    def from_winix_exception(err: Exception):
+    def from_winix_exception(err: Exception) -> WinixException:
         """Build exception for Winix library operation."""
         return WinixException(WinixException.parse_winix_exception(err))
 
     @staticmethod
-    def from_aws_exception(err: Exception):
+    def from_aws_exception(err: Exception) -> WinixException:
         """Build exception for AWS operation."""
         return WinixException(WinixException.parse_aws_exception(err))
 
     @staticmethod
-    def parse_winix_exception(err: Exception):
+    def parse_winix_exception(err: Exception) -> Mapping[str, str]:
         """Parse Winix library exception message."""
 
         message = str(err)
@@ -209,7 +210,7 @@ class WinixException(Exception):
         }
 
     @staticmethod
-    def parse_aws_exception(err: Exception):
+    def parse_aws_exception(err: Exception) -> Mapping[str, str]:
         """Parse AWS operation exception."""
         message = str(err)
 

@@ -24,10 +24,12 @@ from custom_components.winix.const import (
 from custom_components.winix.fan import WinixPurifier, async_setup_entry
 from homeassistant.components.fan import FanEntityFeature
 from homeassistant.const import ATTR_ENTITY_ID
-from tests import build_fake_manager, build_purifier
+from homeassistant.core import HomeAssistant
+
+from .common import build_fake_manager, build_purifier
 
 
-async def test_setup_platform(hass):
+async def test_setup_platform(hass: HomeAssistant) -> None:
     """Test platform setup."""
 
     manager = build_fake_manager(3)
@@ -41,7 +43,7 @@ async def test_setup_platform(hass):
     assert len(async_add_entities.call_args[0][0]) == 3
 
 
-async def test_service(hass):
+async def test_service(hass: HomeAssistant) -> None:
     """Test platform setup."""
 
     manager = build_fake_manager(2)
@@ -63,11 +65,14 @@ async def test_service(hass):
             first_entity_id = device.entity_id
 
     # Test service call with a specific entity_id
-    with patch(
-        "custom_components.winix.fan.WinixPurifier.async_plasmawave_on"
-    ) as mock_plasmawave_on, patch(
-        "custom_components.winix.fan.WinixPurifier.async_update_ha_state"
-    ) as mock_update_ha_state:
+    with (
+        patch(
+            "custom_components.winix.fan.WinixPurifier.async_plasmawave_on"
+        ) as mock_plasmawave_on,
+        patch(
+            "custom_components.winix.fan.WinixPurifier.async_update_ha_state"
+        ) as mock_update_ha_state,
+    ):
         service_data = {ATTR_ENTITY_ID: [first_entity_id]}
         await hass.services.async_call(
             WINIX_DOMAIN, SERVICE_PLASMAWAVE_ON, service_data, blocking=True
@@ -79,11 +84,14 @@ async def test_service(hass):
         assert mock_update_ha_state.call_count == 1
 
     # Test service call with no entity_id, call is made on all devices
-    with patch(
-        "custom_components.winix.fan.WinixPurifier.async_plasmawave_on"
-    ) as mock_plasmawave_on, patch(
-        "custom_components.winix.fan.WinixPurifier.async_update_ha_state"
-    ) as mock_update_ha_state:
+    with (
+        patch(
+            "custom_components.winix.fan.WinixPurifier.async_plasmawave_on"
+        ) as mock_plasmawave_on,
+        patch(
+            "custom_components.winix.fan.WinixPurifier.async_update_ha_state"
+        ) as mock_update_ha_state,
+    ):
         await hass.services.async_call(
             WINIX_DOMAIN, SERVICE_PLASMAWAVE_ON, {}, blocking=True
         )
@@ -93,7 +101,7 @@ async def test_service(hass):
         assert mock_update_ha_state.call_count == 2
 
 
-def test_construction():
+def test_construction(hass: HomeAssistant) -> None:
     """Test device construction."""
     device_wrapper = Mock()
     device_wrapper.get_state = Mock(return_value={})
@@ -116,7 +124,7 @@ def test_construction():
     )  # name is should be None since purifier fan is the primary entity.
 
 
-def test_device_availability():
+def test_device_availability(hass: HomeAssistant) -> None:
     """Test device availability."""
     device_wrapper = Mock()
     device_wrapper.get_state = Mock(return_value=None)
@@ -128,7 +136,7 @@ def test_device_availability():
     assert device.available
 
 
-def test_device_attributes():
+def test_device_attributes(hass: HomeAssistant) -> None:
     """Test device attributes."""
     device_wrapper = Mock()
     device_wrapper.get_state = Mock(return_value=None)
@@ -141,7 +149,7 @@ def test_device_attributes():
 
 
 @pytest.mark.parametrize("value", [(True), (False)])
-def test_device_on(value):
+def test_device_on(value) -> None:
     """Test device on."""
 
     device_wrapper = Mock()
@@ -161,7 +169,7 @@ def test_device_on(value):
         ({ATTR_AIRFLOW: None}, None, None, None),
     ],
 )
-def test_device_percentage(state, is_sleep, is_auto, expected):
+def test_device_percentage(state, is_sleep, is_auto, expected) -> None:
     """Test device percentage."""
 
     device_wrapper = Mock()
@@ -194,7 +202,7 @@ def test_device_percentage(state, is_sleep, is_auto, expected):
 )
 def test_device_preset_mode(
     state, is_sleep, is_auto, is_manual, is_plasma_on, is_plasma_off, expected
-):
+) -> None:
     """Test device preset mode."""
 
     device_wrapper = Mock()
@@ -208,7 +216,9 @@ def test_device_preset_mode(
     assert device.preset_mode is expected
 
 
-async def test_async_set_percentage_zero(hass, mock_device_wrapper):
+async def test_async_set_percentage_zero(
+    hass: HomeAssistant, mock_device_wrapper
+) -> None:
     """Test setting percentage speed."""
 
     device = build_purifier(hass, mock_device_wrapper)
@@ -219,7 +229,9 @@ async def test_async_set_percentage_zero(hass, mock_device_wrapper):
     assert mock_device_wrapper.async_set_speed.call_count == 0
 
 
-async def test_async_set_percentage_non_zero(hass, mock_device_wrapper):
+async def test_async_set_percentage_non_zero(
+    hass: HomeAssistant, mock_device_wrapper
+) -> None:
     """Test setting percentage speed."""
 
     device = build_purifier(hass, mock_device_wrapper)
@@ -230,7 +242,7 @@ async def test_async_set_percentage_non_zero(hass, mock_device_wrapper):
     assert mock_device_wrapper.async_set_speed.call_count == 1
 
 
-async def test_async_turn_on(hass, mock_device_wrapper):
+async def test_async_turn_on(hass: HomeAssistant, mock_device_wrapper) -> None:
     """Test turning on."""
 
     device = build_purifier(hass, mock_device_wrapper)
@@ -242,7 +254,9 @@ async def test_async_turn_on(hass, mock_device_wrapper):
     assert mock_device_wrapper.async_turn_on.call_count == 1
 
 
-async def test_async_turn_on_percentage(hass, mock_device_wrapper):
+async def test_async_turn_on_percentage(
+    hass: HomeAssistant, mock_device_wrapper
+) -> None:
     """Test turning on."""
 
     device = build_purifier(hass, mock_device_wrapper)
@@ -254,7 +268,7 @@ async def test_async_turn_on_percentage(hass, mock_device_wrapper):
     assert mock_device_wrapper.async_turn_on.call_count == 1
 
 
-async def test_async_turn_on_preset(hass, mock_device_wrapper):
+async def test_async_turn_on_preset(hass: HomeAssistant, mock_device_wrapper) -> None:
     """Test turning on."""
 
     device = build_purifier(hass, mock_device_wrapper)
@@ -275,7 +289,7 @@ async def test_async_turn_on_preset(hass, mock_device_wrapper):
         (["async_set_preset_mode", PRESET_MODE_MANUAL]),
     ],
 )
-async def test_fan_operations(hass, mock_device_wrapper, args):
+async def test_fan_operations(hass: HomeAssistant, mock_device_wrapper, args) -> None:
     """Test other fan operations."""
     mocked_method = AsyncMock()
     method = args[0]
@@ -298,7 +312,9 @@ async def test_fan_operations(hass, mock_device_wrapper, args):
         (False),
     ],
 )
-async def test_plasma_toggle(hass, mock_device_wrapper, is_plasma_on):
+async def test_plasma_toggle(
+    hass: HomeAssistant, mock_device_wrapper, is_plasma_on
+) -> None:
     """Test pasma toggle operation."""
     type(mock_device_wrapper).is_plasma_on = is_plasma_on
 

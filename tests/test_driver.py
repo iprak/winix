@@ -24,7 +24,7 @@ from custom_components.winix.driver import WinixDriver
         ("sleep", "airflow", "sleep"),
     ],
 )
-async def test_turn_off(mock_rpc_attr, mock_driver, method, category, value):
+async def test_turn_off(mock_rpc_attr, mock_driver, method, category, value) -> None:
     """Test various driver methods."""
 
     await getattr(mock_driver, method)()
@@ -44,7 +44,7 @@ async def test_turn_off(mock_rpc_attr, mock_driver, method, category, value):
     ],
     indirect=["mock_driver_with_payload"],
 )
-async def test_get_state(mock_driver_with_payload, expected):
+async def test_get_state(mock_driver_with_payload, expected) -> None:
     """Test get_state."""
 
     # payload = {"A02": "0"}  # "A02" represents "power" and "0" means "off"
