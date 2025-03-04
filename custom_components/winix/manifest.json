@@ -6,7 +6,7 @@
   "dependencies": [],
   "codeowners": ["@iprak"],
   "issue_tracker": "https://github.com/iprak/winix/issues",
-  "version": "1.1.9",
+  "version": "1.1.10",
   "config_flow": true,
   "iot_class": "cloud_polling"
 }
