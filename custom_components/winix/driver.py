@@ -53,73 +53,73 @@ class WinixDriver:
         self.device_id = device_id
         self._client = client
 
-    async def turn_off(self):
+    async def turn_off(self) -> None:
         """Turn the device off."""
         await self._rpc_attr(
             self.category_keys["power"], self.state_keys["power"]["off"]
         )
 
-    async def turn_on(self):
+    async def turn_on(self) -> None:
         """Turn the device on."""
         await self._rpc_attr(
             self.category_keys["power"], self.state_keys["power"]["on"]
         )
 
-    async def auto(self):
+    async def auto(self) -> None:
         """Set device in auto mode."""
         await self._rpc_attr(
             self.category_keys["mode"], self.state_keys["mode"]["auto"]
         )
 
-    async def manual(self):
+    async def manual(self) -> None:
         """Set device in manual mode."""
         await self._rpc_attr(
             self.category_keys["mode"], self.state_keys["mode"]["manual"]
         )
 
-    async def plasmawave_off(self):
+    async def plasmawave_off(self) -> None:
         """Turn plasmawave off."""
         await self._rpc_attr(
             self.category_keys["plasma"], self.state_keys["plasma"]["off"]
         )
 
-    async def plasmawave_on(self):
+    async def plasmawave_on(self) -> None:
         """Turn plasmawave on."""
         await self._rpc_attr(
             self.category_keys["plasma"], self.state_keys["plasma"]["on"]
         )
 
-    async def low(self):
+    async def low(self) -> None:
         """Set speed low."""
         await self._rpc_attr(
             self.category_keys["airflow"], self.state_keys["airflow"]["low"]
         )
 
-    async def medium(self):
+    async def medium(self) -> None:
         """Set speed medium."""
         await self._rpc_attr(
             self.category_keys["airflow"], self.state_keys["airflow"]["medium"]
         )
 
-    async def high(self):
+    async def high(self) -> None:
         """Set speed high."""
         await self._rpc_attr(
             self.category_keys["airflow"], self.state_keys["airflow"]["high"]
         )
 
-    async def turbo(self):
+    async def turbo(self) -> None:
         """Set speed turbo."""
         await self._rpc_attr(
             self.category_keys["airflow"], self.state_keys["airflow"]["turbo"]
         )
 
-    async def sleep(self):
+    async def sleep(self) -> None:
         """Set device in sleep mode."""
         await self._rpc_attr(
             self.category_keys["airflow"], self.state_keys["airflow"]["sleep"]
         )
 
-    async def _rpc_attr(self, attr: str, value: str):
+    async def _rpc_attr(self, attr: str, value: str) -> None:
         _LOGGER.debug("_rpc_attr attribute=%s, value=%s", attr, value)
         resp = await self._client.get(
             self.CTRL_URL.format(deviceid=self.device_id, attribute=attr, value=value),

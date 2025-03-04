@@ -113,7 +113,7 @@ async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
-):
+) -> None:
     """Set up the Winix sensors."""
     data = hass.data[WINIX_DOMAIN][entry.entry_id]
     manager: WinixManager = data[WINIX_DATA_COORDINATOR]

@@ -39,7 +39,7 @@ SUPPORTED_PLATFORMS = [Platform.FAN, Platform.SENSOR]
 DEFAULT_SCAN_INTERVAL: Final = 30
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up the Winix component."""
 
     if not is_valid_ha_version():

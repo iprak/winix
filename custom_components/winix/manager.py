@@ -87,7 +87,7 @@ class WinixManager(DataUpdateCoordinator):
             update_interval=timedelta(seconds=scan_interval),
         )
 
-    async def _async_update_data(self):
+    async def _async_update_data(self) -> None:
         """Fetch the latest data from the source. This overrides the method in DataUpdateCoordinator."""
         await self.async_update()
 
