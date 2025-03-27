@@ -74,7 +74,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
         return False
 
-    manager = WinixManager(hass, auth_response, DEFAULT_SCAN_INTERVAL)
+    manager = WinixManager(hass, entry, auth_response, DEFAULT_SCAN_INTERVAL)
     try_login_once = True
     try_prepare_devices_wrappers = True
 
