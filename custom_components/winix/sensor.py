@@ -73,7 +73,7 @@ def get_filter_life_percentage(hours: str | None) -> int | None:
 
 @dataclass(frozen=True, kw_only=True)
 class WininxSensorEntityDescription(SensorEntityDescription):
-    """Describe VeSync sensor entity."""
+    """Describe Winix sensor entity."""
 
     value_fn: Callable[[dict[str, str]], StateType]
     extra_state_attributes_fn: Callable[[dict[str, str]], dict[str, Any]]
