@@ -26,7 +26,7 @@ from .const import (
     Features,
     NumericPresetModes,
 )
-from .driver import ATTR_CHILD_LOCK, WinixDriver
+from .driver import ATTR_BRIGHTNESS_LEVEL, ATTR_CHILD_LOCK, WinixDriver
 
 
 @dataclasses.dataclass
@@ -67,6 +67,7 @@ class WinixDeviceWrapper:
         self._sleep = False
         self._logger = logger
         self._child_lock_on = False
+        self._brightness_level = None
 
         self.device_stub = device_stub
         self._alias = device_stub.alias
@@ -84,6 +85,7 @@ class WinixDeviceWrapper:
         self._on = self._state.get(ATTR_POWER) == ON_VALUE
         self._plasma_on = self._state.get(ATTR_PLASMA) == ON_VALUE
         self._child_lock_on = self._state.get(ATTR_CHILD_LOCK) == ON_VALUE
+        self._brightness_level = self._state.get(ATTR_BRIGHTNESS_LEVEL)
 
         # Sleep: airflow=sleep, mode can be manual
         # Auto: mode=auto, airflow can be anything
@@ -227,6 +229,23 @@ class WinixDeviceWrapper:
 
         await self._driver.child_lock_off()
         self._child_lock_on = False
+        return True
+
+    @property
+    def brightness_level(self) -> int | None:
+        """Return current brightness level."""
+        return self._brightness_level
+
+    async def async_set_brightness_level(self, value: int) -> bool:
+        """Set brightness level."""
+
+        if not self._features.supports_brightness_level or (
+            self._brightness_level == value
+        ):
+            return False
+
+        await self._driver.set_brightness_level(value)
+        self._brightness_level = value
         return True
 
     async def async_manual(self) -> None:

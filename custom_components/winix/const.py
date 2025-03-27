@@ -1,6 +1,6 @@
 """Constants for the Winix C545 Air Purifier component."""
 
-from enum import Enum, unique
+from enum import StrEnum, unique
 from typing import Final
 
 __min_ha_version__ = "2024.8"
@@ -75,7 +75,7 @@ PRESET_MODES: Final = [
 
 
 @unique
-class NumericPresetModes(str, Enum):
+class NumericPresetModes(StrEnum):
     """Alternate numeric preset modes.
 
     The value correspond to the index in PRESET_MODES.
