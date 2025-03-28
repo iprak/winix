@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import logging
+from typing import Final
 
 import aiohttp
 
 _LOGGER = logging.getLogger(__name__)
 
 # Modified from https://github.com/hfern/winix to support async operations
+
+ATTR_CHILD_LOCK: Final = "child_lock"
 
 
 class WinixDriver:
@@ -28,6 +31,7 @@ class WinixDriver:
         "airflow": "A04",
         "aqi": "A05",
         "plasma": "A07",
+        ATTR_CHILD_LOCK: "A08",
         "filter_hour": "A21",
         "air_quality": "S07",
         "air_qvalue": "S08",
@@ -44,6 +48,7 @@ class WinixDriver:
             "turbo": "05",
             "sleep": "06",
         },
+        ATTR_CHILD_LOCK: {"off": "0", "on": "1"},
         "plasma": {"off": "0", "on": "1"},
         "air_quality": {"good": "01", "fair": "02", "poor": "03"},
     }
@@ -76,6 +81,14 @@ class WinixDriver:
         await self._rpc_attr(
             self.category_keys["mode"], self.state_keys["mode"]["manual"]
         )
+
+    async def child_lock_off(self) -> None:
+        """Turn child lock off."""
+        await self._rpc_attr(self.category_keys[ATTR_CHILD_LOCK], "0")
+
+    async def child_lock_on(self) -> None:
+        """Turn child lock on."""
+        await self._rpc_attr(self.category_keys[ATTR_CHILD_LOCK], "1")
 
     async def plasmawave_off(self) -> None:
         """Turn plasmawave off."""

@@ -26,7 +26,7 @@ from .const import (
     Features,
     NumericPresetModes,
 )
-from .driver import WinixDriver
+from .driver import ATTR_CHILD_LOCK, WinixDriver
 
 
 @dataclasses.dataclass
@@ -66,6 +66,7 @@ class WinixDeviceWrapper:
         self._plasma_on = False
         self._sleep = False
         self._logger = logger
+        self._child_lock_on = False
 
         self.device_stub = device_stub
         self._alias = device_stub.alias
@@ -82,6 +83,7 @@ class WinixDeviceWrapper:
 
         self._on = self._state.get(ATTR_POWER) == ON_VALUE
         self._plasma_on = self._state.get(ATTR_PLASMA) == ON_VALUE
+        self._child_lock_on = self._state.get(ATTR_CHILD_LOCK) == ON_VALUE
 
         # Sleep: airflow=sleep, mode can be manual
         # Auto: mode=auto, airflow can be anything
@@ -201,6 +203,31 @@ class WinixDeviceWrapper:
 
             self._logger.debug("%s => set plasmawave=off", self._alias)
             await self._driver.plasmawave_off()
+
+    @property
+    def is_child_lock_on(self) -> bool:
+        """Return if child lock is on."""
+        return self._child_lock_on
+
+    async def async_child_lock_on(self) -> bool:
+        """Turn on child lock."""
+
+        if not self._features.supports_child_lock or self._child_lock_on:
+            return False
+
+        await self._driver.child_lock_on()
+        self._child_lock_on = True
+        return True
+
+    async def async_child_lock_off(self) -> bool:
+        """Turn off child lock."""
+
+        if not self._features.supports_child_lock or not self._child_lock_on:
+            return False
+
+        await self._driver.child_lock_off()
+        self._child_lock_on = False
+        return True
 
     async def async_manual(self) -> None:
         """Put the purifier in Manual mode with Low airflow. Plasma state is left unchanged."""
