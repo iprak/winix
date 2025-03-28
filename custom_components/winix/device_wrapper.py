@@ -23,6 +23,7 @@ from .const import (
     PRESET_MODE_MANUAL_PLASMA_OFF,
     PRESET_MODE_SLEEP,
     PRESET_MODES,
+    Features,
     NumericPresetModes,
 )
 from .driver import WinixDriver
@@ -68,6 +69,11 @@ class WinixDeviceWrapper:
 
         self.device_stub = device_stub
         self._alias = device_stub.alias
+        self._features = Features()
+
+        if device_stub.model.lower().startswith("c610"):
+            self._features.supports_brightness_level = True
+            self._features.supports_child_lock = True
 
     async def update(self) -> None:
         """Update the device data."""
@@ -105,6 +111,11 @@ class WinixDeviceWrapper:
     def get_state(self) -> dict[str, str]:
         """Return the device data."""
         return self._state
+
+    @property
+    def features(self) -> Features:
+        """Return the purifiers features."""
+        return self._features
 
     @property
     def is_on(self) -> bool:
