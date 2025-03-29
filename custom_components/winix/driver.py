@@ -2,13 +2,28 @@
 
 from __future__ import annotations
 
+from enum import Enum, unique
 import logging
+from typing import Final
 
 import aiohttp
 
 _LOGGER = logging.getLogger(__name__)
 
 # Modified from https://github.com/hfern/winix to support async operations
+
+ATTR_BRIGHTNESS_LEVEL: Final = "brightness_level"
+ATTR_CHILD_LOCK: Final = "child_lock"
+
+
+@unique
+class BrightnessLevel(Enum):
+    """Brightness levels."""
+
+    Level0 = 0
+    Level1 = 30
+    Level2 = 70
+    Level3 = 100
 
 
 class WinixDriver:
@@ -28,6 +43,8 @@ class WinixDriver:
         "airflow": "A04",
         "aqi": "A05",
         "plasma": "A07",
+        ATTR_BRIGHTNESS_LEVEL: "A16",
+        ATTR_CHILD_LOCK: "A08",
         "filter_hour": "A21",
         "air_quality": "S07",
         "air_qvalue": "S08",
@@ -44,6 +61,7 @@ class WinixDriver:
             "turbo": "05",
             "sleep": "06",
         },
+        ATTR_CHILD_LOCK: {"off": "0", "on": "1"},
         "plasma": {"off": "0", "on": "1"},
         "air_quality": {"good": "01", "fair": "02", "poor": "03"},
     }
@@ -76,6 +94,22 @@ class WinixDriver:
         await self._rpc_attr(
             self.category_keys["mode"], self.state_keys["mode"]["manual"]
         )
+
+    async def child_lock_off(self) -> None:
+        """Turn child lock off."""
+        await self._rpc_attr(self.category_keys[ATTR_CHILD_LOCK], "0")
+
+    async def child_lock_on(self) -> None:
+        """Turn child lock on."""
+        await self._rpc_attr(self.category_keys[ATTR_CHILD_LOCK], "1")
+
+    async def set_brightness_level(self, value: int) -> bool:
+        """Set brightness level."""
+        if not any(e.value == value for e in BrightnessLevel):
+            return False
+
+        await self._rpc_attr(self.category_keys[ATTR_BRIGHTNESS_LEVEL], value)
+        return True
 
     async def plasmawave_off(self) -> None:
         """Turn plasmawave off."""
@@ -157,7 +191,7 @@ class WinixDriver:
         except Exception:  # pylint: disable=broad-except # noqa: BLE001
             return None
 
-    async def get_state(self) -> dict[str, str]:
+    async def get_state(self) -> dict[str, str | int]:
         """Get device state."""
 
         # All devices seem to have max 9 months filter life so don't need to call this API.

@@ -23,9 +23,10 @@ from .const import (
     PRESET_MODE_MANUAL_PLASMA_OFF,
     PRESET_MODE_SLEEP,
     PRESET_MODES,
+    Features,
     NumericPresetModes,
 )
-from .driver import WinixDriver
+from .driver import ATTR_BRIGHTNESS_LEVEL, ATTR_CHILD_LOCK, WinixDriver
 
 
 @dataclasses.dataclass
@@ -65,9 +66,16 @@ class WinixDeviceWrapper:
         self._plasma_on = False
         self._sleep = False
         self._logger = logger
+        self._child_lock_on = False
+        self._brightness_level = None
 
         self.device_stub = device_stub
         self._alias = device_stub.alias
+        self._features = Features()
+
+        if device_stub.model.lower().startswith("c610"):
+            self._features.supports_brightness_level = True
+            self._features.supports_child_lock = True
 
     async def update(self) -> None:
         """Update the device data."""
@@ -76,6 +84,8 @@ class WinixDeviceWrapper:
 
         self._on = self._state.get(ATTR_POWER) == ON_VALUE
         self._plasma_on = self._state.get(ATTR_PLASMA) == ON_VALUE
+        self._child_lock_on = self._state.get(ATTR_CHILD_LOCK) == ON_VALUE
+        self._brightness_level = self._state.get(ATTR_BRIGHTNESS_LEVEL)
 
         # Sleep: airflow=sleep, mode can be manual
         # Auto: mode=auto, airflow can be anything
@@ -105,6 +115,11 @@ class WinixDeviceWrapper:
     def get_state(self) -> dict[str, str]:
         """Return the device data."""
         return self._state
+
+    @property
+    def features(self) -> Features:
+        """Return the purifiers features."""
+        return self._features
 
     @property
     def is_on(self) -> bool:
@@ -190,6 +205,48 @@ class WinixDeviceWrapper:
 
             self._logger.debug("%s => set plasmawave=off", self._alias)
             await self._driver.plasmawave_off()
+
+    @property
+    def is_child_lock_on(self) -> bool:
+        """Return if child lock is on."""
+        return self._child_lock_on
+
+    async def async_child_lock_on(self) -> bool:
+        """Turn on child lock."""
+
+        if not self._features.supports_child_lock or self._child_lock_on:
+            return False
+
+        await self._driver.child_lock_on()
+        self._child_lock_on = True
+        return True
+
+    async def async_child_lock_off(self) -> bool:
+        """Turn off child lock."""
+
+        if not self._features.supports_child_lock or not self._child_lock_on:
+            return False
+
+        await self._driver.child_lock_off()
+        self._child_lock_on = False
+        return True
+
+    @property
+    def brightness_level(self) -> int | None:
+        """Return current brightness level."""
+        return self._brightness_level
+
+    async def async_set_brightness_level(self, value: int) -> bool:
+        """Set brightness level."""
+
+        if not self._features.supports_brightness_level or (
+            self._brightness_level == value
+        ):
+            return False
+
+        await self._driver.set_brightness_level(value)
+        self._brightness_level = value
+        return True
 
     async def async_manual(self) -> None:
         """Put the purifier in Manual mode with Low airflow. Plasma state is left unchanged."""

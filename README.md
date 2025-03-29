@@ -5,15 +5,16 @@
 
 ## Summary
 
-A custom component to interact with Winix [C545](https://www.winixamerica.com/product/certified-refurbished-c545-air-purifier/) Air Purifier.
+A custom component to interact with Winix [C545](https://www.winixamerica.com/product/certified-refurbished-c545-air-purifier/) and [C610](https://www.winixamerica.com/product/c610/) air purifiers.
 
-This has also been reported to work with these models: [AM90](https://www.winixamerica.com/product/am90/), [HR1000](https://www.amazon.com/Winix-HR1000-5-Stage-Enabled-Cleaner/dp/B01FWS0HSY), [C610](https://www.winixamerica.com/product/c610/), [C909](https://www.costco.com/winix-c909-4-stage-air-purifier-with-wi-fi-%2526-plasmawave-technology.product.100842491.html), [T800](https://winixeurope.eu/air-purifiers/winix-t800-wifi/) but with potentially limited functionality.
+This has also been reported to work with these models: [AM90](https://www.winixamerica.com/product/am90/), [HR1000](https://www.amazon.com/Winix-HR1000-5-Stage-Enabled-Cleaner/dp/B01FWS0HSY), [C909](https://www.costco.com/winix-c909-4-stage-air-purifier-with-wi-fi-%2526-plasmawave-technology.product.100842491.html), [T800](https://winixeurope.eu/air-purifiers/winix-t800-wifi/) but with potentially limited functionality.
 
 ## Installation
 
 This can be installed by copying all the files from `custom_components/winix/` to `<config directory>/custom_components/winix/`. Next add Winix integration from `Add Integration` and use your credentials from Winix mobile app.
 
-- You should now see one device and 4 entities being created.
+- C545 will generate 4 entities.
+- C610 will generate 6 entities.
 
 ![image](https://user-images.githubusercontent.com/6459774/212468308-e6e855ac-ad26-4405-b683-246ccf4c8ccc.png)
 
@@ -34,7 +35,7 @@ This can be installed by copying all the files from `custom_components/winix/` t
 
 ### Note
 
-- If purifiers are added/removed, then you would want to restart HomeAssistant.
+- If purifiers are added/removed, then you would have to reload the integration.
 
 - Winix **does not support** simultaneous login from multiple devices. If you logged into the mobile app after configuring HomeAssistant, then the HomeAssistant session gets flagged as invalid and vice-versa.
 

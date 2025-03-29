@@ -1,6 +1,6 @@
 """Constants for the Winix C545 Air Purifier component."""
 
-from enum import Enum, unique
+from enum import StrEnum, unique
 from typing import Final
 
 __min_ha_version__ = "2024.8"
@@ -12,7 +12,6 @@ WINIX_DATA_KEY: Final = "fan_winix_air_purifier"
 WINIX_DATA_COORDINATOR: Final = "coordinator"
 WINIX_AUTH_RESPONSE: Final = "WinixAuthResponse"
 WINIX_ACCESS_TOKEN_EXPIRATION: Final = "access_token_expiration"
-
 ATTR_AIRFLOW: Final = "airflow"
 ATTR_AIR_AQI: Final = "aqi"
 ATTR_AIR_QUALITY: Final = "air_quality"
@@ -76,7 +75,7 @@ PRESET_MODES: Final = [
 
 
 @unique
-class NumericPresetModes(str, Enum):
+class NumericPresetModes(StrEnum):
     """Alternate numeric preset modes.
 
     The value correspond to the index in PRESET_MODES.
@@ -87,3 +86,10 @@ class NumericPresetModes(str, Enum):
     PRESET_MODE_MANUAL = "3"
     PRESET_MODE_MANUAL_PLASMA_OFF = "4"
     PRESET_MODE_SLEEP = "5"
+
+
+class Features:
+    """Additional Winix purifier features."""
+
+    supports_brightness_level = False
+    supports_child_lock = False

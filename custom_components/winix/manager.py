@@ -7,6 +7,7 @@ import logging
 
 from winix import auth
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import aiohttp_client
 from homeassistant.helpers.entity import DeviceInfo
@@ -70,6 +71,7 @@ class WinixManager(DataUpdateCoordinator):
     def __init__(
         self,
         hass: HomeAssistant,
+        entry: ConfigEntry,
         auth_response: auth.WinixAuthResponse,
         scan_interval: int,
     ) -> None:
@@ -85,6 +87,7 @@ class WinixManager(DataUpdateCoordinator):
             _LOGGER,
             name="WinixManager",
             update_interval=timedelta(seconds=scan_interval),
+            config_entry=entry,
         )
 
     async def _async_update_data(self) -> None:
