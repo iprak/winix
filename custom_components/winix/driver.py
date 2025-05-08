@@ -166,6 +166,10 @@ class WinixDriver:
         response = await self._client.get(
             self.PARAM_URL.format(deviceid=self.device_id)
         )
+        if response.status != 200:
+            LOGGER.error("Error getting filter life, status code %s", response.status)
+            return None
+
         json = await response.json()
 
         # pylint: disable=pointless-string-statement
@@ -199,6 +203,10 @@ class WinixDriver:
         response = await self._client.get(
             self.STATE_URL.format(deviceid=self.device_id)
         )
+        if response.status != 200:
+            LOGGER.error("Error getting data, status code %s", response.status)
+            return {}
+
         json = await response.json()
 
         # pylint: disable=pointless-string-statement
@@ -217,6 +225,9 @@ class WinixDriver:
                 ]
             }
         }
+
+        Another sample from https://github.com/iprak/winix/issues/98
+        {'statusCode': 200, 'headers': {'resultCode': 'S100', 'resultMessage': 'no data'}, 'body': {}}
         """
 
         output = {}
