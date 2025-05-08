@@ -170,6 +170,10 @@ class WinixDriver:
             LOGGER.error("Error getting filter life, status code %s", response.status)
             return None
 
+        if response.headers.get("resultMessage") == "no data":
+            LOGGER.info("No filter life data received")
+            return None
+
         json = await response.json()
 
         # pylint: disable=pointless-string-statement
@@ -205,6 +209,10 @@ class WinixDriver:
         )
         if response.status != 200:
             LOGGER.error("Error getting data, status code %s", response.status)
+            return {}
+
+        if response.headers.get("resultMessage") == "no data":
+            LOGGER.info("No data received")
             return {}
 
         json = await response.json()
