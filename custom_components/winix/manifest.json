@@ -2,9 +2,13 @@
   "domain": "winix",
   "name": "Winix Air Purifier",
   "documentation": "https://github.com/iprak/winix",
-  "requirements": ["winix==0.2.1"],
+  "requirements": [
+    "winix==0.3.0"
+  ],
   "dependencies": [],
-  "codeowners": ["@iprak"],
+  "codeowners": [
+    "@iprak"
+  ],
   "issue_tracker": "https://github.com/iprak/winix/issues",
   "version": "1.2.0",
   "config_flow": true,
