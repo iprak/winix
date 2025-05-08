@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-import logging
 from typing import Any
 
 import voluptuous as vol
@@ -15,8 +14,6 @@ from homeassistant.data_entry_flow import FlowResult
 
 from .const import WINIX_AUTH_RESPONSE, WINIX_DOMAIN, WINIX_NAME
 from .helpers import Helpers, WinixException
-
-_LOGGER = logging.getLogger(__name__)
 
 REAUTH_SCHEMA = vol.Schema({vol.Required(CONF_PASSWORD): str})
 

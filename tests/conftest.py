@@ -99,6 +99,7 @@ def mock_driver_with_payload(request) -> WinixDriver:
 
     response = Mock()
     response.json = AsyncMock(return_value=json_value)
+    response.status = 200
 
     client = Mock()  # aiohttp.ClientSession
     client.get = AsyncMock(return_value=response)

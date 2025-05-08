@@ -5,17 +5,15 @@ from __future__ import annotations
 from collections.abc import Mapping
 from datetime import datetime, timedelta
 from http import HTTPStatus
-import logging
 
 import requests
 from winix import WinixAccount, auth
 
 from homeassistant.core import HomeAssistant
 
-from .const import WINIX_DOMAIN
+from .const import LOGGER, WINIX_DOMAIN
 from .device_wrapper import MyWinixDeviceStub
 
-_LOGGER = logging.getLogger(__name__)
 DEFAULT_POST_TIMEOUT = 5
 
 
@@ -48,7 +46,7 @@ class Helpers:
         def _login(username: str, password: str) -> auth.WinixAuthResponse:
             """Log in."""
 
-            _LOGGER.debug("Attempting login")
+            LOGGER.debug("Attempting login")
 
             try:
                 response = auth.login(username, password)
@@ -66,7 +64,7 @@ class Helpers:
                 raise WinixException.from_winix_exception(err) from err
 
             expires_at = (datetime.now() + timedelta(seconds=3600)).timestamp()
-            _LOGGER.debug("Login successful, token expires %d", expires_at)
+            LOGGER.debug("Login successful, token expires %d", expires_at)
             return response
 
         return await hass.async_add_executor_job(_login, username, password)
@@ -81,7 +79,7 @@ class Helpers:
         """
 
         def _refresh(response: auth.WinixAuthResponse) -> auth.WinixAuthResponse:
-            _LOGGER.debug("Attempting re-authentication")
+            LOGGER.debug("Attempting re-authentication")
 
             try:
                 reponse = auth.refresh(
@@ -91,14 +89,14 @@ class Helpers:
                 raise WinixException.from_aws_exception(err) from err
 
             account = WinixAccount(response.access_token)
-            _LOGGER.debug("Attempting access token check")
+            LOGGER.debug("Attempting access token check")
 
             try:
                 account.check_access_token()
             except Exception as err:  # pylint: disable=broad-except
                 raise WinixException.from_winix_exception(err) from err
 
-            _LOGGER.debug("Re-authentication successful")
+            LOGGER.debug("Re-authentication successful")
             return reponse
 
         return await hass.async_add_executor_job(_refresh, response)
@@ -135,7 +133,7 @@ class Helpers:
                 result_code = err_data.get("resultCode")
                 result_message = err_data.get("resultMessage")
 
-                _LOGGER.error(
+                LOGGER.error(
                     "Error obtaining device list %s:%s",
                     result_code,
                     result_message,
@@ -163,7 +161,7 @@ class Helpers:
             ]
 
         # Pass through all exceptions
-        _LOGGER.debug("Obtaining device list")
+        LOGGER.debug("Obtaining device list")
         return await hass.async_add_executor_job(get_device_info_list, access_token)
 
 

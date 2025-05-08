@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 from enum import Enum, unique
-import logging
 from typing import Final
 
 import aiohttp
 
-_LOGGER = logging.getLogger(__name__)
+from .const import LOGGER
 
 # Modified from https://github.com/hfern/winix to support async operations
 
@@ -154,19 +153,27 @@ class WinixDriver:
         )
 
     async def _rpc_attr(self, attr: str, value: str) -> None:
-        _LOGGER.debug("_rpc_attr attribute=%s, value=%s", attr, value)
+        LOGGER.debug("_rpc_attr attribute=%s, value=%s", attr, value)
         resp = await self._client.get(
             self.CTRL_URL.format(deviceid=self.device_id, attribute=attr, value=value),
             raise_for_status=True,
         )
         raw_resp = await resp.text()
-        _LOGGER.debug("_rpc_attr response=%s", raw_resp)
+        LOGGER.debug("_rpc_attr response=%s", raw_resp)
 
     async def get_filter_life(self) -> int | None:
         """Get the total filter life."""
         response = await self._client.get(
             self.PARAM_URL.format(deviceid=self.device_id)
         )
+        if response.status != 200:
+            LOGGER.error("Error getting filter life, status code %s", response.status)
+            return None
+
+        if response.headers.get("resultMessage") == "no data":
+            LOGGER.info("No filter life data received")
+            return None
+
         json = await response.json()
 
         # pylint: disable=pointless-string-statement
@@ -200,6 +207,14 @@ class WinixDriver:
         response = await self._client.get(
             self.STATE_URL.format(deviceid=self.device_id)
         )
+        if response.status != 200:
+            LOGGER.error("Error getting data, status code %s", response.status)
+            return {}
+
+        if response.headers.get("resultMessage") == "no data":
+            LOGGER.info("No data received")
+            return {}
+
         json = await response.json()
 
         # pylint: disable=pointless-string-statement
@@ -218,17 +233,18 @@ class WinixDriver:
                 ]
             }
         }
+
+        Another sample from https://github.com/iprak/winix/issues/98
+        {'statusCode': 200, 'headers': {'resultCode': 'S100', 'resultMessage': 'no data'}, 'body': {}}
         """
 
         output = {}
 
         try:
-            _LOGGER.debug(json)
+            LOGGER.debug(json)
             payload = json["body"]["data"][0]["attributes"]
         except Exception as err:  # pylint: disable=broad-except # noqa: BLE001
-            _LOGGER.error(
-                "Error parsing response json, received %s", json, exc_info=err
-            )
+            LOGGER.error("Error parsing response json, received %s", json, exc_info=err)
 
             # Return empty object so that callers don't crash (#37)
             return output

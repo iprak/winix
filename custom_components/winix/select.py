@@ -2,7 +2,6 @@
 
 from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
-import logging
 from typing import Any, Final
 
 from homeassistant.components.select import (
@@ -15,12 +14,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import WINIX_DOMAIN
-from .const import WINIX_DATA_COORDINATOR
+from .const import LOGGER, WINIX_DATA_COORDINATOR
 from .device_wrapper import WinixDeviceWrapper
 from .driver import BrightnessLevel
 from .manager import WinixEntity, WinixManager
-
-_LOGGER = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -82,7 +79,7 @@ async def async_setup_entry(
         if description.exists_fn(wrapper)
     ]
     async_add_entities(entities)
-    _LOGGER.info("Added %s selects", len(entities))
+    LOGGER.info("Added %s selects", len(entities))
 
 
 class WinixSelectEntity(WinixEntity, SelectEntity):

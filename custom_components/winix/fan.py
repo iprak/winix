@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Mapping
-import logging
 from typing import Any
 
 import voluptuous as vol
@@ -30,6 +29,7 @@ from .const import (
     ATTR_LOCATION,
     ATTR_POWER,
     FAN_SERVICES,
+    LOGGER,
     ORDERED_NAMED_FAN_SPEEDS,
     PRESET_MODE_AUTO,
     PRESET_MODE_AUTO_PLASMA_OFF,
@@ -43,8 +43,6 @@ from .const import (
 )
 from .device_wrapper import WinixDeviceWrapper
 from .manager import WinixEntity, WinixManager
-
-_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
@@ -64,7 +62,7 @@ async def async_setup_entry(
     async def async_service_handler(service_call):
         """Service handler."""
         method = "async_" + service_call.service
-        _LOGGER.debug("Service '%s' invoked", service_call.service)
+        LOGGER.debug("Service '%s' invoked", service_call.service)
 
         # The defined services do not accept any additional parameters
         params = {}
@@ -101,7 +99,7 @@ async def async_setup_entry(
             schema=vol.Schema({ATTR_ENTITY_ID: cv.entity_ids}),
         )
 
-    _LOGGER.info("Added %s Winix fans", len(entities))
+    LOGGER.info("Added %s Winix fans", len(entities))
 
 
 class WinixPurifier(WinixEntity, FanEntity):
