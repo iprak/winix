@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 from enum import Enum, unique
-import logging
 from typing import Final
 
 import aiohttp
 
-_LOGGER = logging.getLogger(__name__)
+from .const import LOGGER
 
 # Modified from https://github.com/hfern/winix to support async operations
 
@@ -154,13 +153,13 @@ class WinixDriver:
         )
 
     async def _rpc_attr(self, attr: str, value: str) -> None:
-        _LOGGER.debug("_rpc_attr attribute=%s, value=%s", attr, value)
+        LOGGER.debug("_rpc_attr attribute=%s, value=%s", attr, value)
         resp = await self._client.get(
             self.CTRL_URL.format(deviceid=self.device_id, attribute=attr, value=value),
             raise_for_status=True,
         )
         raw_resp = await resp.text()
-        _LOGGER.debug("_rpc_attr response=%s", raw_resp)
+        LOGGER.debug("_rpc_attr response=%s", raw_resp)
 
     async def get_filter_life(self) -> int | None:
         """Get the total filter life."""
@@ -223,12 +222,10 @@ class WinixDriver:
         output = {}
 
         try:
-            _LOGGER.debug(json)
+            LOGGER.debug(json)
             payload = json["body"]["data"][0]["attributes"]
         except Exception as err:  # pylint: disable=broad-except # noqa: BLE001
-            _LOGGER.error(
-                "Error parsing response json, received %s", json, exc_info=err
-            )
+            LOGGER.error("Error parsing response json, received %s", json, exc_info=err)
 
             # Return empty object so that callers don't crash (#37)
             return output

@@ -1,9 +1,12 @@
 """Constants for the Winix C545 Air Purifier component."""
 
 from enum import StrEnum, unique
+import logging
 from typing import Final
 
 __min_ha_version__ = "2024.8"
+
+LOGGER = logging.getLogger(__package__)
 
 WINIX_DOMAIN: Final = "winix"
 

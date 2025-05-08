@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-import logging
 from typing import Any, Final
 
 from homeassistant.components.sensor import (
@@ -25,6 +24,7 @@ from .const import (
     ATTR_AIR_QUALITY,
     ATTR_AIR_QVALUE,
     ATTR_FILTER_HOUR,
+    LOGGER,
     SENSOR_AIR_QVALUE,
     SENSOR_AQI,
     SENSOR_FILTER_LIFE,
@@ -33,7 +33,6 @@ from .const import (
 from .device_wrapper import WinixDeviceWrapper
 from .manager import WinixEntity, WinixManager
 
-_LOGGER = logging.getLogger(__name__)
 TOTAL_FILTER_LIFE: Final = 6480  # 9 months
 
 
@@ -61,7 +60,7 @@ def get_filter_life_percentage(hours: str | None) -> int | None:
 
     hours: int = int(hours)
     if hours > TOTAL_FILTER_LIFE:
-        _LOGGER.warning(
+        LOGGER.warning(
             "Reported filter life '%d' is more than max value '%d'",
             hours,
             TOTAL_FILTER_LIFE,
@@ -124,7 +123,7 @@ async def async_setup_entry(
         for wrapper in manager.get_device_wrappers()
     ]
     async_add_entities(entities)
-    _LOGGER.info("Added %s sensors", len(entities))
+    LOGGER.info("Added %s sensors", len(entities))
 
 
 class WinixSensor(WinixEntity, SensorEntity):

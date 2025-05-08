@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import timedelta
-import logging
 
 from winix import auth
 
@@ -16,11 +15,9 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
 )
 
-from .const import WINIX_DOMAIN
+from .const import LOGGER, WINIX_DOMAIN
 from .device_wrapper import WinixDeviceWrapper
 from .helpers import Helpers
-
-_LOGGER = logging.getLogger(__name__)
 
 # category_keys = {
 #     "power": "A02",
@@ -84,7 +81,7 @@ class WinixManager(DataUpdateCoordinator):
 
         super().__init__(
             hass,
-            _LOGGER,
+            LOGGER,
             name="WinixManager",
             update_interval=timedelta(seconds=scan_interval),
             config_entry=entry,
@@ -111,16 +108,16 @@ class WinixManager(DataUpdateCoordinator):
 
             for device_stub in device_stubs:
                 self._device_wrappers.append(
-                    WinixDeviceWrapper(client, device_stub, _LOGGER)
+                    WinixDeviceWrapper(client, device_stub, LOGGER)
                 )
 
-            _LOGGER.info("%d purifiers found", len(self._device_wrappers))
+            LOGGER.info("%d purifiers found", len(self._device_wrappers))
         else:
-            _LOGGER.info("No purifiers found")
+            LOGGER.info("No purifiers found")
 
     async def async_update(self, now=None) -> None:
         """Asynchronously update all the devices."""
-        _LOGGER.info("Updating devices")
+        LOGGER.info("Updating devices")
         for device_wrapper in self._device_wrappers:
             await device_wrapper.update()
 

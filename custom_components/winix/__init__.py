@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-import logging
 from typing import Final
 
 from awesomeversion import AwesomeVersion
@@ -24,6 +23,7 @@ from homeassistant.helpers import device_registry as dr, entity_registry as er
 
 from .const import (
     FAN_SERVICES,
+    LOGGER,
     SERVICE_REMOVE_STALE_ENTITIES,
     WINIX_AUTH_RESPONSE,
     WINIX_DATA_COORDINATOR,
@@ -34,7 +34,6 @@ from .const import (
 from .helpers import Helpers, WinixException
 from .manager import WinixManager
 
-_LOGGER = logging.getLogger(__name__)
 SUPPORTED_PLATFORMS = [Platform.FAN, Platform.SENSOR, Platform.SELECT, Platform.SWITCH]
 DEFAULT_SCAN_INTERVAL: Final = 30
 
@@ -49,7 +48,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             " Please upgrade HomeAssistant to continue use this integration."
         )
 
-        _LOGGER.warning(msg)
+        LOGGER.warning(msg)
         persistent_notification.async_create(
             hass, msg, WINIX_NAME, f"{WINIX_DOMAIN}.inv_ha_version"
         )
@@ -95,20 +94,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     )
 
                     # Copy over new values
-                    _LOGGER.debug(
+                    LOGGER.debug(
                         "access_token %s",
                         "changed"
                         if auth_response.access_token != new_auth_response.access_token
                         else "unchanged",
                     )
-                    _LOGGER.debug(
+                    LOGGER.debug(
                         "refresh_token %s",
                         "changed"
                         if auth_response.refresh_token
                         != new_auth_response.refresh_token
                         else "unchanged",
                     )
-                    _LOGGER.debug(
+                    LOGGER.debug(
                         "id_token %s",
                         "changed"
                         if auth_response.id_token != new_auth_response.id_token
@@ -131,7 +130,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                             "Wininx reported multi login"
                         ) from login_err
 
-                    _LOGGER.exception(
+                    LOGGER.exception(
                         "Unable to log in. Device access previously failed"
                     )
                     raise ConfigEntryNotReady("Unable to authenticate.") from login_err
@@ -172,7 +171,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 async_remove, entity_registry, device_registry, entity_ids, device_ids
             )
         else:
-            _LOGGER.debug("Nothing to remove")
+            LOGGER.debug("Nothing to remove")
 
     hass.services.async_register(
         WINIX_DOMAIN, SERVICE_REMOVE_STALE_ENTITIES, remove_stale_entities
@@ -191,11 +190,11 @@ def async_remove(
     """Remove devices and entities."""
     for entity_id in entity_ids:
         entity_registry.async_remove(entity_id)
-        _LOGGER.debug("Removing entity %s", entity_id)
+        LOGGER.debug("Removing entity %s", entity_id)
 
     for device_id in device_ids:
         device_registry.async_remove_device(device_id)
-        _LOGGER.debug("Removing device %s", device_id)
+        LOGGER.debug("Removing device %s", device_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
