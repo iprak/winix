@@ -70,76 +70,90 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
 
     manager = WinixManager(hass, entry, auth_response, DEFAULT_SCAN_INTERVAL)
-    try_login_once = True
-    try_prepare_devices_wrappers = True
 
-    while try_prepare_devices_wrappers:
-        try:
-            await manager.async_prepare_devices_wrappers()
-            break
-        except WinixException as err:
-            # 900:MULTI LOGIN: Same credentials were used to login elwsewhere. We need to
-            # login again and get new tokens.
-            # 400:The user is not valid.
-            if try_login_once and err.result_code in ("900", "400"):
-                try_login_once = False
+    new_auth_response = await hass.async_add_executor_job(
+        prepare_devices,
+        manager,
+        user_input[CONF_USERNAME],
+        user_input[CONF_PASSWORD],
+    )
+    if new_auth_response is not None:
+        # Copy over new values
+        LOGGER.debug(
+            "access_token %s",
+            "changed"
+            if auth_response.access_token != new_auth_response.access_token
+            else "unchanged",
+        )
+        LOGGER.debug(
+            "refresh_token %s",
+            "changed"
+            if auth_response.refresh_token != new_auth_response.refresh_token
+            else "unchanged",
+        )
+        LOGGER.debug(
+            "id_token %s",
+            "changed"
+            if auth_response.id_token != new_auth_response.id_token
+            else "unchanged",
+        )
 
-                try:
-                    new_auth_response = await Helpers.async_login(
-                        hass, user_input[CONF_USERNAME], user_input[CONF_PASSWORD]
-                    )
+        auth_response.access_token = new_auth_response.access_token
+        auth_response.refresh_token = new_auth_response.refresh_token
+        auth_response.id_token = new_auth_response.id_token
 
-                    # Copy over new values
-                    LOGGER.debug(
-                        "access_token %s",
-                        "changed"
-                        if auth_response.access_token != new_auth_response.access_token
-                        else "unchanged",
-                    )
-                    LOGGER.debug(
-                        "refresh_token %s",
-                        "changed"
-                        if auth_response.refresh_token
-                        != new_auth_response.refresh_token
-                        else "unchanged",
-                    )
-                    LOGGER.debug(
-                        "id_token %s",
-                        "changed"
-                        if auth_response.id_token != new_auth_response.id_token
-                        else "unchanged",
-                    )
-
-                    auth_response.access_token = new_auth_response.access_token
-                    auth_response.refresh_token = new_auth_response.refresh_token
-                    auth_response.id_token = new_auth_response.id_token
-
-                    # Update tokens into entry.data
-                    hass.config_entries.async_update_entry(
-                        entry,
-                        data={**user_input, WINIX_AUTH_RESPONSE: auth_response},
-                    )
-
-                except WinixException as login_err:
-                    if login_err.result_code == "UserNotFoundException":
-                        raise ConfigEntryAuthFailed(
-                            "Wininx reported multi login"
-                        ) from login_err
-
-                    LOGGER.exception(
-                        "Unable to log in. Device access previously failed"
-                    )
-                    raise ConfigEntryNotReady("Unable to authenticate.") from login_err
-            else:
-                try_prepare_devices_wrappers = False
-
-                # ConfigEntryNotReady will cause async_setup_entry to be invoked in background.
-                raise ConfigEntryNotReady("Unable to access device data.") from err
+        # Update tokens into entry.data
+        hass.config_entries.async_update_entry(
+            entry,
+            data={**user_input, WINIX_AUTH_RESPONSE: auth_response},
+        )
 
     await manager.async_config_entry_first_refresh()
 
     hass.data[WINIX_DOMAIN][entry.entry_id] = {WINIX_DATA_COORDINATOR: manager}
     await hass.config_entries.async_forward_entry_setups(entry, SUPPORTED_PLATFORMS)
+
+    setup_hass_services(hass)
+    return True
+
+
+def prepare_devices(
+    manager: WinixManager, username: str, password: str
+) -> auth.WinixAuthResponse | None:
+    """Prepare devices synchronously. Returns new auth response if re-login was needed.
+
+    Raises ConfigEntryAuthFailed or ConfigEntryNotReady.
+    """
+    new_auth_response: auth.WinixAuthResponse = None
+
+    try:
+        manager.prepare_devices_wrappers()
+    except WinixException as err:
+        # 900:MULTI LOGIN: Same credentials were used to login elwsewhere. We need to
+        # login again and get new tokens.
+        # 400:The user is not valid.
+        if err.result_code in ("900", "400"):
+            try:
+                new_auth_response = Helpers.login(username, password)
+            except WinixException as login_err:
+                raise ConfigEntryAuthFailed("Unable to authenticate.") from login_err
+
+            # Try preparing device wrappers again with new auth response
+            try:
+                manager.prepare_devices_wrappers()
+            except WinixException as err_retry:
+                raise ConfigEntryAuthFailed(
+                    "Unable to access device data even after re-login."
+                ) from err_retry
+
+        else:
+            raise ConfigEntryNotReady("Unable to access device data.") from err
+
+    return new_auth_response
+
+
+def setup_hass_services(hass: HomeAssistant) -> None:
+    """Home Assistant services."""
 
     def remove_stale_entities(call: ServiceCall) -> None:
         """Remove stale entities."""
@@ -172,8 +186,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.services.async_register(
         WINIX_DOMAIN, SERVICE_REMOVE_STALE_ENTITIES, remove_stale_entities
     )
-
-    return True
 
 
 @callback
