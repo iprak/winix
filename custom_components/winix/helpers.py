@@ -132,7 +132,7 @@ class Helpers:
 
             raise WinixException(
                 {
-                    "message": "Failed to get device list",
+                    "message": f"Failed to get device list (code-{result_code}). {result_message}.",
                     "result_code": result_code,
                     "result_message": result_message,
                 }

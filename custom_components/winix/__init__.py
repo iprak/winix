@@ -132,11 +132,18 @@ def prepare_devices(
         # 900:MULTI LOGIN: Same credentials were used to login elwsewhere. We need to
         # login again and get new tokens.
         # 400:The user is not valid.
+
         if err.result_code in ("900", "400"):
+            LOGGER.info(
+                f"Failed to get device list (code={err.result_code}, message={err.result_message}), reauthenticating with stored credentials"
+            )
+
             try:
                 new_auth_response = Helpers.login(username, password)
             except WinixException as login_err:
                 raise ConfigEntryAuthFailed("Unable to authenticate.") from login_err
+
+            LOGGER.info("Reauthenticating successful, getting device list again")
 
             # Try preparing device wrappers again with new auth response
             try:
