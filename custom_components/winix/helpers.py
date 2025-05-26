@@ -130,12 +130,6 @@ class Helpers:
             result_code = err_data.get("resultCode")
             result_message = err_data.get("resultMessage")
 
-            LOGGER.error(
-                "Error obtaining device list %s:%s",
-                result_code,
-                result_message,
-            )
-
             raise WinixException(
                 {
                     "message": "Failed to get device list",
