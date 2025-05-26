@@ -41,33 +41,32 @@ class Helpers:
     async def async_login(
         hass: HomeAssistant, username: str, password: str
     ) -> auth.WinixAuthResponse:
-        """Log in."""
+        """Log in asynchronously."""
 
-        def _login(username: str, password: str) -> auth.WinixAuthResponse:
-            """Log in."""
+        return await hass.async_add_executor_job(Helpers.login, username, password)
 
-            LOGGER.debug("Attempting login")
+    @staticmethod
+    def login(username: str, password: str) -> auth.WinixAuthResponse:
+        """Log in synchronously."""
 
-            try:
-                response = auth.login(username, password)
-            except Exception as err:  # pylint: disable=broad-except
-                raise WinixException.from_aws_exception(err) from err
+        try:
+            response = auth.login(username, password)
+        except Exception as err:  # pylint: disable=broad-except
+            raise WinixException.from_aws_exception(err) from err
 
-            access_token = response.access_token
-            account = WinixAccount(access_token)
+        access_token = response.access_token
+        account = WinixAccount(access_token)
 
-            # The next 2 operations can raise generic or botocore exceptions
-            try:
-                account.register_user(username)
-                account.check_access_token()
-            except Exception as err:  # pylint: disable=broad-except
-                raise WinixException.from_winix_exception(err) from err
+        # The next 2 operations can raise generic or botocore exceptions
+        try:
+            account.register_user(username)
+            account.check_access_token()
+        except Exception as err:  # pylint: disable=broad-except
+            raise WinixException.from_winix_exception(err) from err
 
-            expires_at = (datetime.now() + timedelta(seconds=3600)).timestamp()
-            LOGGER.debug("Login successful, token expires %d", expires_at)
-            return response
-
-        return await hass.async_add_executor_job(_login, username, password)
+        expires_at = (datetime.now() + timedelta(seconds=3600)).timestamp()
+        LOGGER.debug("Login successful, token expires %d", expires_at)
+        return response
 
     @staticmethod
     async def async_refresh_auth(
