@@ -65,13 +65,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
 
     if not auth_response:
-        Helpers.send_notification(
-            hass,
-            "async_setup_entry",
-            WINIX_NAME,
-            "No authentication data found. Please reconfigure the integration.",
+        raise ConfigEntryAuthFailed(
+            "No authentication data found. Please reconfigure the integration."
         )
-        return False
 
     manager = WinixManager(hass, entry, auth_response, DEFAULT_SCAN_INTERVAL)
     try_login_once = True
