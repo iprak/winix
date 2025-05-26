@@ -140,7 +140,7 @@ def prepare_devices(
 
             # Try preparing device wrappers again with new auth response
             try:
-                manager.prepare_devices_wrappers()
+                manager.prepare_devices_wrappers(new_auth_response.access_token)
             except WinixException as err_retry:
                 raise ConfigEntryAuthFailed(
                     "Unable to access device data even after re-login."

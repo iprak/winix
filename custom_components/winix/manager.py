@@ -91,7 +91,7 @@ class WinixManager(DataUpdateCoordinator):
         """Fetch the latest data from the source. This overrides the method in DataUpdateCoordinator."""
         await self.async_update()
 
-    def prepare_devices_wrappers(self) -> None:
+    def prepare_devices_wrappers(self, access_token: str = "") -> None:
         """Prepare device wrappers.
 
         Raises WinixException.
@@ -100,7 +100,7 @@ class WinixManager(DataUpdateCoordinator):
         self._device_wrappers = []  # Reset device_stubs
 
         device_stubs = Helpers.get_device_stubs(
-            self.hass, self._auth_response.access_token
+            self.hass, access_token or self._auth_response.access_token
         )
 
         if device_stubs:
