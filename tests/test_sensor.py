@@ -5,40 +5,43 @@ import logging
 import pytest
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
 
-from custom_components.winix.const import ATTR_AIR_QUALITY
+from custom_components.winix.const import ATTR_AIR_QUALITY, WINIX_DOMAIN
 from custom_components.winix.sensor import TOTAL_FILTER_LIFE, get_filter_life_percentage
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 
-from .common import prepare_platform
+from .common import init_integration
+
+TEST_DEVICE_ID = "847207352CE0_364yr8i989"
 
 
-async def test_setup_platform(
+async def test_setup_integration(
     hass: HomeAssistant,
-    enable_custom_integrations,
     device_stub,
     device_data,
     aioclient_mock: AiohttpClientMocker,
+    enable_custom_integrations,
 ) -> None:
-    """Test platform setup."""
+    """Test integration setup."""
 
-    entry = await prepare_platform(hass, aioclient_mock, device_stub, device_data)
+    entry = await init_integration(hass, device_stub, device_data, aioclient_mock)
+    assert len(hass.config_entries.async_entries(WINIX_DOMAIN)) == 1
     assert entry.state is ConfigEntryState.LOADED
 
 
 async def test_sensor_air_qvalue(
     hass: HomeAssistant,
-    enable_custom_integrations,
     device_stub,
     device_data,
     aioclient_mock: AiohttpClientMocker,
+    enable_custom_integrations,
 ) -> None:
     """Test qvalue sensor."""
 
     air_qvalue = "71"
     device_data["body"]["data"][0]["attributes"]["S08"] = air_qvalue
 
-    await prepare_platform(hass, aioclient_mock, device_stub, device_data)
+    await init_integration(hass, device_stub, device_data, aioclient_mock)
 
     entity_state = hass.states.get("sensor.winix_devicealias_air_qvalue")
     assert entity_state is not None
@@ -49,14 +52,14 @@ async def test_sensor_air_qvalue(
 
 async def test_sensors(
     hass: HomeAssistant,
-    enable_custom_integrations,
     device_stub,
     device_data,
     aioclient_mock: AiohttpClientMocker,
+    enable_custom_integrations,
 ) -> None:
     """Test other sensor."""
 
-    await prepare_platform(hass, aioclient_mock, device_stub, device_data)
+    await init_integration(hass, device_stub, device_data, aioclient_mock)
 
     filter_life_hours = "1257"
     aqi = "01"
@@ -72,16 +75,16 @@ async def test_sensors(
 
 async def test_sensor_filter_life_missing(
     hass: HomeAssistant,
-    enable_custom_integrations,
     device_stub,
     device_data,
     aioclient_mock: AiohttpClientMocker,
+    enable_custom_integrations,
 ) -> None:
     """Test filter life sensor for missing data."""
 
     del device_data["body"]["data"][0]["attributes"]["A21"]  # Mock missing data
 
-    await prepare_platform(hass, aioclient_mock, device_stub, device_data)
+    await init_integration(hass, device_stub, device_data, aioclient_mock)
 
     entity_state = hass.states.get("sensor.winix_devicealias_filter_life")
     assert entity_state is not None
@@ -92,10 +95,10 @@ async def test_sensor_filter_life_missing(
 
 async def test_sensor_filter_life_out_of_bounds(
     hass: HomeAssistant,
-    enable_custom_integrations,
     device_stub,
     device_data,
     aioclient_mock: AiohttpClientMocker,
+    enable_custom_integrations,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test filter life sensor for invalid data."""
@@ -106,7 +109,7 @@ async def test_sensor_filter_life_out_of_bounds(
     caplog.clear()
     caplog.set_level(logging.WARNING)
 
-    await prepare_platform(hass, aioclient_mock, device_stub, device_data)
+    await init_integration(hass, device_stub, device_data, aioclient_mock)
 
     entity_state = hass.states.get("sensor.winix_devicealias_filter_life")
     assert entity_state is not None
