@@ -7,9 +7,10 @@ from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClien
 from voluptuous.validators import Number
 
 from custom_components.winix.const import WINIX_AUTH_RESPONSE, WINIX_DOMAIN
-from custom_components.winix.device_wrapper import WinixDeviceWrapper
+from custom_components.winix.device_wrapper import MyWinixDeviceStub, WinixDeviceWrapper
 from custom_components.winix.fan import WinixPurifier
 from custom_components.winix.manager import WinixManager
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 
 TEST_DEVICE_ID = "847207352CE0_364yr8i989"
@@ -23,7 +24,9 @@ def config_entry(hass: HomeAssistant) -> MockConfigEntry:
             "access_token": "access_token",
             "refresh_token": "refresh_token",
             "id_token": "id_token",
-        }
+        },
+        CONF_USERNAME: "username",
+        CONF_PASSWORD: "password",
     }
 
     entry = MockConfigEntry(
@@ -34,24 +37,24 @@ def config_entry(hass: HomeAssistant) -> MockConfigEntry:
     return entry
 
 
-async def prepare_platform(
+async def init_integration(
     hass: HomeAssistant,
-    aioclient: AiohttpClientMocker,
-    test_device_stub,
-    test_device_json,
+    test_device_stub: MyWinixDeviceStub,
+    test_device_json: any,
+    aioclient_mock: AiohttpClientMocker,
 ) -> MockConfigEntry:
-    """Create a mock config entry."""
+    """Prepare the integration."""
 
     entry = config_entry(hass)
 
-    aioclient.get(
+    aioclient_mock.get(
         f"https://us.api.winix-iot.com/common/event/sttus/devices/{TEST_DEVICE_ID}",
         json=test_device_json,
     )
 
     with (
         patch(
-            "custom_components.winix.Helpers.async_get_device_stubs",
+            "custom_components.winix.Helpers.get_device_stubs",
             return_value=[test_device_stub],
         ),
     ):

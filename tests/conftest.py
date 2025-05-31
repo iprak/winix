@@ -11,7 +11,7 @@ from .common import TEST_DEVICE_ID
 
 
 @pytest.fixture
-async def device_stub() -> any:
+async def device_stub() -> MyWinixDeviceStub:
     """Build mocked device stub."""
 
     return MyWinixDeviceStub(

@@ -41,33 +41,32 @@ class Helpers:
     async def async_login(
         hass: HomeAssistant, username: str, password: str
     ) -> auth.WinixAuthResponse:
-        """Log in."""
+        """Log in asynchronously."""
 
-        def _login(username: str, password: str) -> auth.WinixAuthResponse:
-            """Log in."""
+        return await hass.async_add_executor_job(Helpers.login, username, password)
 
-            LOGGER.debug("Attempting login")
+    @staticmethod
+    def login(username: str, password: str) -> auth.WinixAuthResponse:
+        """Log in synchronously."""
 
-            try:
-                response = auth.login(username, password)
-            except Exception as err:  # pylint: disable=broad-except
-                raise WinixException.from_aws_exception(err) from err
+        try:
+            response = auth.login(username, password)
+        except Exception as err:  # pylint: disable=broad-except
+            raise WinixException.from_aws_exception(err) from err
 
-            access_token = response.access_token
-            account = WinixAccount(access_token)
+        access_token = response.access_token
+        account = WinixAccount(access_token)
 
-            # The next 2 operations can raise generic or botocore exceptions
-            try:
-                account.register_user(username)
-                account.check_access_token()
-            except Exception as err:  # pylint: disable=broad-except
-                raise WinixException.from_winix_exception(err) from err
+        # The next 2 operations can raise generic or botocore exceptions
+        try:
+            account.register_user(username)
+            account.check_access_token()
+        except Exception as err:  # pylint: disable=broad-except
+            raise WinixException.from_winix_exception(err) from err
 
-            expires_at = (datetime.now() + timedelta(seconds=3600)).timestamp()
-            LOGGER.debug("Login successful, token expires %d", expires_at)
-            return response
-
-        return await hass.async_add_executor_job(_login, username, password)
+        expires_at = (datetime.now() + timedelta(seconds=3600)).timestamp()
+        LOGGER.debug("Login successful, token expires %d", expires_at)
+        return response
 
     @staticmethod
     async def async_refresh_auth(
@@ -102,67 +101,57 @@ class Helpers:
         return await hass.async_add_executor_job(_refresh, response)
 
     @staticmethod
-    async def async_get_device_stubs(hass: HomeAssistant, access_token: str) -> None:
+    def get_device_stubs(
+        hass: HomeAssistant, access_token: str
+    ) -> list[MyWinixDeviceStub]:
         """Get device list.
 
         Raises WinixException.
         """
 
         # Modified from https://github.com/hfern/winix to support additional attributes.
-        def get_device_info_list(access_token: str):
-            # pylint: disable=line-too-long
 
-            # com.google.gson.k kVar = new com.google.gson.k();
-            # kVar.p("accessToken", deviceMainActivity2.f2938o);
-            # kVar.p("uuid", Common.w(deviceMainActivity2.f2934k));
-            # new com.winix.smartiot.util.o0(deviceMainActivity2.f2934k, "https://us.mobile.winix-iot.com/getDeviceInfoList", kVar).a(new TypeToken<g4.v>() {
-            #  // from class: com.winix.smartiot.activity.DeviceMainActivity.9
-            # }, new com.winix.smartiot.activity.d(deviceMainActivity2, 4));
+        # com.google.gson.k kVar = new com.google.gson.k();
+        # kVar.p("accessToken", deviceMainActivity2.f2938o);
+        # kVar.p("uuid", Common.w(deviceMainActivity2.f2934k));
+        # new com.winix.smartiot.util.o0(deviceMainActivity2.f2934k, "https://us.mobile.winix-iot.com/getDeviceInfoList", kVar).a(new TypeToken<g4.v>() {
+        #  // from class: com.winix.smartiot.activity.DeviceMainActivity.9
+        # }, new com.winix.smartiot.activity.d(deviceMainActivity2, 4));
 
-            resp = requests.post(
-                "https://us.mobile.winix-iot.com/getDeviceInfoList",
-                json={
-                    "accessToken": access_token,
-                    "uuid": WinixAccount(access_token).get_uuid(),
-                },
-                timeout=DEFAULT_POST_TIMEOUT,
+        resp = requests.post(
+            "https://us.mobile.winix-iot.com/getDeviceInfoList",
+            json={
+                "accessToken": access_token,
+                "uuid": WinixAccount(access_token).get_uuid(),
+            },
+            timeout=DEFAULT_POST_TIMEOUT,
+        )
+
+        if resp.status_code != HTTPStatus.OK:
+            err_data = resp.json()
+            result_code = err_data.get("resultCode")
+            result_message = err_data.get("resultMessage")
+
+            raise WinixException(
+                {
+                    "message": f"Failed to get device list (code-{result_code}). {result_message}.",
+                    "result_code": result_code,
+                    "result_message": result_message,
+                }
             )
 
-            if resp.status_code != HTTPStatus.OK:
-                err_data = resp.json()
-                result_code = err_data.get("resultCode")
-                result_message = err_data.get("resultMessage")
-
-                LOGGER.error(
-                    "Error obtaining device list %s:%s",
-                    result_code,
-                    result_message,
-                )
-
-                raise WinixException(
-                    {
-                        "message": "Failed to get device list",
-                        "result_code": result_code,
-                        "result_message": result_message,
-                    }
-                )
-
-            return [
-                MyWinixDeviceStub(
-                    id=d.get("deviceId"),
-                    mac=d.get("mac"),
-                    alias=d.get("deviceAlias"),
-                    location_code=d.get("deviceLocCode"),
-                    filter_replace_date=d.get("filterReplaceDate"),
-                    model=d.get("modelName"),
-                    sw_version=d.get("mcuVer"),
-                )
-                for d in resp.json()["deviceInfoList"]
-            ]
-
-        # Pass through all exceptions
-        LOGGER.debug("Obtaining device list")
-        return await hass.async_add_executor_job(get_device_info_list, access_token)
+        return [
+            MyWinixDeviceStub(
+                id=d.get("deviceId"),
+                mac=d.get("mac"),
+                alias=d.get("deviceAlias"),
+                location_code=d.get("deviceLocCode"),
+                filter_replace_date=d.get("filterReplaceDate"),
+                model=d.get("modelName"),
+                sw_version=d.get("mcuVer"),
+            )
+            for d in resp.json()["deviceInfoList"]
+        ]
 
 
 class WinixException(Exception):
