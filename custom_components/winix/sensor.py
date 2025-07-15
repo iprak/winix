@@ -33,7 +33,7 @@ from .const import (
 from .device_wrapper import WinixDeviceWrapper
 from .manager import WinixEntity, WinixManager
 
-TOTAL_FILTER_LIFE: Final = 6480  # 9 months
+TOTAL_FILTER_LIFE: Final = 8760  # 12 months
 
 
 def get_air_quality_attr(state: dict[str, str]) -> dict[str, Any]:
