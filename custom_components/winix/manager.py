@@ -100,7 +100,7 @@ class WinixManager(DataUpdateCoordinator):
         self._device_wrappers = []  # Reset device_stubs
 
         device_stubs = Helpers.get_device_stubs(
-            self.hass, access_token or self._auth_response.access_token
+            access_token or self._auth_response.access_token
         )
 
         if device_stubs:

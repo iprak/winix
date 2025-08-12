@@ -101,9 +101,7 @@ class Helpers:
         return await hass.async_add_executor_job(_refresh, response)
 
     @staticmethod
-    def get_device_stubs(
-        hass: HomeAssistant, access_token: str
-    ) -> list[MyWinixDeviceStub]:
+    def get_device_stubs(access_token: str) -> list[MyWinixDeviceStub]:
         """Get device list.
 
         Raises WinixException.
