@@ -1,2 +1,4 @@
 # Custom requirements
+python-jose[cryptography]==3.5.0
+pycryptodome==3.23.0
 winix==0.3.0
