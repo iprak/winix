@@ -83,14 +83,14 @@ class WinixSwitchEntity(WinixEntity, SwitchEntity):
     @property
     def is_on(self) -> bool | None:
         """Return the switch state."""
-        return self.entity_description.is_on(self._wrapper)
+        return self.entity_description.is_on(self.device_wrapper)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the entity off."""
-        if await self.entity_description.off_fn(self._wrapper):
+        if await self.entity_description.off_fn(self.device_wrapper):
             self.schedule_update_ha_state()
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the entity on."""
-        if await self.entity_description.on_fn(self._wrapper):
+        if await self.entity_description.on_fn(self.device_wrapper):
             self.schedule_update_ha_state()

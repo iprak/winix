@@ -152,7 +152,7 @@ class WinixSensor(WinixEntity, SensorEntity):
         if self.entity_description.extra_state_attributes_fn is None:
             return None
 
-        state = self._wrapper.get_state()
+        state = self.device_wrapper.get_state()
         return (
             None
             if state is None
@@ -162,5 +162,5 @@ class WinixSensor(WinixEntity, SensorEntity):
     @property
     def native_value(self) -> StateType:
         """Return the state of the sensor."""
-        state = self._wrapper.get_state()
+        state = self.device_wrapper.get_state()
         return None if state is None else self.entity_description.value_fn(state)

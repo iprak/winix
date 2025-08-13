@@ -45,7 +45,7 @@ class WinixEntity(CoordinatorEntity):
         device_stub = wrapper.device_stub
 
         self._mac = device_stub.mac.lower()
-        self._wrapper = wrapper
+        self.device_wrapper = wrapper
 
         self._attr_device_info: DeviceInfo = {
             "identifiers": {(WINIX_DOMAIN, self._mac)},
@@ -58,7 +58,7 @@ class WinixEntity(CoordinatorEntity):
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        state = self._wrapper.get_state()
+        state = self.device_wrapper.get_state()
         return state is not None
 
 
