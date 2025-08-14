@@ -155,15 +155,20 @@ class Helpers:
 class WinixException(Exception):
     """Wiinx related operation exception."""
 
+    result_code: str = ""
+    """Error code."""
+    result_message: str = ""
+    """Error code message."""
+
     def __init__(self, values: dict) -> None:
         """Create instance of WinixException."""
 
-        super().__init__(values["message"])
-
-        self.result_code: str = values.get("result_code", "")
-        """Error code."""
-        self.result_message: str = values.get("result_message", "")
-        """Error code message."""
+        if values:
+            super().__init__(values.get("message", "Unknown error"))
+            self.result_code: str = values.get("result_code", "")
+            self.result_message: str = values.get("result_message", "")
+        else:
+            super().__init__("Unknown error")
 
     @staticmethod
     def from_winix_exception(err: Exception) -> WinixException:
