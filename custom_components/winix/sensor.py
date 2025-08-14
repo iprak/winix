@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from typing import Any, Final
+from typing import Any
 
 from homeassistant.components.sensor import (
     DOMAIN as SENSOR_DOMAIN,
@@ -33,8 +33,6 @@ from .const import (
 from .device_wrapper import WinixDeviceWrapper
 from .manager import WinixEntity, WinixManager
 
-TOTAL_FILTER_LIFE: Final = 6480  # 9 months
-
 
 def get_air_quality_attr(state: dict[str, str]) -> dict[str, Any]:
     """Get air quality attribute."""
@@ -46,35 +44,29 @@ def get_air_quality_attr(state: dict[str, str]) -> dict[str, Any]:
     return attributes
 
 
-def get_filter_life(state: dict[str, str]) -> int | None:
+def get_filter_life(state: dict[str, str], wrapper: WinixDeviceWrapper) -> int | None:
     """Get filter life percentage."""
 
-    return get_filter_life_percentage(state.get(ATTR_FILTER_HOUR))
+    return get_filter_life_percentage(
+        state.get(ATTR_FILTER_HOUR), wrapper.filter_alarm_duration
+    )
 
 
-def get_filter_life_percentage(hours: str | None) -> int | None:
+def get_filter_life_percentage(hours: str | None, total: int) -> int | None:
     """Get filter life percentage."""
 
     if hours is None:
         return None
 
     hours: int = int(hours)
-    if hours > TOTAL_FILTER_LIFE:
-        LOGGER.warning(
-            "Reported filter life '%d' is more than max value '%d'",
-            hours,
-            TOTAL_FILTER_LIFE,
-        )
-        return None
-
-    return int((TOTAL_FILTER_LIFE - hours) * 100 / TOTAL_FILTER_LIFE)
+    return int((total - hours) * 100 / total)
 
 
 @dataclass(frozen=True, kw_only=True)
 class WininxSensorEntityDescription(SensorEntityDescription):
     """Describe Winix sensor entity."""
 
-    value_fn: Callable[[dict[str, str]], StateType]
+    value_fn: Callable[[dict[str, str], WinixDeviceWrapper], StateType]
     extra_state_attributes_fn: Callable[[dict[str, str]], dict[str, Any]]
 
 
@@ -85,7 +77,7 @@ SENSOR_DESCRIPTIONS: tuple[WininxSensorEntityDescription, ...] = (
         name="Air QValue",
         native_unit_of_measurement="qv",
         state_class=SensorStateClass.MEASUREMENT,
-        value_fn=lambda state: state.get(ATTR_AIR_QVALUE),
+        value_fn=lambda state, wrapper: state.get(ATTR_AIR_QVALUE),
         extra_state_attributes_fn=get_air_quality_attr,
     ),
     WininxSensorEntityDescription(
@@ -102,7 +94,7 @@ SENSOR_DESCRIPTIONS: tuple[WininxSensorEntityDescription, ...] = (
         icon="mdi:blur",
         name="AQI",
         state_class=SensorStateClass.MEASUREMENT,
-        value_fn=lambda state: state.get(ATTR_AIR_AQI),
+        value_fn=lambda state, wrapper: state.get(ATTR_AIR_AQI),
         extra_state_attributes_fn=None,
     ),
 )
@@ -163,4 +155,8 @@ class WinixSensor(WinixEntity, SensorEntity):
     def native_value(self) -> StateType:
         """Return the state of the sensor."""
         state = self.device_wrapper.get_state()
-        return None if state is None else self.entity_description.value_fn(state)
+        return (
+            None
+            if state is None
+            else self.entity_description.value_fn(state, self.device_wrapper)
+        )

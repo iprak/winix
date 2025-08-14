@@ -105,8 +105,13 @@ class WinixManager(DataUpdateCoordinator):
 
         if device_stubs:
             for device_stub in device_stubs:
+                filter_alarm_duration = await Helpers.get_filter_alarm_duration(
+                    self._client, token, uuid, device_stub.id
+                )
                 self._device_wrappers.append(
-                    WinixDeviceWrapper(self._client, device_stub, LOGGER)
+                    WinixDeviceWrapper(
+                        self._client, device_stub, filter_alarm_duration, LOGGER
+                    )
                 )
 
             LOGGER.info("%d purifiers found", len(self._device_wrappers))

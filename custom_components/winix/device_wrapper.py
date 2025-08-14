@@ -51,6 +51,7 @@ class WinixDeviceWrapper:
         self,
         client: aiohttp.ClientSession,
         device_stub: MyWinixDeviceStub,
+        filter_alarm_duration_hours: int,
         logger,
     ) -> None:
         """Initialize the wrapper."""
@@ -68,6 +69,7 @@ class WinixDeviceWrapper:
         self._logger = logger
         self._child_lock_on = False
         self._brightness_level = None
+        self._filter_alarm_duration = filter_alarm_duration_hours
 
         self.device_stub = device_stub
         self._alias = device_stub.alias
@@ -76,6 +78,12 @@ class WinixDeviceWrapper:
         if device_stub.model.lower().startswith("c610"):
             self._features.supports_brightness_level = True
             self._features.supports_child_lock = True
+
+        logger.debug(
+            "%s: created device with filter_alarm_duration=%d",
+            self._alias,
+            filter_alarm_duration_hours,
+        )
 
     async def update(self) -> None:
         """Update the device data."""
@@ -145,6 +153,11 @@ class WinixDeviceWrapper:
     def is_sleep(self) -> bool:
         """Return if the purifier is in Sleep mode."""
         return self._sleep
+
+    @property
+    def filter_alarm_duration(self) -> int:
+        """Filter change duration reminder in hours."""
+        return self._filter_alarm_duration
 
     async def async_ensure_on(self) -> None:
         """Turn on the purifier."""

@@ -59,6 +59,8 @@ ORDERED_NAMED_FAN_SPEEDS: Final = [
     AIRFLOW_TURBO,
 ]
 
+DEFAULT_FILTER_ALARM_DURATION: Final = 9  # 9 months
+DEFAULT_FILTER_ALARM_DURATION_HOURS: Final = DEFAULT_FILTER_ALARM_DURATION * 24 * 30
 DEFAULT_POST_TIMEOUT: Final = 5
 
 # mode can contain the special preset value of manual.

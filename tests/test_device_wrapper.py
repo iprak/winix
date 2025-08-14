@@ -12,6 +12,7 @@ from custom_components.winix.const import (
     ATTR_MODE,
     ATTR_PLASMA,
     ATTR_POWER,
+    DEFAULT_FILTER_ALARM_DURATION_HOURS,
     MODE_AUTO,
     MODE_MANUAL,
     OFF_VALUE,
@@ -328,7 +329,9 @@ async def test_async_set_preset_mode_invalid() -> None:
     logger.debug = Mock()
     logger.warning = Mock()
 
-    wrapper = WinixDeviceWrapper(client, device_stub, logger)
+    wrapper = WinixDeviceWrapper(
+        client, device_stub, DEFAULT_FILTER_ALARM_DURATION_HOURS, logger
+    )
 
     with pytest.raises(ValueError):
         await wrapper.async_set_preset_mode("INVALID_PRESET")
