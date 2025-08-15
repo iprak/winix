@@ -46,13 +46,13 @@ class WinixEntity(CoordinatorEntity):
         self._mac = device_stub.mac.lower()
         self.device_wrapper = wrapper
 
-        self._attr_device_info: DeviceInfo = {
-            "identifiers": {(WINIX_DOMAIN, self._mac)},
-            "name": f"Winix {device_stub.alias}",
-            "manufacturer": "Winix",
-            "model": device_stub.model,
-            "sw_version": device_stub.sw_version,
-        }
+        self._attr_device_info = DeviceInfo(
+            identifiers={(WINIX_DOMAIN, self._mac)},
+            name=f"Winix {device_stub.alias}",
+            manufacturer="Winix",
+            model=device_stub.model,
+            sw_version=device_stub.sw_version,
+        )
 
     @property
     def available(self) -> bool:
