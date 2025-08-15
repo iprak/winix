@@ -59,6 +59,8 @@ ORDERED_NAMED_FAN_SPEEDS: Final = [
     AIRFLOW_TURBO,
 ]
 
+DEFAULT_POST_TIMEOUT: Final = 5
+
 # mode can contain the special preset value of manual.
 MODE_AUTO: Final = "auto"
 MODE_MANUAL: Final = "manual"
