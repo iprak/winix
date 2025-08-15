@@ -1,12 +1,14 @@
 """Test WinixAirQualitySensor component."""
 
-import logging
 
-import pytest
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
 
-from custom_components.winix.const import ATTR_AIR_QUALITY, WINIX_DOMAIN
-from custom_components.winix.sensor import TOTAL_FILTER_LIFE, get_filter_life_percentage
+from custom_components.winix.const import (
+    ATTR_AIR_QUALITY,
+    DEFAULT_FILTER_ALARM_DURATION_HOURS,
+    WINIX_DOMAIN,
+)
+from custom_components.winix.sensor import get_filter_life_percentage
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 
@@ -66,7 +68,9 @@ async def test_sensors(
 
     entity_state = hass.states.get("sensor.winix_devicealias_filter_life")
     assert entity_state is not None
-    assert int(entity_state.state) == get_filter_life_percentage(filter_life_hours)
+    assert int(entity_state.state) == get_filter_life_percentage(
+        filter_life_hours, DEFAULT_FILTER_ALARM_DURATION_HOURS
+    )
 
     entity_state = hass.states.get("sensor.winix_devicealias_aqi")
     assert entity_state is not None
@@ -91,33 +95,3 @@ async def test_sensor_filter_life_missing(
     assert (
         entity_state.state == "unknown"
     )  # Missing data evaluates to None which is unknown state
-
-
-async def test_sensor_filter_life_out_of_bounds(
-    hass: HomeAssistant,
-    device_stub,
-    device_data,
-    aioclient_mock: AiohttpClientMocker,
-    enable_custom_integrations,
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    """Test filter life sensor for invalid data."""
-
-    filter_life_hours = TOTAL_FILTER_LIFE + 1
-    device_data["body"]["data"][0]["attributes"]["A21"] = str(TOTAL_FILTER_LIFE + 1)
-
-    caplog.clear()
-    caplog.set_level(logging.WARNING)
-
-    await init_integration(hass, device_stub, device_data, aioclient_mock)
-
-    entity_state = hass.states.get("sensor.winix_devicealias_filter_life")
-    assert entity_state is not None
-    assert (
-        entity_state.state == "unknown"
-    )  # Out of bounds data evaluates to None which is unknown state
-
-    assert (
-        f"Reported filter life '{filter_life_hours}' is more than max value"
-        in caplog.text
-    )

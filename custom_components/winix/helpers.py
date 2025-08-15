@@ -99,6 +99,39 @@ class Helpers:
         return await hass.async_add_executor_job(_refresh, response)
 
     @staticmethod
+    async def get_filter_alarm_duration(
+        client: aiohttp.ClientSession,
+        access_token: str,
+        uuid: str,
+        device_id: str,
+    ) -> int:
+        """Get filter change duration reminder in hours.
+
+        Raises WinixException.
+        """
+
+        resp = await client.post(
+            "https://us.mobile.winix-iot.com/getFilterAlarmInfo",
+            json={
+                "accessToken": access_token,
+                "uuid": uuid,
+                "deviceId": device_id,
+            },
+            timeout=DEFAULT_POST_TIMEOUT,
+        )
+
+        if resp.status != HTTPStatus.OK:
+            raise WinixException(
+                {
+                    "message": "Failed to get filterAlarmInfo.",
+                }
+            )
+
+        response_json = await resp.json()
+        # {'resultCode': '200', 'resultMessage': 'SUCCESS', 'filterUsageAlarm': 9}
+        return int(response_json["filterUsageAlarm"]) * 30 * 24
+
+    @staticmethod
     async def get_device_stubs(
         client: aiohttp.ClientSession, access_token: str, uuid: str
     ) -> list[MyWinixDeviceStub]:

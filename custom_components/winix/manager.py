@@ -46,13 +46,13 @@ class WinixEntity(CoordinatorEntity):
         self._mac = device_stub.mac.lower()
         self.device_wrapper = wrapper
 
-        self._attr_device_info: DeviceInfo = {
-            "identifiers": {(WINIX_DOMAIN, self._mac)},
-            "name": f"Winix {device_stub.alias}",
-            "manufacturer": "Winix",
-            "model": device_stub.model,
-            "sw_version": device_stub.sw_version,
-        }
+        self._attr_device_info = DeviceInfo(
+            identifiers={(WINIX_DOMAIN, self._mac)},
+            name=f"Winix {device_stub.alias}",
+            manufacturer="Winix",
+            model=device_stub.model,
+            sw_version=device_stub.sw_version,
+        )
 
     @property
     def available(self) -> bool:
@@ -105,8 +105,13 @@ class WinixManager(DataUpdateCoordinator):
 
         if device_stubs:
             for device_stub in device_stubs:
+                filter_alarm_duration = await Helpers.get_filter_alarm_duration(
+                    self._client, token, uuid, device_stub.id
+                )
                 self._device_wrappers.append(
-                    WinixDeviceWrapper(self._client, device_stub, LOGGER)
+                    WinixDeviceWrapper(
+                        self._client, device_stub, filter_alarm_duration, LOGGER
+                    )
                 )
 
             LOGGER.info("%d purifiers found", len(self._device_wrappers))
