@@ -104,9 +104,9 @@ class WinixSelectEntity(WinixEntity, SelectEntity):
     @property
     def current_option(self) -> str | None:
         """Return the entity value."""
-        return self.entity_description.current_option_fn(self._wrapper)
+        return self.entity_description.current_option_fn(self.device_wrapper)
 
     async def async_select_option(self, option: str) -> None:
         """Set the entity value."""
-        if await self.entity_description.select_option_fn(self._wrapper, option):
+        if await self.entity_description.select_option_fn(self.device_wrapper, option):
             await self.coordinator.async_request_refresh()

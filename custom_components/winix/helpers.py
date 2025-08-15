@@ -6,15 +6,13 @@ from collections.abc import Mapping
 from datetime import datetime, timedelta
 from http import HTTPStatus
 
-import requests
+import aiohttp
 from winix import WinixAccount, auth
 
 from homeassistant.core import HomeAssistant
 
-from .const import LOGGER, WINIX_DOMAIN
+from .const import DEFAULT_POST_TIMEOUT, LOGGER, WINIX_DOMAIN
 from .device_wrapper import MyWinixDeviceStub
-
-DEFAULT_POST_TIMEOUT = 5
 
 
 class Helpers:
@@ -101,8 +99,8 @@ class Helpers:
         return await hass.async_add_executor_job(_refresh, response)
 
     @staticmethod
-    def get_device_stubs(
-        hass: HomeAssistant, access_token: str
+    async def get_device_stubs(
+        client: aiohttp.ClientSession, access_token: str, uuid: str
     ) -> list[MyWinixDeviceStub]:
         """Get device list.
 
@@ -118,17 +116,19 @@ class Helpers:
         #  // from class: com.winix.smartiot.activity.DeviceMainActivity.9
         # }, new com.winix.smartiot.activity.d(deviceMainActivity2, 4));
 
-        resp = requests.post(
+        resp = await client.post(
             "https://us.mobile.winix-iot.com/getDeviceInfoList",
             json={
                 "accessToken": access_token,
-                "uuid": WinixAccount(access_token).get_uuid(),
+                "uuid": uuid,
             },
             timeout=DEFAULT_POST_TIMEOUT,
         )
 
-        if resp.status_code != HTTPStatus.OK:
-            err_data = resp.json()
+        response_json = await resp.json()
+
+        if resp.status != HTTPStatus.OK:
+            err_data = response_json
             result_code = err_data.get("resultCode")
             result_message = err_data.get("resultMessage")
 
@@ -142,30 +142,35 @@ class Helpers:
 
         return [
             MyWinixDeviceStub(
-                id=d.get("deviceId"),
-                mac=d.get("mac"),
-                alias=d.get("deviceAlias"),
-                location_code=d.get("deviceLocCode"),
-                filter_replace_date=d.get("filterReplaceDate"),
-                model=d.get("modelName"),
-                sw_version=d.get("mcuVer"),
+                id=item.get("deviceId"),
+                mac=item.get("mac"),
+                alias=item.get("deviceAlias"),
+                location_code=item.get("deviceLocCode"),
+                filter_replace_date=item.get("filterReplaceDate"),
+                model=item.get("modelName"),
+                sw_version=item.get("mcuVer"),
             )
-            for d in resp.json()["deviceInfoList"]
+            for item in response_json["deviceInfoList"]
         ]
 
 
 class WinixException(Exception):
     """Wiinx related operation exception."""
 
+    result_code: str = ""
+    """Error code."""
+    result_message: str = ""
+    """Error code message."""
+
     def __init__(self, values: dict) -> None:
         """Create instance of WinixException."""
 
-        super().__init__(values["message"])
-
-        self.result_code: str = values.get("result_code", "")
-        """Error code."""
-        self.result_message: str = values.get("result_message", "")
-        """Error code message."""
+        if values:
+            super().__init__(values.get("message", "Unknown error"))
+            self.result_code: str = values.get("result_code", "")
+            self.result_message: str = values.get("result_message", "")
+        else:
+            super().__init__("Unknown error")
 
     @staticmethod
     def from_winix_exception(err: Exception) -> WinixException:

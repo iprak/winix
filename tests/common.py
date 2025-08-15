@@ -57,6 +57,7 @@ async def init_integration(
             "custom_components.winix.Helpers.get_device_stubs",
             return_value=[test_device_stub],
         ),
+        patch("winix.WinixAccount.get_uuid"),
     ):
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()

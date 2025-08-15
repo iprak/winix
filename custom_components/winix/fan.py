@@ -130,7 +130,7 @@ class WinixPurifier(WinixEntity, FanEntity):
     def extra_state_attributes(self) -> Mapping[str, Any] | None:
         """Return the state attributes."""
         attributes = {}
-        state = self._wrapper.get_state()
+        state = self.device_wrapper.get_state()
 
         if state is not None:
             # The power attribute is the entity state, so skip it
@@ -138,9 +138,9 @@ class WinixPurifier(WinixEntity, FanEntity):
                 key: value for key, value in state.items() if key != ATTR_POWER
             }
 
-        attributes[ATTR_LOCATION] = self._wrapper.device_stub.location_code
+        attributes[ATTR_LOCATION] = self.device_wrapper.device_stub.location_code
         attributes[ATTR_FILTER_REPLACEMENT_DATE] = (
-            self._wrapper.device_stub.filter_replace_date
+            self.device_wrapper.device_stub.filter_replace_date
         )
 
         return attributes
@@ -148,15 +148,15 @@ class WinixPurifier(WinixEntity, FanEntity):
     @property
     def is_on(self) -> bool:
         """Return true if switch is on."""
-        return self._wrapper.is_on
+        return self.device_wrapper.is_on
 
     @property
     def percentage(self) -> int | None:
         """Return the current speed percentage."""
-        state = self._wrapper.get_state()
+        state = self.device_wrapper.get_state()
         if state is None:
             return None
-        if self._wrapper.is_sleep or self._wrapper.is_auto:
+        if self.device_wrapper.is_sleep or self.device_wrapper.is_auto:
             return None
         if state.get(ATTR_AIRFLOW) is None:
             return None
@@ -168,21 +168,21 @@ class WinixPurifier(WinixEntity, FanEntity):
     @property
     def preset_mode(self) -> str | None:
         """Return the current preset mode, e.g., auto, smart, interval, favorite."""
-        state = self._wrapper.get_state()
+        state = self.device_wrapper.get_state()
         if state is None:
             return None
-        if self._wrapper.is_sleep:
+        if self.device_wrapper.is_sleep:
             return PRESET_MODE_SLEEP
-        if self._wrapper.is_auto:
+        if self.device_wrapper.is_auto:
             return (
                 PRESET_MODE_AUTO
-                if self._wrapper.is_plasma_on
+                if self.device_wrapper.is_plasma_on
                 else PRESET_MODE_AUTO_PLASMA_OFF
             )
-        if self._wrapper.is_manual:
+        if self.device_wrapper.is_manual:
             return (
                 PRESET_MODE_MANUAL
-                if self._wrapper.is_plasma_on
+                if self.device_wrapper.is_plasma_on
                 else PRESET_MODE_MANUAL_PLASMA_OFF
             )
 
@@ -208,7 +208,7 @@ class WinixPurifier(WinixEntity, FanEntity):
         if percentage == 0:
             await self.async_turn_off()
         else:
-            await self._wrapper.async_set_speed(
+            await self.device_wrapper.async_set_speed(
                 percentage_to_ordered_list_item(ORDERED_NAMED_FAN_SPEEDS, percentage)
             )
 
@@ -226,38 +226,38 @@ class WinixPurifier(WinixEntity, FanEntity):
         if percentage:
             await self.async_set_percentage(percentage)
         if preset_mode:
-            await self._wrapper.async_set_preset_mode(preset_mode)
+            await self.device_wrapper.async_set_preset_mode(preset_mode)
         else:
-            await self._wrapper.async_turn_on()
+            await self.device_wrapper.async_turn_on()
 
         self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the purifier."""
-        await self._wrapper.async_turn_off()
+        await self.device_wrapper.async_turn_off()
         self.async_write_ha_state()
 
     async def async_plasmawave_on(self) -> None:
         """Turn on plasma wave."""
-        await self._wrapper.async_plasmawave_on()
+        await self.device_wrapper.async_plasmawave_on()
         self.async_write_ha_state()
 
     async def async_plasmawave_off(self) -> None:
         """Turn off plasma wave."""
-        await self._wrapper.async_plasmawave_off()
+        await self.device_wrapper.async_plasmawave_off()
         self.async_write_ha_state()
 
     async def async_plasmawave_toggle(self) -> None:
         """Toggle plasma wave."""
 
-        if self._wrapper.is_plasma_on:
-            await self._wrapper.async_plasmawave_off()
+        if self.device_wrapper.is_plasma_on:
+            await self.device_wrapper.async_plasmawave_off()
         else:
-            await self._wrapper.async_plasmawave_on()
+            await self.device_wrapper.async_plasmawave_on()
 
         self.async_write_ha_state()
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set new preset mode."""
-        await self._wrapper.async_set_preset_mode(preset_mode)
+        await self.device_wrapper.async_set_preset_mode(preset_mode)
         self.async_write_ha_state()

@@ -19,7 +19,11 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
-from homeassistant.helpers import device_registry as dr, entity_registry as er
+from homeassistant.helpers import (
+    aiohttp_client,
+    device_registry as dr,
+    entity_registry as er,
+)
 
 from .const import (
     FAN_SERVICES,
@@ -69,13 +73,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             "No authentication data found. Please reconfigure the integration."
         )
 
-    manager = WinixManager(hass, entry, auth_response, DEFAULT_SCAN_INTERVAL)
+    # Grab the client once and pass it around
+    client = aiohttp_client.async_get_clientsession(hass)
 
-    new_auth_response = await hass.async_add_executor_job(
-        prepare_devices,
-        manager,
-        user_input[CONF_USERNAME],
-        user_input[CONF_PASSWORD],
+    manager = WinixManager(hass, entry, auth_response, DEFAULT_SCAN_INTERVAL, client)
+    new_auth_response = await async_prepare_devices(
+        hass, manager, user_input[CONF_USERNAME], user_input[CONF_PASSWORD]
     )
     if new_auth_response is not None:
         # Copy over new values
@@ -117,17 +120,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
-def prepare_devices(
-    manager: WinixManager, username: str, password: str
+async def async_prepare_devices(
+    hass: HomeAssistant, manager: WinixManager, username: str, password: str
 ) -> auth.WinixAuthResponse | None:
-    """Prepare devices synchronously. Returns new auth response if re-login was needed.
+    """Prepare devices asynchronously. Returns new auth response if re-login was performed.
 
     Raises ConfigEntryAuthFailed or ConfigEntryNotReady.
     """
     new_auth_response: auth.WinixAuthResponse = None
 
     try:
-        manager.prepare_devices_wrappers()
+        await manager.prepare_devices_wrappers()
     except WinixException as err:
         # 900:MULTI LOGIN: Same credentials were used to login elwsewhere. We need to
         # login again and get new tokens.
@@ -139,7 +142,10 @@ def prepare_devices(
             )
 
             try:
-                new_auth_response = Helpers.login(username, password)
+                # Avoid blocking the event loop (https://developers.home-assistant.io/docs/asyncio_blocking_operations)
+                new_auth_response = await hass.async_add_executor_job(
+                    Helpers.login, username, password
+                )
             except WinixException as login_err:
                 raise ConfigEntryAuthFailed("Unable to authenticate.") from login_err
 
@@ -147,7 +153,7 @@ def prepare_devices(
 
             # Try preparing device wrappers again with new auth response
             try:
-                manager.prepare_devices_wrappers(new_auth_response.access_token)
+                await manager.prepare_devices_wrappers(new_auth_response.access_token)
             except WinixException as err_retry:
                 raise ConfigEntryAuthFailed(
                     "Unable to access device data even after re-login."

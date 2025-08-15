@@ -32,9 +32,6 @@ class WinixDriver:
     CTRL_URL = "https://us.api.winix-iot.com/common/control/devices/{deviceid}/A211/{attribute}:{value}"
     STATE_URL = "https://us.api.winix-iot.com/common/event/sttus/devices/{deviceid}"
     PARAM_URL = "https://us.api.winix-iot.com/common/event/param/devices/{deviceid}"
-    CONNECTED_STATUS_URL = (
-        "https://us.api.winix-iot.com/common/event/connsttus/devices/{deviceid}"
-    )
 
     category_keys = {
         "power": "A02",

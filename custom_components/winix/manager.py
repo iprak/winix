@@ -4,11 +4,10 @@ from __future__ import annotations
 
 from datetime import timedelta
 
-from winix import auth
+from winix import WinixAccount, auth
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import aiohttp_client
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
@@ -45,7 +44,7 @@ class WinixEntity(CoordinatorEntity):
         device_stub = wrapper.device_stub
 
         self._mac = device_stub.mac.lower()
-        self._wrapper = wrapper
+        self.device_wrapper = wrapper
 
         self._attr_device_info: DeviceInfo = {
             "identifiers": {(WINIX_DOMAIN, self._mac)},
@@ -58,7 +57,7 @@ class WinixEntity(CoordinatorEntity):
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        state = self._wrapper.get_state()
+        state = self.device_wrapper.get_state()
         return state is not None
 
 
@@ -71,6 +70,7 @@ class WinixManager(DataUpdateCoordinator):
         entry: ConfigEntry,
         auth_response: auth.WinixAuthResponse,
         scan_interval: int,
+        client,
     ) -> None:
         """Initialize the manager."""
 
@@ -78,6 +78,7 @@ class WinixManager(DataUpdateCoordinator):
         # was not invoked.
         self._device_wrappers: list[WinixDeviceWrapper] = []
         self._auth_response = auth_response
+        self._client = client
 
         super().__init__(
             hass,
@@ -91,24 +92,21 @@ class WinixManager(DataUpdateCoordinator):
         """Fetch the latest data from the source. This overrides the method in DataUpdateCoordinator."""
         await self.async_update()
 
-    def prepare_devices_wrappers(self, access_token: str = "") -> None:
+    async def prepare_devices_wrappers(self, access_token: str = "") -> None:
         """Prepare device wrappers.
 
         Raises WinixException.
         """
-
         self._device_wrappers = []  # Reset device_stubs
 
-        device_stubs = Helpers.get_device_stubs(
-            self.hass, access_token or self._auth_response.access_token
-        )
+        token = access_token or self._auth_response.access_token
+        uuid = WinixAccount(token).get_uuid()
+        device_stubs = await Helpers.get_device_stubs(self._client, token, uuid)
 
         if device_stubs:
-            client = aiohttp_client.async_get_clientsession(self.hass)
-
             for device_stub in device_stubs:
                 self._device_wrappers.append(
-                    WinixDeviceWrapper(client, device_stub, LOGGER)
+                    WinixDeviceWrapper(self._client, device_stub, LOGGER)
                 )
 
             LOGGER.info("%d purifiers found", len(self._device_wrappers))
