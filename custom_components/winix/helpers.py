@@ -11,7 +11,12 @@ from winix import WinixAccount, auth
 
 from homeassistant.core import HomeAssistant
 
-from .const import DEFAULT_POST_TIMEOUT, LOGGER, WINIX_DOMAIN
+from .const import (
+    DEFAULT_FILTER_ALARM_DURATION,
+    DEFAULT_POST_TIMEOUT,
+    LOGGER,
+    WINIX_DOMAIN,
+)
 from .device_wrapper import MyWinixDeviceStub
 
 
@@ -128,8 +133,18 @@ class Helpers:
             )
 
         response_json = await resp.json()
+
+        # Sample json
         # {'resultCode': '200', 'resultMessage': 'SUCCESS', 'filterUsageAlarm': 9}
-        return int(response_json["filterUsageAlarm"]) * 30 * 24
+        LOGGER.debug(f"getFilterAlarmInfo: {response_json}")
+
+        # Fall back to 9 months if filter alram has been turned off in mobile app in which case we receive this:
+        # {'resultCode': '200', 'resultMessage': 'SUCCESS', 'filterUsageAlarm': 0}
+        value = int(response_json["filterUsageAlarm"])
+
+        if value == 0:
+            value = DEFAULT_FILTER_ALARM_DURATION
+        return value * 30 * 24
 
     @staticmethod
     async def get_device_stubs(
