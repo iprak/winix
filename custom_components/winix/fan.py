@@ -1,4 +1,4 @@
-"""Winix Air Purifier Device."""
+"""Winix Air Purifier fan entity."""
 
 from __future__ import annotations
 

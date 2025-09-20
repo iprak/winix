@@ -1,4 +1,4 @@
-"""The Winix Air Purifier component."""
+"""Winix integration helpers."""
 
 from __future__ import annotations
 

@@ -1,6 +1,6 @@
 {
   "domain": "winix",
-  "name": "Winix Air Purifier",
+  "name": "Winix",
   "documentation": "https://github.com/iprak/winix",
   "requirements": [
     "winix==0.3.0",
