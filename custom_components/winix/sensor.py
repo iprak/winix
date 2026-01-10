@@ -8,6 +8,7 @@ from typing import Any
 
 from homeassistant.components.sensor import (
     DOMAIN as SENSOR_DOMAIN,
+    SensorDeviceClass,
     SensorEntity,
     SensorEntityDescription,
     SensorStateClass,
@@ -25,10 +26,12 @@ from .const import (
     ATTR_AIR_QVALUE,
     ATTR_FILTER_HOUR,
     ATTR_FILTER_REPLACEMENT_CYCLE,
+    ATTR_PM25,
     LOGGER,
     SENSOR_AIR_QVALUE,
     SENSOR_AQI,
     SENSOR_FILTER_LIFE,
+    SENSOR_PM25,
     WINIX_DATA_COORDINATOR,
 )
 from .device_wrapper import WinixDeviceWrapper
@@ -111,6 +114,16 @@ SENSOR_DESCRIPTIONS: tuple[WininxSensorEntityDescription, ...] = (
         name="AQI",
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda state, wrapper: state.get(ATTR_AIR_AQI),
+        extra_state_attributes_fn=None,
+    ),
+    WininxSensorEntityDescription(
+        key=SENSOR_PM25,
+        device_class=SensorDeviceClass.PM25,
+        icon="mdi:air-filter",
+        name="PM 2.5",
+        native_unit_of_measurement="µg/m³",
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda state, wrapper: state.get(ATTR_PM25),
         extra_state_attributes_fn=None,
     ),
 )

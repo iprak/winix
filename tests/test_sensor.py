@@ -76,6 +76,12 @@ async def test_sensors(
     assert entity_state is not None
     assert int(entity_state.state) == int(aqi)
 
+    pm25 = "12"
+    entity_state = hass.states.get("sensor.winix_devicealias_pm2_5")
+    assert entity_state is not None
+    assert int(entity_state.state) == int(pm25)
+    assert entity_state.attributes.get("unit_of_measurement") == "µg/m³"
+
 
 async def test_sensor_filter_life_missing(
     hass: HomeAssistant,

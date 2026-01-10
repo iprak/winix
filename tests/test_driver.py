@@ -41,6 +41,7 @@ async def test_turn_off(mock_rpc_attr, mock_driver, method, category, value) -> 
         ({"A02": "0"}, {"power": "off"}),
         ({"A02": "1"}, {"power": "on"}),
         ({"S08": "79"}, {"air_qvalue": 79}),  # air_qvalue
+        ({"S04": "12"}, {"pm2_5": 12}),  # pm2_5
     ],
     indirect=["mock_driver_with_payload"],
 )

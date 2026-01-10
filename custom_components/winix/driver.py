@@ -7,7 +7,7 @@ from typing import Final
 
 import aiohttp
 
-from .const import LOGGER
+from .const import ATTR_PM25, LOGGER
 
 # Modified from https://github.com/hfern/winix to support async operations
 
@@ -44,6 +44,7 @@ class WinixDriver:
         "filter_hour": "A21",
         "air_quality": "S07",
         "air_qvalue": "S08",
+        ATTR_PM25: "S04",
         "ambient_light": "S14",
     }
 
