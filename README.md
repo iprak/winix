@@ -7,7 +7,7 @@
 
 A custom component to interact with Winix [C545](https://www.winixamerica.com/product/certified-refurbished-c545-air-purifier/) and [C610](https://www.winixamerica.com/product/c610/) air purifiers.
 
-This has also been reported to work with these models: [AM90](https://www.winixamerica.com/product/am90/), [HR1000](https://www.amazon.com/Winix-HR1000-5-Stage-Enabled-Cleaner/dp/B01FWS0HSY), [C909](https://www.costco.com/winix-c909-4-stage-air-purifier-with-wi-fi-%2526-plasmawave-technology.product.100842491.html), [T800](https://winixeurope.eu/air-purifiers/winix-t800-wifi/), [5510](http://winixamerica.com/product/5510/), [9800](https://www.winixamerica.com/product/9800/). There could however be some difference in functionality.
+This has also been reported to work with these models: [AM90](https://www.winixamerica.com/product/am90/), [HR1000](https://www.amazon.com/Winix-HR1000-5-Stage-Enabled-Cleaner/dp/B01FWS0HSY), [C909](https://www.costco.com/winix-c909-4-stage-air-purifier-with-wi-fi-%2526-plasmawave-technology.product.100842491.html), [T800](https://winixeurope.eu/air-purifiers/winix-t800-wifi/), [5510](http://winixamerica.com/product/5510/), [5520](http://winixamerica.com/product/5520/), [9800](https://www.winixamerica.com/product/9800/). There could however be some difference in functionality.
 
 ## Installation
 
