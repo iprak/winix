@@ -258,6 +258,11 @@ class WinixDriver:
                             if attribute == value:
                                 output[category] = value_key
                     else:
-                        output[category] = int(attribute)
+                        if attribute is None or attribute == "":
+                            continue
+                        try:
+                            output[category] = int(attribute)
+                        except ValueError:
+                            continue
 
         return output

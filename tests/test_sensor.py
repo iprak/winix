@@ -101,3 +101,21 @@ async def test_sensor_filter_life_missing(
     assert (
         entity_state.state == "unknown"
     )  # Missing data evaluates to None which is unknown state
+
+
+async def test_sensor_pm25_missing(
+    hass: HomeAssistant,
+    device_stub,
+    device_data,
+    aioclient_mock: AiohttpClientMocker,
+    enable_custom_integrations,
+) -> None:
+    """Test PM 2.5 sensor for missing data."""
+
+    del device_data["body"]["data"][0]["attributes"]["S04"]
+
+    await init_integration(hass, device_stub, device_data, aioclient_mock)
+
+    entity_state = hass.states.get("sensor.winix_devicealias_pm2_5")
+    assert entity_state is not None
+    assert entity_state.state == "unknown"

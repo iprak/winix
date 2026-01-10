@@ -119,7 +119,7 @@ SENSOR_DESCRIPTIONS: tuple[WininxSensorEntityDescription, ...] = (
     WininxSensorEntityDescription(
         key=SENSOR_PM25,
         device_class=SensorDeviceClass.PM25,
-        icon="mdi:air-filter",
+        icon="mdi:molecule",
         name="PM 2.5",
         native_unit_of_measurement="µg/m³",
         state_class=SensorStateClass.MEASUREMENT,
