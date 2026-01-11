@@ -121,7 +121,6 @@ SENSOR_DESCRIPTIONS: tuple[WininxSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.PM25,
         entity_registry_enabled_default=False,
         name="PM 2.5",
-        native_unit_of_measurement=CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
         value_fn=lambda state, wrapper: state.get(ATTR_PM25),
         extra_state_attributes_fn=None,
     ),
@@ -141,6 +140,8 @@ async def async_setup_entry(
         WinixSensor(wrapper, manager, description)
         for description in SENSOR_DESCRIPTIONS
         for wrapper in manager.get_device_wrappers()
+        if (description.key != SENSOR_PM25)
+        or (description.key == SENSOR_PM25 and ATTR_PM25 in (wrapper.get_state() or {}))
     ]
     async_add_entities(entities)
     LOGGER.info("Added %s sensors", len(entities))
@@ -164,11 +165,6 @@ class WinixSensor(WinixEntity, SensorEntity):
         self._attr_unique_id = (
             f"{SENSOR_DOMAIN}.{WINIX_DOMAIN}_{description.key.lower()}_{self._mac}"
         )
-        if description.key == SENSOR_PM25:
-            state = self.device_wrapper.get_state() or {}
-            self._attr_entity_registry_enabled_default = (
-                ATTR_PM25 in state
-            )
 
     @property
     def extra_state_attributes(self) -> Mapping[str, Any] | None:
