@@ -257,9 +257,7 @@ class WinixDriver:
                         for value_key, value in self.state_keys[category].items():
                             if attribute == value:
                                 output[category] = value_key
-                    else:
-                        if attribute is None or attribute == "":
-                            continue
+                    elif attribute:
                         try:
                             output[category] = int(attribute)
                         except ValueError:
