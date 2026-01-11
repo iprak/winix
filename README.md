@@ -24,6 +24,7 @@ This can be installed by copying all the files from `custom_components/winix/` t
   - Fair (Amber) = 2
   - Poor (Red) = 3
 - The `Filter Life` sensor represents the left filter life and is based on an initial life of 9 months.
+- The `PM 2.5` sensor is exposed only on devices that report particulate readings (e.g., T800).
 
 - The fan entity supports speed and preset modes
 
