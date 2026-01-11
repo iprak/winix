@@ -118,7 +118,6 @@ SENSOR_DESCRIPTIONS: tuple[WininxSensorEntityDescription, ...] = (
     ),
     WininxSensorEntityDescription(
         device_class=SensorDeviceClass.PM25,
-        entity_registry_enabled_default=False,
         extra_state_attributes_fn=None,
         key=SENSOR_PM25,
         name="PM 2.5",
