@@ -114,7 +114,7 @@ def build_purifier(
     """Return a WinixPurifier instance."""
 
     device = WinixPurifier(device_wrapper, Mock())
-    device.add_to_platform_start(hass, None, None)
+    device.add_to_platform_start(hass, MagicMock(platform_name="test-platform"), None)
 
     # Use unique_id as entity_id, this is required for async_update_ha_state
     device.entity_id = device.unique_id
