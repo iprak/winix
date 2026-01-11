@@ -14,7 +14,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import PERCENTAGE
+from homeassistant.const import CONCENTRATION_MICROGRAMS_PER_CUBIC_METER, PERCENTAGE
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
@@ -119,10 +119,9 @@ SENSOR_DESCRIPTIONS: tuple[WininxSensorEntityDescription, ...] = (
     WininxSensorEntityDescription(
         key=SENSOR_PM25,
         device_class=SensorDeviceClass.PM25,
-        icon="mdi:molecule",
+        entity_registry_enabled_default=False,
         name="PM 2.5",
-        native_unit_of_measurement="µg/m³",
-        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
         value_fn=lambda state, wrapper: state.get(ATTR_PM25),
         extra_state_attributes_fn=None,
     ),
@@ -165,6 +164,11 @@ class WinixSensor(WinixEntity, SensorEntity):
         self._attr_unique_id = (
             f"{SENSOR_DOMAIN}.{WINIX_DOMAIN}_{description.key.lower()}_{self._mac}"
         )
+        if description.key == SENSOR_PM25:
+            state = self.device_wrapper.get_state() or {}
+            self._attr_entity_registry_enabled_default = (
+                ATTR_PM25 in state
+            )
 
     @property
     def extra_state_attributes(self) -> Mapping[str, Any] | None:

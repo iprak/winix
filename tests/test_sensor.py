@@ -117,5 +117,4 @@ async def test_sensor_pm25_missing(
     await init_integration(hass, device_stub, device_data, aioclient_mock)
 
     entity_state = hass.states.get("sensor.winix_devicealias_pm2_5")
-    assert entity_state is not None
-    assert entity_state.state == "unknown"
+    assert entity_state is None
