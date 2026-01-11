@@ -14,7 +14,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import PERCENTAGE
+from homeassistant.const import CONCENTRATION_MICROGRAMS_PER_CUBIC_METER, PERCENTAGE
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
@@ -122,6 +122,7 @@ SENSOR_DESCRIPTIONS: tuple[WininxSensorEntityDescription, ...] = (
         extra_state_attributes_fn=None,
         key=SENSOR_PM25,
         name="PM 2.5",
+        native_unit_of_measurement=CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
         value_fn=lambda state, wrapper: state.get(ATTR_PM25),
     ),
 )
