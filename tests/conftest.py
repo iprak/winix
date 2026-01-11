@@ -32,6 +32,7 @@ async def device_data() -> any:
     filter_life_hours = "1257"
     air_qvalue = "74"
     aqi = "01"
+    pm25 = "12"
 
     return {
         "statusCode": 200,
@@ -53,6 +54,7 @@ async def device_data() -> any:
                         "A07": "0",
                         "A21": filter_life_hours,
                         "S07": "01",
+                        "S04": pm25,
                         "S08": air_qvalue,
                         "S14": "121",
                     },

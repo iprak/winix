@@ -8,6 +8,7 @@ from typing import Any
 
 from homeassistant.components.sensor import (
     DOMAIN as SENSOR_DOMAIN,
+    SensorDeviceClass,
     SensorEntity,
     SensorEntityDescription,
     SensorStateClass,
@@ -25,10 +26,12 @@ from .const import (
     ATTR_AIR_QVALUE,
     ATTR_FILTER_HOUR,
     ATTR_FILTER_REPLACEMENT_CYCLE,
+    ATTR_PM25,
     LOGGER,
     SENSOR_AIR_QVALUE,
     SENSOR_AQI,
     SENSOR_FILTER_LIFE,
+    SENSOR_PM25,
     WINIX_DATA_COORDINATOR,
 )
 from .device_wrapper import WinixDeviceWrapper
@@ -113,6 +116,14 @@ SENSOR_DESCRIPTIONS: tuple[WininxSensorEntityDescription, ...] = (
         value_fn=lambda state, wrapper: state.get(ATTR_AIR_AQI),
         extra_state_attributes_fn=None,
     ),
+    WininxSensorEntityDescription(
+        key=SENSOR_PM25,
+        device_class=SensorDeviceClass.PM25,
+        entity_registry_enabled_default=False,
+        name="PM 2.5",
+        value_fn=lambda state, wrapper: state.get(ATTR_PM25),
+        extra_state_attributes_fn=None,
+    ),
 )
 
 
@@ -129,6 +140,8 @@ async def async_setup_entry(
         WinixSensor(wrapper, manager, description)
         for description in SENSOR_DESCRIPTIONS
         for wrapper in manager.get_device_wrappers()
+        if (description.key != SENSOR_PM25)
+        or (description.key == SENSOR_PM25 and ATTR_PM25 in (wrapper.get_state() or {}))
     ]
     async_add_entities(entities)
     LOGGER.info("Added %s sensors", len(entities))
