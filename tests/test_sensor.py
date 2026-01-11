@@ -10,11 +10,14 @@ from custom_components.winix.const import (
 )
 from custom_components.winix.sensor import get_filter_life_percentage
 from homeassistant.config_entries import ConfigEntryState
+from homeassistant.const import CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 
 from .common import init_integration
 
 TEST_DEVICE_ID = "847207352CE0_364yr8i989"
+PM25_SENSOR_ID = "sensor.winix_devicealias_pm_2_5"
 
 
 @pytest.mark.usefixtures("enable_custom_integrations")
@@ -59,7 +62,7 @@ async def test_sensors(
     device_data,
     aioclient_mock: AiohttpClientMocker,
 ) -> None:
-    """Test other sensor."""
+    """Test the sensors."""
 
     await init_integration(hass, device_stub, device_data, aioclient_mock)
 
@@ -76,11 +79,14 @@ async def test_sensors(
     assert entity_state is not None
     assert int(entity_state.state) == int(aqi)
 
-    pm25 = "12"
-    entity_state = hass.states.get("sensor.winix_devicealias_pm2_5")
+    expected_pm25 = "12"
+    entity_state = hass.states.get(PM25_SENSOR_ID)
     assert entity_state is not None
-    assert int(entity_state.state) == int(pm25)
-    assert entity_state.attributes.get("unit_of_measurement") == "µg/m³"
+    assert int(entity_state.state) == int(expected_pm25)
+    assert (
+        entity_state.attributes.get("unit_of_measurement")
+        == CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+    )
 
 
 @pytest.mark.usefixtures("enable_custom_integrations")
@@ -116,5 +122,5 @@ async def test_sensor_pm25_missing(
 
     await init_integration(hass, device_stub, device_data, aioclient_mock)
 
-    entity_state = hass.states.get("sensor.winix_devicealias_pm2_5")
+    entity_state = hass.states.get(PM25_SENSOR_ID)
     assert entity_state is None
