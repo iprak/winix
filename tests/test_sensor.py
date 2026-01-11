@@ -1,6 +1,6 @@
-"""Test WinixAirQualitySensor component."""
+"""Test Winix sensors."""
 
-
+import pytest
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
 
 from custom_components.winix.const import (
@@ -17,12 +17,12 @@ from .common import init_integration
 TEST_DEVICE_ID = "847207352CE0_364yr8i989"
 
 
+@pytest.mark.usefixtures("enable_custom_integrations")
 async def test_setup_integration(
     hass: HomeAssistant,
     device_stub,
     device_data,
     aioclient_mock: AiohttpClientMocker,
-    enable_custom_integrations,
 ) -> None:
     """Test integration setup."""
 
@@ -31,12 +31,12 @@ async def test_setup_integration(
     assert entry.state is ConfigEntryState.LOADED
 
 
+@pytest.mark.usefixtures("enable_custom_integrations")
 async def test_sensor_air_qvalue(
     hass: HomeAssistant,
     device_stub,
     device_data,
     aioclient_mock: AiohttpClientMocker,
-    enable_custom_integrations,
 ) -> None:
     """Test qvalue sensor."""
 
@@ -52,12 +52,12 @@ async def test_sensor_air_qvalue(
     assert entity_state.attributes.get(ATTR_AIR_QUALITY) == "good"
 
 
+@pytest.mark.usefixtures("enable_custom_integrations")
 async def test_sensors(
     hass: HomeAssistant,
     device_stub,
     device_data,
     aioclient_mock: AiohttpClientMocker,
-    enable_custom_integrations,
 ) -> None:
     """Test other sensor."""
 
@@ -83,12 +83,12 @@ async def test_sensors(
     assert entity_state.attributes.get("unit_of_measurement") == "µg/m³"
 
 
+@pytest.mark.usefixtures("enable_custom_integrations")
 async def test_sensor_filter_life_missing(
     hass: HomeAssistant,
     device_stub,
     device_data,
     aioclient_mock: AiohttpClientMocker,
-    enable_custom_integrations,
 ) -> None:
     """Test filter life sensor for missing data."""
 
@@ -103,12 +103,12 @@ async def test_sensor_filter_life_missing(
     )  # Missing data evaluates to None which is unknown state
 
 
+@pytest.mark.usefixtures("enable_custom_integrations")
 async def test_sensor_pm25_missing(
     hass: HomeAssistant,
     device_stub,
     device_data,
     aioclient_mock: AiohttpClientMocker,
-    enable_custom_integrations,
 ) -> None:
     """Test PM 2.5 sensor for missing data."""
 
