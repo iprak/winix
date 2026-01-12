@@ -14,7 +14,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import PERCENTAGE
+from homeassistant.const import CONCENTRATION_MICROGRAMS_PER_CUBIC_METER, PERCENTAGE
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
@@ -91,38 +91,38 @@ class WininxSensorEntityDescription(SensorEntityDescription):
 
 SENSOR_DESCRIPTIONS: tuple[WininxSensorEntityDescription, ...] = (
     WininxSensorEntityDescription(
-        key=SENSOR_AIR_QVALUE,
+        extra_state_attributes_fn=get_air_quality_attr,
         icon="mdi:cloud",
+        key=SENSOR_AIR_QVALUE,
         name="Air QValue",
         native_unit_of_measurement="qv",
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda state, wrapper: state.get(ATTR_AIR_QVALUE),
-        extra_state_attributes_fn=get_air_quality_attr,
     ),
     WininxSensorEntityDescription(
-        key=SENSOR_FILTER_LIFE,
+        extra_state_attributes_fn=get_filter_replacement_cycle,
         icon="mdi:air-filter",
+        key=SENSOR_FILTER_LIFE,
         name="Filter Life",
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=get_filter_life,
-        extra_state_attributes_fn=get_filter_replacement_cycle,
     ),
     WininxSensorEntityDescription(
-        key=SENSOR_AQI,
+        extra_state_attributes_fn=None,
         icon="mdi:blur",
+        key=SENSOR_AQI,
         name="AQI",
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda state, wrapper: state.get(ATTR_AIR_AQI),
-        extra_state_attributes_fn=None,
     ),
     WininxSensorEntityDescription(
-        key=SENSOR_PM25,
         device_class=SensorDeviceClass.PM25,
-        entity_registry_enabled_default=False,
-        name="PM 2.5",
-        value_fn=lambda state, wrapper: state.get(ATTR_PM25),
         extra_state_attributes_fn=None,
+        key=SENSOR_PM25,
+        name="PM 2.5",
+        native_unit_of_measurement=CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
+        value_fn=lambda state, wrapper: state.get(ATTR_PM25),
     ),
 )
 
