@@ -40,6 +40,11 @@ This can be installed by copying all the files from `custom_components/winix/` t
 
 - Winix **does not support** simultaneous login from multiple devices. If you logged into the mobile app after configuring HomeAssistant, then the HomeAssistant session gets flagged as invalid and vice-versa.
 
+  - To maintain access to both the app and Home Assistant, you can set up a second account. Use this second account for Home Assistant while keeping your main account logged in on your mobile app.
+
+    Create a second Winix account with no devices linked. Then from your main account, navigate to `Device Settings > Device Sharing > Add a user` and invite the second account.
+
+
 ## Breaking Changes
 
 - [1.1.0](https://github.com/iprak/winix/releases) changed the sensor implementation. The aqi sensor id might be different now.
