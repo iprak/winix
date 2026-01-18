@@ -6,13 +6,13 @@
           "username": "Username",
           "password": "Password"
         },
-        "description": "Set up Winix integration. Login with your mobile app credentials.",
+        "description": "Configure the Winix integration by signing in with your mobile app credentials.",
         "title": "Winix Air Purifier"
       }
     },
     "error": {
-      "invalid_auth": "Invalid credentials",
-      "invalid_user": "Invalid user",
+      "invalid_auth": "The entered password is invalid.",
+      "invalid_user": "The username is invalid. Make sure it's the same one registered with the mobile app and that the capitalization matches.",
       "unknown": "Unexpected error"
     }
   }
