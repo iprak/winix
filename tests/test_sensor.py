@@ -12,7 +12,6 @@ from custom_components.winix.sensor import get_filter_life_percentage
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import entity_registry as er
 
 from .common import init_integration
 

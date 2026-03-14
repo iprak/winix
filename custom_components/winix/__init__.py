@@ -30,7 +30,6 @@ from .const import (
     LOGGER,
     SERVICE_REMOVE_STALE_ENTITIES,
     WINIX_AUTH_RESPONSE,
-    WINIX_DATA_COORDINATOR,
     WINIX_DOMAIN,
     WINIX_NAME,
     __min_ha_version__,
@@ -38,11 +37,13 @@ from .const import (
 from .helpers import Helpers, WinixException
 from .manager import WinixManager
 
+type WinixConfigEntry = ConfigEntry[WinixManager]
+
 SUPPORTED_PLATFORMS = [Platform.FAN, Platform.SENSOR, Platform.SELECT, Platform.SWITCH]
 DEFAULT_SCAN_INTERVAL: Final = 30
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: WinixConfigEntry) -> bool:
     """Set up the Winix component."""
 
     if not is_valid_ha_version():
@@ -58,7 +59,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
         return False
 
-    hass.data.setdefault(WINIX_DOMAIN, {})
     user_input = entry.data
 
     auth_response_data = user_input.get(WINIX_AUTH_RESPONSE)
@@ -113,7 +113,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await manager.async_config_entry_first_refresh()
 
-    hass.data[WINIX_DOMAIN][entry.entry_id] = {WINIX_DATA_COORDINATOR: manager}
+    entry.runtime_data = manager
     await hass.config_entries.async_forward_entry_setups(entry, SUPPORTED_PLATFORMS)
 
     setup_hass_services(hass)

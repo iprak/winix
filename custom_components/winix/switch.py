@@ -9,12 +9,11 @@ from homeassistant.components.switch import (
     SwitchEntity,
     SwitchEntityDescription,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from . import WINIX_DOMAIN
-from .const import LOGGER, WINIX_DATA_COORDINATOR
+from . import WINIX_DOMAIN, WinixConfigEntry
+from .const import LOGGER
 from .device_wrapper import WinixDeviceWrapper
 from .manager import WinixEntity, WinixManager
 
@@ -43,13 +42,12 @@ SWITCH_DESCRIPTIONS: Final[tuple[WinixSwitchEntityDescription, ...]] = (
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: WinixConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up switch platform."""
 
-    data = hass.data[WINIX_DOMAIN][entry.entry_id]
-    manager: WinixManager = data[WINIX_DATA_COORDINATOR]
+    manager = entry.runtime_data
 
     entities = [
         WinixSwitchEntity(wrapper, manager, description)
