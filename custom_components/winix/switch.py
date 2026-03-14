@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Any, Final
 
 from homeassistant.components.switch import (
-    DOMAIN as SWITCH_DOMAIN,
+    ENTITY_ID_FORMAT,
     SwitchEntity,
     SwitchEntityDescription,
 )
@@ -74,8 +74,8 @@ class WinixSwitchEntity(WinixEntity, SwitchEntity):
         super().__init__(wrapper, coordinator)
         self.entity_description = description
 
-        self._attr_unique_id = (
-            f"{SWITCH_DOMAIN}.{WINIX_DOMAIN}_{description.key.lower()}_{self._mac}"
+        self._attr_unique_id = ENTITY_ID_FORMAT.format(
+            f"{WINIX_DOMAIN}_{description.key.lower()}_{self._mac}"
         )
 
     @property

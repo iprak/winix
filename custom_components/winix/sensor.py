@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from homeassistant.components.sensor import (
-    DOMAIN as SENSOR_DOMAIN,
+    ENTITY_ID_FORMAT,
     SensorDeviceClass,
     SensorEntity,
     SensorEntityDescription,
@@ -159,8 +159,8 @@ class WinixSensor(WinixEntity, SensorEntity):
         super().__init__(wrapper, coordinator)
         self.entity_description = description
 
-        self._attr_unique_id = (
-            f"{SENSOR_DOMAIN}.{WINIX_DOMAIN}_{description.key.lower()}_{self._mac}"
+        self._attr_unique_id = ENTITY_ID_FORMAT.format(
+            f"{WINIX_DOMAIN}_{description.key.lower()}_{self._mac}"
         )
 
     @property
