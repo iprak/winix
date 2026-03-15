@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from http import HTTPStatus
 
 import aiohttp
+import requests
 from winix import WinixAccount, auth
 
 from homeassistant.core import HomeAssistant
@@ -22,6 +23,16 @@ from .device_wrapper import MyWinixDeviceStub
 
 class Helpers:
     """Utility helper class."""
+
+    _MOBILE_APP_METADATA = {
+        "cognitoClientSecretKey": auth.COGNITO_CLIENT_SECRET_KEY,
+        "osType": "android",
+        "osVersion": "29",
+        "mobileLang": "en",
+        "deviceName": "SM-G988B",
+        "manufacturer": "samsung",
+        "appVersion": "1.0.8",
+    }
 
     @staticmethod
     def send_notification(
@@ -58,12 +69,11 @@ class Helpers:
             raise WinixException.from_aws_exception(err) from err
 
         access_token = response.access_token
-        account = WinixAccount(access_token)
+        uuid = WinixAccount(access_token).get_uuid()
 
-        # The next 2 operations can raise generic or botocore exceptions
         try:
-            account.register_user(username)
-            account.check_access_token()
+            Helpers._register_user(access_token, uuid, username)
+            Helpers._check_access_token(access_token, uuid)
         except Exception as err:  # pylint: disable=broad-except
             raise WinixException.from_winix_exception(err) from err
 
@@ -90,11 +100,11 @@ class Helpers:
             except Exception as err:  # pylint: disable=broad-except
                 raise WinixException.from_aws_exception(err) from err
 
-            account = WinixAccount(response.access_token)
+            uuid = WinixAccount(reponse.access_token).get_uuid()
             LOGGER.debug("Attempting access token check")
 
             try:
-                account.check_access_token()
+                Helpers._check_access_token(reponse.access_token, uuid)
             except Exception as err:  # pylint: disable=broad-except
                 raise WinixException.from_winix_exception(err) from err
 
@@ -102,6 +112,49 @@ class Helpers:
             return reponse
 
         return await hass.async_add_executor_job(_refresh, response)
+
+    @staticmethod
+    def _build_mobile_app_payload(
+        access_token: str, uuid: str, **kwargs
+    ) -> dict[str, str]:
+        """Build a payload that matches the current mobile app metadata."""
+
+        return {
+            "accessToken": access_token,
+            "uuid": uuid,
+            **Helpers._MOBILE_APP_METADATA,
+            **kwargs,
+        }
+
+    @staticmethod
+    def _check_access_token(access_token: str, uuid: str) -> None:
+        """Validate the access token with Winix cloud using current app metadata."""
+
+        resp = requests.post(
+            "https://us.mobile.winix-iot.com/checkAccessToken",
+            json=Helpers._build_mobile_app_payload(access_token, uuid),
+            timeout=DEFAULT_POST_TIMEOUT,
+        )
+
+        if resp.status_code != HTTPStatus.OK:
+            raise Exception(
+                f"Error while performing RPC checkAccessToken ({resp.status_code}): {resp.text}"
+            )
+
+    @staticmethod
+    def _register_user(access_token: str, uuid: str, email: str) -> None:
+        """Register the generated mobile identity with the Winix backend."""
+
+        resp = requests.post(
+            "https://us.mobile.winix-iot.com/registerUser",
+            json=Helpers._build_mobile_app_payload(access_token, uuid, email=email),
+            timeout=DEFAULT_POST_TIMEOUT,
+        )
+
+        if resp.status_code != HTTPStatus.OK:
+            raise Exception(
+                f"Error while performing RPC registerUser ({resp.status_code}): {resp.text}"
+            )
 
     @staticmethod
     async def get_filter_alarm_duration(
@@ -166,10 +219,7 @@ class Helpers:
 
         resp = await client.post(
             "https://us.mobile.winix-iot.com/getDeviceInfoList",
-            json={
-                "accessToken": access_token,
-                "uuid": uuid,
-            },
+            json=Helpers._build_mobile_app_payload(access_token, uuid),
             timeout=DEFAULT_POST_TIMEOUT,
         )
 
