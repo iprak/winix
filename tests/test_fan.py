@@ -24,7 +24,7 @@ from homeassistant.components.fan import FanEntityFeature
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import HomeAssistant
 
-from .common import build_fake_manager, build_purifier
+from .common import build_fake_manager, build_purifier  # noqa: TID251
 
 
 async def test_setup_platform(hass: HomeAssistant) -> None:

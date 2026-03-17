@@ -2,6 +2,8 @@
 
 from unittest.mock import AsyncMock, patch
 
+import pytest
+
 from custom_components.winix.const import WINIX_DOMAIN
 from custom_components.winix.helpers import WinixException
 from homeassistant import data_entry_flow
@@ -22,7 +24,8 @@ LOGIN_AUTH_RESPONSE = {
 }
 
 
-async def test_form(hass: HomeAssistant, enable_custom_integrations) -> None:
+@pytest.mark.usefixtures("enable_custom_integrations")
+async def test_form(hass: HomeAssistant) -> None:
     """Test that form shows up."""
 
     result = await hass.config_entries.flow.async_init(
@@ -32,7 +35,8 @@ async def test_form(hass: HomeAssistant, enable_custom_integrations) -> None:
     assert result["errors"] == {}
 
 
-async def test_invalid_user(hass: HomeAssistant, enable_custom_integrations) -> None:
+@pytest.mark.usefixtures("enable_custom_integrations")
+async def test_invalid_user(hass: HomeAssistant) -> None:
     """Test user validation in form."""
 
     with patch(
@@ -49,9 +53,8 @@ async def test_invalid_user(hass: HomeAssistant, enable_custom_integrations) -> 
         assert result["type"] == data_entry_flow.FlowResultType.FORM
 
 
-async def test_invalid_authentication(
-    hass: HomeAssistant, enable_custom_integrations
-) -> None:
+@pytest.mark.usefixtures("enable_custom_integrations")
+async def test_invalid_authentication(hass: HomeAssistant) -> None:
     """Test user authentication in form."""
 
     with patch(
@@ -69,7 +72,8 @@ async def test_invalid_authentication(
         assert result["type"] == data_entry_flow.FlowResultType.FORM
 
 
-async def test_create_entry(hass: HomeAssistant, enable_custom_integrations) -> None:
+@pytest.mark.usefixtures("enable_custom_integrations")
+async def test_create_entry(hass: HomeAssistant) -> None:
     """Test that entry is created."""
 
     with patch(

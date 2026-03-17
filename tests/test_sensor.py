@@ -13,7 +13,7 @@ from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
 from homeassistant.core import HomeAssistant
 
-from .common import init_integration
+from .common import init_integration  # noqa: TID251
 
 TEST_DEVICE_ID = "847207352CE0_364yr8i989"
 PM25_SENSOR_ID = "sensor.winix_devicealias_pm_2_5"
