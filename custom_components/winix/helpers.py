@@ -5,8 +5,12 @@ from __future__ import annotations
 from collections.abc import Mapping
 from datetime import datetime, timedelta
 from http import HTTPStatus
+import json
+from typing import Any
 
 import aiohttp
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
 import requests
 from winix import WinixAccount, auth
 
@@ -24,15 +28,42 @@ from .device_wrapper import MyWinixDeviceStub
 class Helpers:
     """Utility helper class."""
 
+    # Key and IV used by the Winix mobile app for AES-256-CBC encryption/decryption.
+    # See https://github.com/regaw-leinad/winix-api/blob/main/src/account/winix-crypto.ts
+    _AES_KEY = bytes.fromhex(
+        "84be38f854e320dd4a0a8c7fe0f3a9b84c288445916933fc222465bbd5a518d0"
+    )
+    _AES_IV = bytes.fromhex("dfd55f316e72e97b905f8739005c99a7")
+
     _MOBILE_APP_METADATA = {
         "cognitoClientSecretKey": auth.COGNITO_CLIENT_SECRET_KEY,
         "osType": "android",
         "osVersion": "29",
         "mobileLang": "en",
-        "deviceName": "SM-G988B",
-        "manufacturer": "samsung",
-        "appVersion": "1.0.8",
+        "appVersion": "1.5.6",
+        "mobileModel": "SM-G988B",
     }
+
+    @staticmethod
+    def encrypt(payload: dict[str, Any]) -> str:
+        """AES-256-CBC encrypt the payload and return the ciphertext as a string."""
+        payload_text = json.dumps(payload)
+        plaintext = payload_text.encode("utf-8")
+
+        padded_plaintext = pad(plaintext, AES.block_size)
+
+        cipher = AES.new(Helpers._AES_KEY, AES.MODE_CBC, Helpers._AES_IV)
+        return cipher.encrypt(padded_plaintext)
+
+    @staticmethod
+    def decrypt(ciphertext: bytes) -> str:
+        """AES-256-CBC decrypt the ciphertext and return the plaintext as a string."""
+
+        cipher = AES.new(Helpers._AES_KEY, AES.MODE_CBC, Helpers._AES_IV)
+        decrypted_padded_plaintext = cipher.decrypt(ciphertext)
+
+        # Decrypt the data
+        return unpad(decrypted_padded_plaintext, AES.block_size)
 
     @staticmethod
     def send_notification(
