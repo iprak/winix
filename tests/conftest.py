@@ -7,7 +7,7 @@ import pytest
 from custom_components.winix.device_wrapper import MyWinixDeviceStub, WinixDeviceWrapper
 from custom_components.winix.driver import WinixDriver
 
-from .common import TEST_DEVICE_ID
+from .common import TEST_DEVICE_ID  # noqa: TID251
 
 
 @pytest.fixture
@@ -94,7 +94,7 @@ def mock_driver() -> WinixDriver:
 
 
 @pytest.fixture
-def mock_driver_with_payload(request) -> WinixDriver:
+def mock_driver_with_payload(request: pytest.FixtureRequest) -> WinixDriver:
     """Return a mocked WinixDriver instance."""
 
     json_value = {"body": {"data": [{"attributes": request.param}]}}

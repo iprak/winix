@@ -8,12 +8,7 @@ from typing import Any
 
 import voluptuous as vol
 
-from homeassistant.components.fan import (
-    DOMAIN as FAN_DOMAIN,
-    FanEntity,
-    FanEntityFeature,
-)
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.components.fan import ENTITY_ID_FORMAT, FanEntity, FanEntityFeature
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import HomeAssistant
 import homeassistant.helpers.config_validation as cv
@@ -23,6 +18,7 @@ from homeassistant.util.percentage import (
     percentage_to_ordered_list_item,
 )
 
+from . import WinixConfigEntry
 from .const import (
     ATTR_AIRFLOW,
     ATTR_FILTER_REPLACEMENT_DATE,
@@ -37,8 +33,6 @@ from .const import (
     PRESET_MODE_MANUAL_PLASMA_OFF,
     PRESET_MODE_SLEEP,
     PRESET_MODES,
-    WINIX_DATA_COORDINATOR,
-    WINIX_DATA_KEY,
     WINIX_DOMAIN,
 )
 from .device_wrapper import WinixDeviceWrapper
@@ -47,16 +41,14 @@ from .manager import WinixEntity, WinixManager
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: WinixConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the Winix air purifiers."""
-    data = hass.data[WINIX_DOMAIN][entry.entry_id]
-    manager: WinixManager = data[WINIX_DATA_COORDINATOR]
+    manager = entry.runtime_data
     entities = [
         WinixPurifier(wrapper, manager) for wrapper in manager.get_device_wrappers()
     ]
-    data[WINIX_DATA_KEY] = entities
     async_add_entities(entities)
 
     async def async_service_handler(service_call):
@@ -69,13 +61,9 @@ async def async_setup_entry(
 
         entity_ids = service_call.data.get(ATTR_ENTITY_ID)
         if entity_ids:
-            devices = [
-                entity
-                for entity in data[WINIX_DATA_KEY]
-                if entity.entity_id in entity_ids
-            ]
+            devices = [entity for entity in entities if entity.entity_id in entity_ids]
         else:
-            devices = data[WINIX_DATA_KEY]
+            devices = entities
 
         state_update_tasks = []
         for device in devices:
@@ -116,7 +104,7 @@ class WinixPurifier(WinixEntity, FanEntity):
     def __init__(self, wrapper: WinixDeviceWrapper, coordinator: WinixManager) -> None:
         """Initialize the entity."""
         super().__init__(wrapper, coordinator)
-        self._attr_unique_id = f"{FAN_DOMAIN}.{WINIX_DOMAIN}_{self._mac}"
+        self._attr_unique_id = ENTITY_ID_FORMAT.format(f"{WINIX_DOMAIN}_{self._mac}")
 
     @property
     def name(self) -> str | None:

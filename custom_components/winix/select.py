@@ -5,16 +5,15 @@ from dataclasses import dataclass
 from typing import Any, Final
 
 from homeassistant.components.select import (
-    DOMAIN as SELECT_DOMAIN,
+    ENTITY_ID_FORMAT,
     SelectEntity,
     SelectEntityDescription,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from . import WINIX_DOMAIN
-from .const import LOGGER, WINIX_DATA_COORDINATOR
+from . import WINIX_DOMAIN, WinixConfigEntry
+from .const import LOGGER
 from .device_wrapper import WinixDeviceWrapper
 from .driver import BrightnessLevel
 from .manager import WinixEntity, WinixManager
@@ -64,13 +63,12 @@ SELECT_DESCRIPTIONS: Final[tuple[WinixSelectEntityDescription, ...]] = (
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: WinixConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up select platform."""
 
-    data = hass.data[WINIX_DOMAIN][entry.entry_id]
-    manager: WinixManager = data[WINIX_DATA_COORDINATOR]
+    manager = entry.runtime_data
 
     entities = [
         WinixSelectEntity(wrapper, manager, description)
@@ -97,8 +95,8 @@ class WinixSelectEntity(WinixEntity, SelectEntity):
         super().__init__(wrapper, coordinator)
         self.entity_description = description
 
-        self._attr_unique_id = (
-            f"{SELECT_DOMAIN}.{WINIX_DOMAIN}_{description.key.lower()}_{self._mac}"
+        self._attr_unique_id = ENTITY_ID_FORMAT.format(
+            f"{WINIX_DOMAIN}_{description.key.lower()}_{self._mac}"
         )
 
     @property

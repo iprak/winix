@@ -17,8 +17,6 @@ from custom_components.winix.const import (
     PRESET_MODE_SLEEP,
     PRESET_MODES,
     SERVICE_PLASMAWAVE_ON,
-    WINIX_DATA_COORDINATOR,
-    WINIX_DATA_KEY,
     WINIX_DOMAIN,
 )
 from custom_components.winix.fan import WinixPurifier, async_setup_entry
@@ -26,7 +24,7 @@ from homeassistant.components.fan import FanEntityFeature
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import HomeAssistant
 
-from .common import build_fake_manager, build_purifier
+from .common import build_fake_manager, build_purifier  # noqa: TID251
 
 
 async def test_setup_platform(hass: HomeAssistant) -> None:
@@ -34,7 +32,7 @@ async def test_setup_platform(hass: HomeAssistant) -> None:
 
     manager = build_fake_manager(3)
     config = MockConfigEntry(domain=WINIX_DOMAIN, data={}, entry_id="id1")
-    hass.data = {WINIX_DOMAIN: {"id1": {WINIX_DATA_COORDINATOR: manager}}}
+    config.runtime_data = manager
     async_add_entities = Mock()
 
     await async_setup_entry(hass, config, async_add_entities)
@@ -48,16 +46,16 @@ async def test_service(hass: HomeAssistant) -> None:
 
     manager = build_fake_manager(2)
     config = MockConfigEntry(domain=WINIX_DOMAIN, data={}, entry_id="id1")
-    hass.data = {WINIX_DOMAIN: {"id1": {WINIX_DATA_COORDINATOR: manager}}}
+    config.runtime_data = manager
     async_add_entities = Mock()
 
     await async_setup_entry(hass, config, async_add_entities)
 
     first_entity_id = None
+    entities = async_add_entities.call_args[0][0]
 
     # Prepare the devices for serive call
-    data = hass.data[WINIX_DOMAIN][config.entry_id]
-    for device in data[WINIX_DATA_KEY]:
+    for device in entities:
         device.hass = hass
         device.entity_id = device.unique_id
 

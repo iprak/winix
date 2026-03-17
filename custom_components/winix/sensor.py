@@ -7,19 +7,18 @@ from dataclasses import dataclass
 from typing import Any
 
 from homeassistant.components.sensor import (
-    DOMAIN as SENSOR_DOMAIN,
+    ENTITY_ID_FORMAT,
     SensorDeviceClass,
     SensorEntity,
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONCENTRATION_MICROGRAMS_PER_CUBIC_METER, PERCENTAGE
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
 
-from . import WINIX_DOMAIN
+from . import WINIX_DOMAIN, WinixConfigEntry
 from .const import (
     ATTR_AIR_AQI,
     ATTR_AIR_QUALITY,
@@ -32,7 +31,6 @@ from .const import (
     SENSOR_AQI,
     SENSOR_FILTER_LIFE,
     SENSOR_PM25,
-    WINIX_DATA_COORDINATOR,
 )
 from .device_wrapper import WinixDeviceWrapper
 from .manager import WinixEntity, WinixManager
@@ -129,12 +127,11 @@ SENSOR_DESCRIPTIONS: tuple[WininxSensorEntityDescription, ...] = (
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: WinixConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the Winix sensors."""
-    data = hass.data[WINIX_DOMAIN][entry.entry_id]
-    manager: WinixManager = data[WINIX_DATA_COORDINATOR]
+    manager = entry.runtime_data
 
     entities = [
         WinixSensor(wrapper, manager, description)
@@ -162,8 +159,8 @@ class WinixSensor(WinixEntity, SensorEntity):
         super().__init__(wrapper, coordinator)
         self.entity_description = description
 
-        self._attr_unique_id = (
-            f"{SENSOR_DOMAIN}.{WINIX_DOMAIN}_{description.key.lower()}_{self._mac}"
+        self._attr_unique_id = ENTITY_ID_FORMAT.format(
+            f"{WINIX_DOMAIN}_{description.key.lower()}_{self._mac}"
         )
 
     @property
