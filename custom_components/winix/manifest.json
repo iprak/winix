@@ -3,7 +3,8 @@
   "name": "Winix Air Purifier",
   "documentation": "https://github.com/iprak/winix",
   "requirements": [
-    "winix==0.3.0"
+    "winix==0.3.0",
+    "cryptography>=46.0.5"
   ],
   "dependencies": [],
   "codeowners": [

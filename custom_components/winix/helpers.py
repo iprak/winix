@@ -5,8 +5,12 @@ from __future__ import annotations
 from collections.abc import Mapping
 from datetime import datetime, timedelta
 from http import HTTPStatus
+import json
+from typing import Any
 
 import aiohttp
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
 import requests
 from winix import WinixAccount, auth
 
@@ -20,19 +24,59 @@ from .const import (
 )
 from .device_wrapper import MyWinixDeviceStub
 
+HEADERS = {
+    "Content-Type": "application/octet-stream",
+    "Accept": "application/octet-stream",
+}
+
 
 class Helpers:
     """Utility helper class."""
+
+    # Key and IV used by the Winix mobile app for AES-256-CBC encryption/decryption.
+    # See https://github.com/regaw-leinad/winix-api/blob/main/src/account/winix-crypto.ts
+    _AES_KEY = bytes.fromhex(
+        "84be38f854e320dd4a0a8c7fe0f3a9b84c288445916933fc222465bbd5a518d0"
+    )
+    _AES_IV = bytes.fromhex("dfd55f316e72e97b905f8739005c99a7")
 
     _MOBILE_APP_METADATA = {
         "cognitoClientSecretKey": auth.COGNITO_CLIENT_SECRET_KEY,
         "osType": "android",
         "osVersion": "29",
         "mobileLang": "en",
-        "deviceName": "SM-G988B",
-        "manufacturer": "samsung",
-        "appVersion": "1.0.8",
+        "appVersion": "1.5.6",
+        "mobileModel": "SM-G988B",
     }
+
+    @staticmethod
+    def json_loads(text: str) -> dict[str, Any]:
+        """Safely load JSON from a string and return a dictionary."""
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError:
+            return {}
+
+    @staticmethod
+    def encrypt(payload: dict[str, Any]) -> str:
+        """AES-256-CBC encrypt the payload and return the ciphertext as a string."""
+        payload_text = json.dumps(payload)
+        plaintext = payload_text.encode("utf-8")
+
+        padded_plaintext = pad(plaintext, AES.block_size)
+
+        cipher = AES.new(Helpers._AES_KEY, AES.MODE_CBC, Helpers._AES_IV)
+        return cipher.encrypt(padded_plaintext)
+
+    @staticmethod
+    def decrypt(ciphertext: bytes) -> str:
+        """AES-256-CBC decrypt the ciphertext and return the plaintext as a string."""
+
+        cipher = AES.new(Helpers._AES_KEY, AES.MODE_CBC, Helpers._AES_IV)
+        decrypted_padded_plaintext = cipher.decrypt(ciphertext)
+
+        # Decrypt the data
+        return unpad(decrypted_padded_plaintext, AES.block_size)
 
     @staticmethod
     def send_notification(
@@ -128,33 +172,53 @@ class Helpers:
 
     @staticmethod
     def _check_access_token(access_token: str, uuid: str) -> None:
-        """Validate the access token with Winix cloud using current app metadata."""
+        """Validate the access token with Winix cloud using current app metadata.
+
+        Raises WinixException.
+        """
 
         resp = requests.post(
             "https://us.mobile.winix-iot.com/checkAccessToken",
-            json=Helpers._build_mobile_app_payload(access_token, uuid),
+            headers=HEADERS,
+            data=Helpers.encrypt(Helpers._build_mobile_app_payload(access_token, uuid)),
             timeout=DEFAULT_POST_TIMEOUT,
         )
 
+        binary_data = resp.content
+        response_json_text = Helpers.decrypt(binary_data)
+        response_json = Helpers.json_loads(response_json_text)
+
         if resp.status_code != HTTPStatus.OK:
-            raise Exception(
-                f"Error while performing RPC checkAccessToken ({resp.status_code}): {resp.text}"
+            response_json["message"] = (
+                f"Error while performing RPC checkAccessToken ({resp.status_code})"
             )
+            raise WinixException(response_json)
 
     @staticmethod
     def _register_user(access_token: str, uuid: str, email: str) -> None:
-        """Register the generated mobile identity with the Winix backend."""
+        """Register the generated mobile identity with the Winix backend.
+
+        Raises WinixException.
+        """
 
         resp = requests.post(
             "https://us.mobile.winix-iot.com/registerUser",
-            json=Helpers._build_mobile_app_payload(access_token, uuid, email=email),
+            headers=HEADERS,
+            data=Helpers.encrypt(
+                Helpers._build_mobile_app_payload(access_token, uuid, email=email)
+            ),
             timeout=DEFAULT_POST_TIMEOUT,
         )
 
+        binary_data = resp.content
+        response_json_text = Helpers.decrypt(binary_data)
+        response_json = Helpers.json_loads(response_json_text)
+
         if resp.status_code != HTTPStatus.OK:
-            raise Exception(
-                f"Error while performing RPC registerUser ({resp.status_code}): {resp.text}"
+            response_json["message"] = (
+                f"Error while performing RPC registerUser ({resp.status_code})"
             )
+            raise WinixException(response_json)
 
     @staticmethod
     async def get_filter_alarm_duration(
@@ -219,11 +283,19 @@ class Helpers:
 
         resp = await client.post(
             "https://us.mobile.winix-iot.com/getDeviceInfoList",
-            json=Helpers._build_mobile_app_payload(access_token, uuid),
+            headers=HEADERS,
+            data=Helpers.encrypt(
+                {
+                    "accessToken": access_token,
+                    "uuid": uuid,
+                }
+            ),
             timeout=DEFAULT_POST_TIMEOUT,
         )
 
-        response_json = await resp.json()
+        binary_data = resp.content
+        response_json_text = Helpers.decrypt(await binary_data.read())
+        response_json = Helpers.json_loads(response_json_text)
 
         if resp.status != HTTPStatus.OK:
             err_data = response_json
