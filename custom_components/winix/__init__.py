@@ -112,6 +112,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: WinixConfigEntry) -> boo
         )
 
     await manager.async_config_entry_first_refresh()
+    manager.update_features()  # Update features after the first refresh to ensure we have the latest state
 
     entry.runtime_data = manager
     await hass.config_entries.async_forward_entry_setups(entry, SUPPORTED_PLATFORMS)

@@ -67,7 +67,7 @@ class WinixDeviceWrapper:
         self._plasma_on = False
         self._sleep = False
         self._logger = logger
-        self._child_lock_on = False
+        self._child_lock_on: bool | None = None
         self._brightness_level = None
         self._filter_alarm_duration = filter_alarm_duration_hours
 
@@ -75,15 +75,16 @@ class WinixDeviceWrapper:
         self._alias = device_stub.alias
         self._features = Features()
 
-        if device_stub.model.lower().startswith("c610"):
-            self._features.supports_brightness_level = True
-            self._features.supports_child_lock = True
-
         logger.debug(
             "%s: created device with filter_alarm_duration=%d",
             self._alias,
             filter_alarm_duration_hours,
         )
+
+    def update_features(self) -> None:
+        """Update the supported features based on the current state."""
+        self._features.supports_brightness_level = self.brightness_level is not None
+        self._features.supports_child_lock = self.is_child_lock_on is not None
 
     async def update(self) -> None:
         """Update the device data."""
@@ -92,7 +93,10 @@ class WinixDeviceWrapper:
 
         self._on = self._state.get(ATTR_POWER) == ON_VALUE
         self._plasma_on = self._state.get(ATTR_PLASMA) == ON_VALUE
-        self._child_lock_on = self._state.get(ATTR_CHILD_LOCK) == ON_VALUE
+
+        value = self._state.get(ATTR_CHILD_LOCK)
+        self._child_lock_on = value == ON_VALUE if value is not None else None
+
         self._brightness_level = self._state.get(ATTR_BRIGHTNESS_LEVEL)
 
         # Sleep: airflow=sleep, mode can be manual
@@ -220,7 +224,7 @@ class WinixDeviceWrapper:
             await self._driver.plasmawave_off()
 
     @property
-    def is_child_lock_on(self) -> bool:
+    def is_child_lock_on(self) -> bool | None:
         """Return if child lock is on."""
         return self._child_lock_on
 
