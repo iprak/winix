@@ -109,3 +109,8 @@ class WinixSelectEntity(WinixEntity, SelectEntity):
         if await self.entity_description.select_option_fn(self.device_wrapper, option):
             self.async_write_ha_state()
             await self.coordinator.async_request_refresh()
+
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        return self.device_wrapper.is_on
