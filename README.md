@@ -17,7 +17,10 @@ This can be installed by copying all the files from `custom_components/winix/` t
 - C545 will generate 4 entities.
 - C610 will generate 6 entities.
 
-![image](https://user-images.githubusercontent.com/6459774/212468308-e6e855ac-ad26-4405-b683-246ccf4c8ccc.png)
+<img width="200" alt="image" src="https://github.com/user-attachments/assets/4ce73077-ae01-4c7f-9aa4-2c0cf769fbf3" />
+
+<img width="200" alt="image" src="https://github.com/user-attachments/assets/152b668e-256b-4798-a080-0cf6d05b998b" />
+
 
 - The `Air QValue` sensor reports the qValue reported by Winix purifier. This value is related to air quality although I am not exactly sure what it represents.
 - The `AQI` sensor matches the led light on the purifier.
@@ -34,6 +37,14 @@ This can be installed by copying all the files from `custom_components/winix/` t
 - The device data is fetched every 30 seconds.
 - There are 4 services `winix.plasmawave_off, winix.plasmawave_on, plasmawave_toggle and remove_stale_entities` in addition to the default fan services `fan.speed, fan.toggle, fan.turn_off, fan.turn_on, fan.set_preset_mode`.
   - `remove_stale_entities` can be used to remove entities which appear unavaialble when the associated device is removed from the account.
+
+
+### Brightness Level
+If the purifiers support this feature, then you will see a selection list under the device.
+
+- Winix only supports updating the brightness level when the purifier is running.
+- The last brightness level is exposed as the attribute `last_brightness_level` on the fan.
+
 
 ### Note
 
