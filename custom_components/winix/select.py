@@ -107,4 +107,5 @@ class WinixSelectEntity(WinixEntity, SelectEntity):
     async def async_select_option(self, option: str) -> None:
         """Set the entity value."""
         if await self.entity_description.select_option_fn(self.device_wrapper, option):
+            self.async_write_ha_state()
             await self.coordinator.async_request_refresh()
