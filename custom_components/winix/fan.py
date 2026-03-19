@@ -22,6 +22,7 @@ from . import WinixConfigEntry
 from .const import (
     ATTR_AIRFLOW,
     ATTR_FILTER_REPLACEMENT_DATE,
+    ATTR_LAST_BRIGHTNESS_LEVEL,
     ATTR_LOCATION,
     ATTR_POWER,
     FAN_SERVICES,
@@ -131,11 +132,21 @@ class WinixPurifier(WinixEntity, FanEntity):
             self.device_wrapper.device_stub.filter_replace_date
         )
 
+        if self.device_wrapper.features.supports_brightness_level:
+            attributes[ATTR_LAST_BRIGHTNESS_LEVEL] = (
+                self.device_wrapper.brightness_level
+            )
+
         return attributes
 
     @property
     def is_on(self) -> bool:
         """Return true if switch is on."""
+        LOGGER.debug(
+            "Checking if device %s is on => %s",
+            self.device_wrapper.device_stub.alias,
+            self.device_wrapper.is_on,
+        )
         return self.device_wrapper.is_on
 
     @property
@@ -220,10 +231,18 @@ class WinixPurifier(WinixEntity, FanEntity):
 
         self.async_write_ha_state()
 
+        # Use coordinator to notify other entities e.g. brightness selection
+        if self.device_wrapper.features.supports_brightness_level:
+            self.coordinator.async_update_listeners()
+
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the purifier."""
         await self.device_wrapper.async_turn_off()
         self.async_write_ha_state()
+
+        # Use coordinator to notify other entities e.g. brightness selection
+        if self.device_wrapper.features.supports_brightness_level:
+            self.coordinator.async_update_listeners()
 
     async def async_plasmawave_on(self) -> None:
         """Turn on plasma wave."""
