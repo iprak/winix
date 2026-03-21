@@ -1,0 +1,12 @@
+{
+	"entity": {
+		"fan": {
+			"purifier": {
+				"default": "mdi:air-purifier",
+				"state": {
+					"off": "mdi:air-purifier-off"
+				}
+			}
+		}
+	}
+}

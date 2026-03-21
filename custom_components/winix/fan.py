@@ -102,6 +102,8 @@ class WinixPurifier(WinixEntity, FanEntity):
         | FanEntityFeature.TURN_OFF
     )
 
+    _attr_translation_key = "purifier"
+
     def __init__(self, wrapper: WinixDeviceWrapper, coordinator: WinixManager) -> None:
         """Initialize the entity."""
         super().__init__(wrapper, coordinator)
@@ -230,6 +232,7 @@ class WinixPurifier(WinixEntity, FanEntity):
             await self.device_wrapper.async_turn_on()
 
         self.async_write_ha_state()
+        await self.coordinator.async_request_refresh()
 
         # Use coordinator to notify other entities e.g. brightness selection
         if self.device_wrapper.features.supports_brightness_level:
@@ -239,6 +242,7 @@ class WinixPurifier(WinixEntity, FanEntity):
         """Turn off the purifier."""
         await self.device_wrapper.async_turn_off()
         self.async_write_ha_state()
+        await self.coordinator.async_request_refresh()
 
         # Use coordinator to notify other entities e.g. brightness selection
         if self.device_wrapper.features.supports_brightness_level:
