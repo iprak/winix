@@ -108,7 +108,11 @@ class WinixSelectEntity(WinixEntity, SelectEntity):
         """Set the entity value."""
         if await self.entity_description.select_option_fn(self.device_wrapper, option):
             self.async_write_ha_state()
-            await self.coordinator.async_request_refresh()
+
+            # The Winix end point accepts invalud value falling back to 100% brightness.
+            # Since the refresh is async so forcing a refresh is no better than scheduled
+            # refresh so not invoking a refresh here.
+            # async_write_ha_state ensures that the brightness_level picked stays selected in the UI.
 
     @property
     def available(self) -> bool:
