@@ -13,6 +13,7 @@ from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import HomeAssistant
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util.percentage import (
     ordered_list_item_to_percentage,
     percentage_to_ordered_list_item,
@@ -91,7 +92,7 @@ async def async_setup_entry(
     LOGGER.info("Added %s Winix fans", len(entities))
 
 
-class WinixPurifier(WinixEntity, FanEntity):
+class WinixPurifier(WinixEntity, FanEntity, RestoreEntity):
     """Representation of a Winix Purifier entity."""
 
     # https://developers.home-assistant.io/docs/core/entity/fan/
@@ -108,6 +109,13 @@ class WinixPurifier(WinixEntity, FanEntity):
         """Initialize the entity."""
         super().__init__(wrapper, coordinator)
         self._attr_unique_id = ENTITY_ID_FORMAT.format(f"{WINIX_DOMAIN}_{self._mac}")
+
+    async def async_added_to_hass(self) -> None:
+        """Call when entity about to be added to hass."""
+        await super().async_added_to_hass()
+        state = await self.async_get_last_state()
+        last_brightness_level = state.attributes["brightness_level"]
+        print(last_brightness_level)
 
     @property
     def name(self) -> str | None:
@@ -224,18 +232,25 @@ class WinixPurifier(WinixEntity, FanEntity):
         # pylint: disable=unused-argument
         """Turn on the purifier."""
 
+        device_wrapper = self.device_wrapper
+
         if percentage:
             await self.async_set_percentage(percentage)
         if preset_mode:
-            await self.device_wrapper.async_set_preset_mode(preset_mode)
+            await device_wrapper.async_set_preset_mode(preset_mode)
         else:
-            await self.device_wrapper.async_turn_on()
+            await device_wrapper.async_turn_on()
 
         self.async_write_ha_state()
+        supports_brightness_level = device_wrapper.features.supports_brightness_level
+
+        if supports_brightness_level:
+            device_wrapper.async_restore_last_brightness_level()
+
         await self.coordinator.async_request_refresh()
 
         # Use coordinator to notify other entities e.g. brightness selection
-        if self.device_wrapper.features.supports_brightness_level:
+        if supports_brightness_level:
             self.coordinator.async_update_listeners()
 
     async def async_turn_off(self, **kwargs: Any) -> None:

@@ -69,6 +69,7 @@ class WinixDeviceWrapper:
         self._logger = logger
         self._child_lock_on: bool | None = None
         self._brightness_level = None
+        self._last_brightness_level = None
         self._filter_alarm_duration = filter_alarm_duration_hours
 
         self.device_stub = device_stub
@@ -97,6 +98,7 @@ class WinixDeviceWrapper:
         value = self._state.get(ATTR_CHILD_LOCK)
         self._child_lock_on = value == ON_VALUE if value is not None else None
 
+        self._last_brightness_level = self._brightness_level
         self._brightness_level = self._state.get(ATTR_BRIGHTNESS_LEVEL)
 
         # Sleep: airflow=sleep, mode can be manual
@@ -253,6 +255,20 @@ class WinixDeviceWrapper:
         """Return current brightness level."""
         return self._brightness_level
 
+    async def async_restore_last_brightness_level(self) -> bool:
+        """Restore last brightness level."""
+
+        if not self._features.supports_brightness_level or (
+            self._last_brightness_level is None
+            or self._last_brightness_level == self.__brightness_level
+        ):
+            return False
+
+        await self._driver.set_brightness_level(self._last_brightness_level)
+        self._last_brightness_level = None
+        self._brightness_level = self._last_brightness_level
+        return True
+
     async def async_set_brightness_level(self, value: int) -> bool:
         """Set brightness level."""
 
@@ -262,6 +278,7 @@ class WinixDeviceWrapper:
             return False
 
         await self._driver.set_brightness_level(value)
+        self._last_brightness_level = self._brightness_level
         self._brightness_level = value
         return True
 

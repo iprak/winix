@@ -40,8 +40,13 @@ class Helpers:
     )
     _AES_IV = bytes.fromhex("dfd55f316e72e97b905f8739005c99a7")
 
+    # COGNITO_APP_CLIENT_ID = "14og512b9u20b8vrdm55d8empi"
+    _COGNITO_CLIENT_SECRET_KEY = "k554d4pvgf2n0chbhgtmbe4q0ul4a9flp3pcl6a47ch6rripvvr"
+    # COGNITO_USER_POOL_ID = "us-east-1_Ofd50EosD"
+    # COGNITO_REGION = "us-east-1"
+
     _MOBILE_APP_METADATA = {
-        "cognitoClientSecretKey": auth.COGNITO_CLIENT_SECRET_KEY,
+        "cognitoClientSecretKey": _COGNITO_CLIENT_SECRET_KEY,
         "osType": "android",
         "osVersion": "29",
         "mobileLang": "en",
