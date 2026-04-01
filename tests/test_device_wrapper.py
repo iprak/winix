@@ -26,7 +26,7 @@ from custom_components.winix.const import (
 )
 from custom_components.winix.device_wrapper import WinixDeviceWrapper
 
-from .common import build_mock_wrapper
+from .common import build_mock_wrapper  # noqa: TID251
 
 WinixDriver_TypeName = "custom_components.winix.driver.WinixDriver"
 

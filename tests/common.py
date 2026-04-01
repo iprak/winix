@@ -1,6 +1,6 @@
 """Tests for Winix component."""
 
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
@@ -105,6 +105,8 @@ def build_fake_manager(wrapper_count: Number) -> WinixManager:
 
     manager = MagicMock()
     manager.get_device_wrappers = Mock(return_value=wrappers)
+
+    manager.async_request_refresh = AsyncMock()
     return manager
 
 
@@ -113,7 +115,7 @@ def build_purifier(
 ) -> WinixPurifier:
     """Return a WinixPurifier instance."""
 
-    device = WinixPurifier(device_wrapper, Mock())
+    device = WinixPurifier(device_wrapper, build_fake_manager(1))
     device.add_to_platform_start(hass, MagicMock(platform_name="test-platform"), None)
 
     # Use unique_id as entity_id, this is required for async_update_ha_state
