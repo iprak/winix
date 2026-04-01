@@ -15,6 +15,7 @@ import requests
 from winix import WinixAccount, auth
 
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 
 from .const import (
     DEFAULT_FILTER_ALARM_DURATION,
@@ -324,7 +325,7 @@ class Helpers:
         ]
 
 
-class WinixException(Exception):
+class WinixException(HomeAssistantError):
     """Wiinx related operation exception."""
 
     result_code: str = ""
