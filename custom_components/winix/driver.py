@@ -3,23 +3,44 @@
 from __future__ import annotations
 
 from enum import Enum, unique
-from typing import Final
 
 import aiohttp
 
 from homeassistant.exceptions import HomeAssistantError
 
-from .const import ATTR_PM25, LOGGER
+from .const import (
+    AIR_QUALITY_FAIR,
+    AIR_QUALITY_GOOD,
+    AIR_QUALITY_POOR,
+    AIRFLOW_HIGH,
+    AIRFLOW_LOW,
+    AIRFLOW_MEDIUM,
+    AIRFLOW_SLEEP,
+    AIRFLOW_TURBO,
+    ATTR_AIR_AQI,
+    ATTR_AIR_QUALITY,
+    ATTR_AIR_QVALUE,
+    ATTR_AIRFLOW,
+    ATTR_AMBIENT_LIGHT,
+    ATTR_BRIGHTNESS_LEVEL,
+    ATTR_CHILD_LOCK,
+    ATTR_FILTER_HOUR,
+    ATTR_MODE,
+    ATTR_PLASMA,
+    ATTR_PM25,
+    ATTR_POWER,
+    LOGGER,
+    MODE_AUTO,
+    MODE_MANUAL,
+    OFF_VALUE,
+    ON_VALUE,
+)
 
 # Modified from https://github.com/hfern/winix to support async operations
 
 
 class WinixTransientError(HomeAssistantError):
     """Raised for transient network errors that may resolve on retry."""
-
-
-ATTR_BRIGHTNESS_LEVEL: Final = "brightness_level"
-ATTR_CHILD_LOCK: Final = "child_lock"
 
 
 @unique
@@ -41,33 +62,33 @@ class WinixDriver:
     PARAM_URL = "https://us.api.winix-iot.com/common/event/param/devices/{deviceid}"
 
     category_keys = {
-        "power": "A02",
-        "mode": "A03",
-        "airflow": "A04",
-        "aqi": "A05",
-        "plasma": "A07",
-        ATTR_BRIGHTNESS_LEVEL: "A16",
+        ATTR_POWER: "A02",
+        ATTR_MODE: "A03",
+        ATTR_AIRFLOW: "A04",
+        ATTR_AIR_AQI: "A05",
+        ATTR_PLASMA: "A07",
         ATTR_CHILD_LOCK: "A08",
-        "filter_hour": "A21",
-        "air_quality": "S07",
-        "air_qvalue": "S08",
+        ATTR_BRIGHTNESS_LEVEL: "A16",
+        ATTR_FILTER_HOUR: "A21",
+        ATTR_AIR_QUALITY: "S07",
+        ATTR_AIR_QVALUE: "S08",
         ATTR_PM25: "S04",
-        "ambient_light": "S14",
+        ATTR_AMBIENT_LIGHT: "S14",
     }
 
     state_keys = {
-        "power": {"off": "0", "on": "1"},
-        "mode": {"auto": "01", "manual": "02"},
-        "airflow": {
-            "low": "01",
-            "medium": "02",
-            "high": "03",
-            "turbo": "05",
-            "sleep": "06",
+        ATTR_POWER: {OFF_VALUE: "0", ON_VALUE: "1"},
+        ATTR_MODE: {MODE_AUTO: "01", MODE_MANUAL: "02"},
+        ATTR_AIRFLOW: {
+            AIRFLOW_LOW: "01",
+            AIRFLOW_MEDIUM: "02",
+            AIRFLOW_HIGH: "03",
+            AIRFLOW_TURBO: "05",
+            AIRFLOW_SLEEP: "06",
         },
-        ATTR_CHILD_LOCK: {"off": "0", "on": "1"},
-        "plasma": {"off": "0", "on": "1"},
-        "air_quality": {"good": "01", "fair": "02", "poor": "03"},
+        ATTR_CHILD_LOCK: {OFF_VALUE: "0", ON_VALUE: "1"},
+        ATTR_PLASMA: {OFF_VALUE: "0", ON_VALUE: "1"},
+        ATTR_AIR_QUALITY: {AIR_QUALITY_GOOD: "01", AIR_QUALITY_FAIR: "02", AIR_QUALITY_POOR: "03"},
     }
 
     def __init__(
@@ -81,25 +102,25 @@ class WinixDriver:
     async def turn_off(self) -> None:
         """Turn the device off."""
         await self._rpc_attr(
-            self.category_keys["power"], self.state_keys["power"]["off"]
+            self.category_keys[ATTR_POWER], self.state_keys[ATTR_POWER][OFF_VALUE]
         )
 
     async def turn_on(self) -> None:
         """Turn the device on."""
         await self._rpc_attr(
-            self.category_keys["power"], self.state_keys["power"]["on"]
+            self.category_keys[ATTR_POWER], self.state_keys[ATTR_POWER][ON_VALUE]
         )
 
     async def auto(self) -> None:
         """Set device in auto mode."""
         await self._rpc_attr(
-            self.category_keys["mode"], self.state_keys["mode"]["auto"]
+            self.category_keys[ATTR_MODE], self.state_keys[ATTR_MODE][MODE_AUTO]
         )
 
     async def manual(self) -> None:
         """Set device in manual mode."""
         await self._rpc_attr(
-            self.category_keys["mode"], self.state_keys["mode"]["manual"]
+            self.category_keys[ATTR_MODE], self.state_keys[ATTR_MODE][MODE_MANUAL]
         )
 
     async def child_lock_off(self) -> None:
@@ -121,43 +142,43 @@ class WinixDriver:
     async def plasmawave_off(self) -> None:
         """Turn plasmawave off."""
         await self._rpc_attr(
-            self.category_keys["plasma"], self.state_keys["plasma"]["off"]
+            self.category_keys[ATTR_PLASMA], self.state_keys[ATTR_PLASMA][OFF_VALUE]
         )
 
     async def plasmawave_on(self) -> None:
         """Turn plasmawave on."""
         await self._rpc_attr(
-            self.category_keys["plasma"], self.state_keys["plasma"]["on"]
+            self.category_keys[ATTR_PLASMA], self.state_keys[ATTR_PLASMA][ON_VALUE]
         )
 
     async def low(self) -> None:
         """Set speed low."""
         await self._rpc_attr(
-            self.category_keys["airflow"], self.state_keys["airflow"]["low"]
+            self.category_keys[ATTR_AIRFLOW], self.state_keys[ATTR_AIRFLOW][AIRFLOW_LOW]
         )
 
     async def medium(self) -> None:
         """Set speed medium."""
         await self._rpc_attr(
-            self.category_keys["airflow"], self.state_keys["airflow"]["medium"]
+            self.category_keys[ATTR_AIRFLOW], self.state_keys[ATTR_AIRFLOW][AIRFLOW_MEDIUM]
         )
 
     async def high(self) -> None:
         """Set speed high."""
         await self._rpc_attr(
-            self.category_keys["airflow"], self.state_keys["airflow"]["high"]
+            self.category_keys[ATTR_AIRFLOW], self.state_keys[ATTR_AIRFLOW][AIRFLOW_HIGH]
         )
 
     async def turbo(self) -> None:
         """Set speed turbo."""
         await self._rpc_attr(
-            self.category_keys["airflow"], self.state_keys["airflow"]["turbo"]
+            self.category_keys[ATTR_AIRFLOW], self.state_keys[ATTR_AIRFLOW][AIRFLOW_TURBO]
         )
 
     async def sleep(self) -> None:
         """Set device in sleep mode."""
         await self._rpc_attr(
-            self.category_keys["airflow"], self.state_keys["airflow"]["sleep"]
+            self.category_keys[ATTR_AIRFLOW], self.state_keys[ATTR_AIRFLOW][AIRFLOW_SLEEP]
         )
 
     async def _rpc_attr(self, attr: str, value: str) -> None:

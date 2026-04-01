@@ -10,6 +10,8 @@ from .const import (
     AIRFLOW_LOW,
     AIRFLOW_SLEEP,
     ATTR_AIRFLOW,
+    ATTR_BRIGHTNESS_LEVEL,
+    ATTR_CHILD_LOCK,
     ATTR_MODE,
     ATTR_PLASMA,
     ATTR_POWER,
@@ -26,7 +28,7 @@ from .const import (
     Features,
     NumericPresetModes,
 )
-from .driver import ATTR_BRIGHTNESS_LEVEL, ATTR_CHILD_LOCK, WinixDriver
+from .driver import WinixDriver
 
 
 @dataclasses.dataclass
