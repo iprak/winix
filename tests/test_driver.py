@@ -24,10 +24,10 @@ from custom_components.winix.driver import AirPurifierDriver
         ("sleep", "airflow", "sleep"),
     ],
 )
-async def test_turn_off(mock_rpc_attr, mock_driver, method, category, value) -> None:
+async def test_turn_off(mock_rpc_attr, mock_airpurifier_driver, method, category, value) -> None:
     """Test various driver methods."""
 
-    await getattr(mock_driver, method)()
+    await getattr(mock_airpurifier_driver, method)()
     assert mock_rpc_attr.call_count == 1
     assert mock_rpc_attr.call_args[0] == (
         AirPurifierDriver.category_keys[category],
@@ -36,19 +36,19 @@ async def test_turn_off(mock_rpc_attr, mock_driver, method, category, value) -> 
 
 
 @pytest.mark.parametrize(
-    ("mock_driver_with_payload", "expected"),
+    ("mock_airpurifier_driver_with_payload", "expected"),
     [
         ({"A02": "0"}, {"power": "off"}),
         ({"A02": "1"}, {"power": "on"}),
         ({"S08": "79"}, {"air_qvalue": 79}),  # air_qvalue
         ({"S04": "12"}, {"pm2_5": 12}),  # pm2_5
     ],
-    indirect=["mock_driver_with_payload"],
+    indirect=["mock_airpurifier_driver_with_payload"],
 )
-async def test_get_state(mock_driver_with_payload, expected) -> None:
+async def test_get_state(mock_airpurifier_driver_with_payload, expected) -> None:
     """Test get_state for AirPurifierDriver."""
 
     # payload = {"A02": "0"}  # "A02" represents "power" and "0" means "off"
 
-    state = await mock_driver_with_payload.get_state()
+    state = await mock_airpurifier_driver_with_payload.get_state()
     assert state == expected
