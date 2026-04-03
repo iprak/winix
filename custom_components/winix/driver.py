@@ -7,6 +7,8 @@ from typing import Final
 
 import aiohttp
 
+from homeassistant.exceptions import HomeAssistantError
+
 from .const import ATTR_PM25, LOGGER
 
 # Modified from https://github.com/hfern/winix to support async operations
@@ -152,23 +154,44 @@ class WinixDriver:
 
     async def _rpc_attr(self, attr: str, value: str) -> None:
         LOGGER.debug("_rpc_attr attribute=%s, value=%s", attr, value)
-        resp = await self._client.get(
-            self.CTRL_URL.format(deviceid=self.device_id, attribute=attr, value=value),
-            raise_for_status=True,
-        )
-        raw_resp = await resp.text()
-        LOGGER.debug("_rpc_attr response=%s", raw_resp)
+
+        try:
+            response = await self._client.get(
+                self.CTRL_URL.format(
+                    deviceid=self.device_id, attribute=attr, value=value
+                )
+            )
+            response.raise_for_status()
+            raw_resp = await response.text()
+            LOGGER.debug("_rpc_attr response=%s", raw_resp)
+        except aiohttp.ClientResponseError as err:
+            raise HomeAssistantError(
+                f"Failed to download data: HTTP {err.status}"
+            ) from err
+        except aiohttp.ClientError as err:
+            raise HomeAssistantError(f"Error communicating with Winix: {err}") from err
+        except TimeoutError as err:
+            raise HomeAssistantError("Timeout communicating with Winix") from err
 
     async def get_filter_life(self) -> int | None:
-        """Get the total filter life."""
-        response = await self._client.get(
-            self.PARAM_URL.format(deviceid=self.device_id)
-        )
-        if response.status != 200:
-            LOGGER.error("Error getting filter life, status code %s", response.status)
-            return None
+        """Get the total filter life.
 
-        json = await response.json()
+        This raises HomeAssistantError on communication errors
+        """
+        try:
+            response = await self._client.get(
+                self.PARAM_URL.format(deviceid=self.device_id)
+            )
+            response.raise_for_status()
+            json = await response.json()
+        except aiohttp.ClientResponseError as err:
+            raise HomeAssistantError(
+                f"Failed to download data: HTTP {err.status}"
+            ) from err
+        except aiohttp.ClientError as err:
+            raise HomeAssistantError(f"Error communicating with Winix: {err}") from err
+        except TimeoutError as err:
+            raise HomeAssistantError("Timeout communicating with Winix") from err
 
         # pylint: disable=pointless-string-statement
         """
@@ -198,19 +221,29 @@ class WinixDriver:
             return None
 
     async def get_state(self) -> dict[str, str | int]:
-        """Get device state."""
+        """Get device state.
+
+        This raises HomeAssistantError on communication errors, but returns an empty dict if the response is successfully received but doesn't contain expected data.
+        This allows callers to handle missing data without crashing.
+        """
 
         # All devices seem to have max 9 months filter life so don't need to call this API.
         # await self.get_filter_life()
 
-        response = await self._client.get(
-            self.STATE_URL.format(deviceid=self.device_id)
-        )
-        if response.status != 200:
-            LOGGER.error("Error getting data, status code %s", response.status)
-            return {}
-
-        json = await response.json()
+        try:
+            response = await self._client.get(
+                self.STATE_URL.format(deviceid=self.device_id)
+            )
+            response.raise_for_status()
+            json = await response.json()
+        except aiohttp.ClientResponseError as err:
+            raise HomeAssistantError(
+                f"Failed to download data: HTTP {err.status}"
+            ) from err
+        except aiohttp.ClientError as err:
+            raise HomeAssistantError(f"Error communicating with Winix: {err}") from err
+        except TimeoutError as err:
+            raise HomeAssistantError("Timeout communicating with Winix") from err
 
         # pylint: disable=pointless-string-statement
         """
