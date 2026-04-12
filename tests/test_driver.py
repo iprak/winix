@@ -1,10 +1,10 @@
-"""Test WinixDevice component."""
+"""Test WinixDriver component."""
 
 from unittest.mock import patch
 
 import pytest
 
-from custom_components.winix.driver import WinixDriver
+from custom_components.winix.driver import AirPurifierDriver
 
 
 @patch("custom_components.winix.driver.WinixDriver._rpc_attr")
@@ -30,8 +30,8 @@ async def test_turn_off(mock_rpc_attr, mock_driver, method, category, value) -> 
     await getattr(mock_driver, method)()
     assert mock_rpc_attr.call_count == 1
     assert mock_rpc_attr.call_args[0] == (
-        WinixDriver.category_keys[category],
-        WinixDriver.state_keys[category][value],
+        AirPurifierDriver.category_keys[category],
+        AirPurifierDriver.state_keys[category][value],
     )
 
 
@@ -46,7 +46,7 @@ async def test_turn_off(mock_rpc_attr, mock_driver, method, category, value) -> 
     indirect=["mock_driver_with_payload"],
 )
 async def test_get_state(mock_driver_with_payload, expected) -> None:
-    """Test get_state."""
+    """Test get_state for AirPurifierDriver."""
 
     # payload = {"A02": "0"}  # "A02" represents "power" and "0" means "off"
 

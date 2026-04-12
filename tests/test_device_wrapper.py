@@ -28,7 +28,7 @@ from custom_components.winix.device_wrapper import WinixDeviceWrapper
 
 from .common import build_mock_wrapper  # noqa: TID251
 
-WinixDriver_TypeName = "custom_components.winix.driver.WinixDriver"
+AirPurifierDriver_TypeName = "custom_components.winix.driver.AirPurifierDriver"
 
 
 @pytest.mark.parametrize(
@@ -81,7 +81,7 @@ async def test_wrapper_update(
     """Tests device wrapper states."""
 
     with patch(
-        f"{WinixDriver_TypeName}.get_state",
+        f"{AirPurifierDriver_TypeName}.get_state",
         AsyncMock(return_value=mock_state),
     ) as get_state:
         wrapper = build_mock_wrapper()
@@ -98,7 +98,7 @@ async def test_wrapper_update(
 
 async def test_async_ensure_on() -> None:
     """Test ensuring device is on."""
-    with patch(f"{WinixDriver_TypeName}.turn_on") as turn_on:
+    with patch(f"{AirPurifierDriver_TypeName}.turn_on") as turn_on:
         wrapper = build_mock_wrapper()
         assert not wrapper.is_on  # initially off
 
@@ -113,8 +113,8 @@ async def test_async_ensure_on() -> None:
 async def test_async_turn_off() -> None:
     """Test turning off."""
     with (
-        patch(f"{WinixDriver_TypeName}.turn_on") as turn_on,
-        patch(f"{WinixDriver_TypeName}.turn_off") as turn_off,
+        patch(f"{AirPurifierDriver_TypeName}.turn_on") as turn_on,
+        patch(f"{AirPurifierDriver_TypeName}.turn_off") as turn_off,
     ):
         wrapper = build_mock_wrapper()
         assert not wrapper.is_on  # initially off
@@ -155,7 +155,7 @@ async def test_async_auto() -> None:
     """Test setting auto mode."""
 
     # async_auto does not need the device to be turned on
-    with patch(f"{WinixDriver_TypeName}.auto") as auto:
+    with patch(f"{AirPurifierDriver_TypeName}.auto") as auto:
         wrapper = build_mock_wrapper()
 
         await wrapper.async_auto()
@@ -176,8 +176,8 @@ async def test_async_plasmawave_on_off() -> None:
 
     # async_plasmawave does not need the device to be turned on
     with (
-        patch(f"{WinixDriver_TypeName}.plasmawave_on") as plasmawave_on,
-        patch(f"{WinixDriver_TypeName}.plasmawave_off") as plasmawave_off,
+        patch(f"{AirPurifierDriver_TypeName}.plasmawave_on") as plasmawave_on,
+        patch(f"{AirPurifierDriver_TypeName}.plasmawave_off") as plasmawave_off,
     ):
         wrapper = build_mock_wrapper()
 
@@ -207,7 +207,7 @@ async def test_async_manual() -> None:
     """Test setting manual mode."""
 
     # async_manual does not need the device to be turned on
-    with patch(f"{WinixDriver_TypeName}.manual") as manual:
+    with patch(f"{AirPurifierDriver_TypeName}.manual") as manual:
         wrapper = build_mock_wrapper()
 
         await wrapper.async_manual()
@@ -228,7 +228,7 @@ async def test_async_sleep() -> None:
     """Test setting sleep mode."""
 
     # async_sleep does not need the device to be turned on
-    with patch(f"{WinixDriver_TypeName}.sleep") as sleep:
+    with patch(f"{AirPurifierDriver_TypeName}.sleep") as sleep:
         wrapper = build_mock_wrapper()
 
         await wrapper.async_sleep()
@@ -249,10 +249,10 @@ async def test_async_set_speed() -> None:
     """Test setting speed."""
 
     with (
-        patch(f"{WinixDriver_TypeName}.turn_on"),
-        patch(f"{WinixDriver_TypeName}.manual"),
-        patch(f"{WinixDriver_TypeName}.high") as high_speed,
-        patch(f"{WinixDriver_TypeName}.low") as low_speed,
+        patch(f"{AirPurifierDriver_TypeName}.turn_on"),
+        patch(f"{AirPurifierDriver_TypeName}.manual"),
+        patch(f"{AirPurifierDriver_TypeName}.high") as high_speed,
+        patch(f"{AirPurifierDriver_TypeName}.low") as low_speed,
     ):
         wrapper = build_mock_wrapper()
 

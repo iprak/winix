@@ -28,7 +28,7 @@ from .const import (
     Features,
     NumericPresetModes,
 )
-from .driver import WinixDriver
+from .driver import AirPurifierDriver
 
 
 @dataclasses.dataclass
@@ -59,7 +59,7 @@ class WinixDeviceWrapper:
     ) -> None:
         """Initialize the wrapper."""
 
-        self._driver = WinixDriver(device_stub.id, client, identity_id)
+        self._driver = AirPurifierDriver(device_stub.id, client, identity_id)
 
         # Start as empty object in case fan was operated before it got updated
         self._state = {}
