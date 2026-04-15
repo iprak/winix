@@ -170,6 +170,7 @@ class WinixDeviceWrapper:
         """Turn on the purifier."""
         if not self._on:
             self._on = True
+            self._state[ATTR_POWER] = ON_VALUE
 
             self._logger.debug("%s => turned on", self._alias)
             await self._driver.turn_on()
@@ -183,6 +184,7 @@ class WinixDeviceWrapper:
         """Turn off the purifier."""
         if self._on:
             self._on = False
+            self._state[ATTR_POWER] = OFF_VALUE
 
             self._logger.debug("%s => turned off", self._alias)
             await self._driver.turn_off()
@@ -239,6 +241,7 @@ class WinixDeviceWrapper:
 
         await self._driver.child_lock_on()
         self._child_lock_on = True
+        self._state[ATTR_CHILD_LOCK] = ON_VALUE
         return True
 
     async def async_child_lock_off(self) -> bool:
@@ -249,6 +252,7 @@ class WinixDeviceWrapper:
 
         await self._driver.child_lock_off()
         self._child_lock_on = False
+        self._state[ATTR_CHILD_LOCK] = OFF_VALUE
         return True
 
     @property
@@ -266,6 +270,7 @@ class WinixDeviceWrapper:
 
         await self._driver.set_brightness_level(value)
         self._brightness_level = value
+        self._state[ATTR_BRIGHTNESS_LEVEL] = value
         return True
 
     async def async_manual(self) -> None:
