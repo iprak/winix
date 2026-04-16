@@ -299,12 +299,12 @@ class WinixDeviceWrapper:
         if self._state.get(ATTR_AIRFLOW) != speed:
             self._state[ATTR_AIRFLOW] = speed
 
-            # Setting speed requires the fan to be in manual mode
-            await self.async_ensure_on()
-            await self.async_manual()
+        # Setting speed requires the fan to be in manual mode
+        await self.async_ensure_on()
+        await self.async_manual()
 
-            self._logger.debug("%s => set speed=%s", self._alias, speed)
-            await getattr(self._driver, speed)()
+        self._logger.debug("%s => set speed=%s", self._alias, speed)
+        await getattr(self._driver, speed)()
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Turn the purifier on and put it in the new preset mode."""
