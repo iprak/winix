@@ -14,6 +14,15 @@ from Crypto.Util.Padding import pad, unpad
 import requests
 from winix import WinixAccount, auth
 
+# Winix rotated their Cognito app client on 2026-04-16. The old client ID
+# (14og512b9u20b8vrdm55d8empi) is dead. Patch the pip package constants before
+# any auth calls are made. The new client has no client secret.
+auth.COGNITO_APP_CLIENT_ID = "5rjk59c5tt7k9g8gpj0vd2qfg9"
+auth.COGNITO_CLIENT_SECRET_KEY = None
+
+_COGNITO_IDENTITY_POOL_ID = "us-east-1:84008e15-d6af-4698-8646-66d05c1abe8b"
+_COGNITO_USER_POOL_ID = "us-east-1_Ofd50EosD"
+
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 
@@ -42,11 +51,10 @@ class Helpers:
     _AES_IV = bytes.fromhex("dfd55f316e72e97b905f8739005c99a7")
 
     _MOBILE_APP_METADATA = {
-        "cognitoClientSecretKey": auth.COGNITO_CLIENT_SECRET_KEY,
         "osType": "android",
         "osVersion": "29",
         "mobileLang": "en",
-        "appVersion": "1.5.6",
+        "appVersion": "1.5.7",
         "mobileModel": "SM-G988B",
     }
 
@@ -115,10 +123,14 @@ class Helpers:
 
         access_token = response.access_token
         uuid = WinixAccount(access_token).get_uuid()
+        identity_id = Helpers._get_identity_id_sync(response.id_token)
 
         try:
-            Helpers._register_user(access_token, uuid, username)
-            Helpers._check_access_token(access_token, uuid)
+            # v1.5.7 session establishment order:
+            # registerUser (needs identityId) → init → checkAccessToken (needs identityId)
+            Helpers._register_user(access_token, uuid, username, identity_id)
+            Helpers._init(access_token, uuid)
+            Helpers._check_access_token(access_token, uuid, identity_id)
         except Exception as err:  # pylint: disable=broad-except
             raise WinixException.from_winix_exception(err) from err
 
@@ -138,18 +150,44 @@ class Helpers:
         def _refresh(response: auth.WinixAuthResponse) -> auth.WinixAuthResponse:
             LOGGER.debug("Attempting re-authentication")
 
+            # Use boto3 directly — auth.refresh() calls WarrantLite.get_secret_hash()
+            # which breaks with client_secret=None (new public client has no secret).
+            import boto3
+            from botocore import UNSIGNED
+            from botocore.client import Config
+
+            client = boto3.client(
+                "cognito-idp",
+                config=Config(signature_version=UNSIGNED),
+                region_name="us-east-1",
+            )
+
+            # New public client has no secret — no SECRET_HASH in refresh params.
             try:
-                reponse = auth.refresh(
-                    user_id=response.user_id, refresh_token=response.refresh_token
+                resp = client.initiate_auth(
+                    ClientId=auth.COGNITO_APP_CLIENT_ID,
+                    AuthFlow="REFRESH_TOKEN",
+                    AuthParameters={"REFRESH_TOKEN": response.refresh_token},
                 )
             except Exception as err:  # pylint: disable=broad-except
                 raise WinixException.from_aws_exception(err) from err
 
+            result = resp["AuthenticationResult"]
+            reponse = auth.WinixAuthResponse(
+                user_id=response.user_id,
+                access_token=result["AccessToken"],
+                refresh_token=response.refresh_token,
+                id_token=result["IdToken"],
+            )
+
             uuid = WinixAccount(reponse.access_token).get_uuid()
-            LOGGER.debug("Attempting access token check")
+            identity_id = Helpers._get_identity_id_sync(reponse.id_token)
+            LOGGER.debug("Re-establishing session after token refresh")
 
             try:
-                Helpers._check_access_token(reponse.access_token, uuid)
+                Helpers._register_user(reponse.access_token, uuid, response.user_id, identity_id)
+                Helpers._init(reponse.access_token, uuid)
+                Helpers._check_access_token(reponse.access_token, uuid, identity_id)
             except Exception as err:  # pylint: disable=broad-except
                 raise WinixException.from_winix_exception(err) from err
 
@@ -164,15 +202,84 @@ class Helpers:
     ) -> dict[str, str]:
         """Build a payload that matches the current mobile app metadata."""
 
-        return {
+        payload = {
             "accessToken": access_token,
             "uuid": uuid,
             **Helpers._MOBILE_APP_METADATA,
             **kwargs,
         }
+        # Only include the client secret key if one is configured (new app client has none).
+        if auth.COGNITO_CLIENT_SECRET_KEY is not None:
+            payload["cognitoClientSecretKey"] = auth.COGNITO_CLIENT_SECRET_KEY
+        return payload
 
     @staticmethod
-    def _check_access_token(access_token: str, uuid: str) -> None:
+    def _get_identity_id_sync(id_token: str) -> str:
+        """Get the Cognito Identity ID synchronously (for use in executor threads).
+
+        The CTRL_URL requires the user's identityId from the Cognito Identity Pool
+        instead of the old hardcoded 'A211' path segment. Uses boto3 so the AWS
+        JSON protocol headers are handled correctly.
+
+        Raises WinixException.
+        """
+        import boto3
+        from botocore import UNSIGNED
+        from botocore.client import Config
+
+        client = boto3.client(
+            "cognito-identity",
+            config=Config(signature_version=UNSIGNED),
+            region_name="us-east-1",
+        )
+
+        login_key = f"cognito-idp.us-east-1.amazonaws.com/{_COGNITO_USER_POOL_ID}"
+
+        try:
+            response = client.get_id(
+                IdentityPoolId=_COGNITO_IDENTITY_POOL_ID,
+                Logins={login_key: id_token},
+            )
+        except Exception as err:  # pylint: disable=broad-except
+            raise WinixException({"message": f"Failed to get Cognito Identity ID: {err}"}) from err
+
+        identity_id = response.get("IdentityId")
+        if not identity_id:
+            raise WinixException({"message": "Cognito Identity ID missing from response."})
+
+        LOGGER.debug("Got Cognito identityId: %s", identity_id)
+        return identity_id
+
+    @staticmethod
+    def _init(access_token: str, uuid: str) -> None:
+        """Call the Winix /init endpoint. Required as of v1.5.7 between registerUser and checkAccessToken.
+
+        Raises WinixException.
+        """
+
+        resp = requests.post(
+            "https://us.mobile.winix-iot.com/init",
+            headers=HEADERS,
+            data=Helpers.encrypt({
+                "accessToken": access_token,
+                "uuid": uuid,
+                "region": "US",
+            }),
+            timeout=DEFAULT_POST_TIMEOUT,
+        )
+
+        binary_data = resp.content
+        response_json_text = Helpers.decrypt(binary_data)
+        response_json = Helpers.json_loads(response_json_text)
+
+        if resp.status_code != HTTPStatus.OK:
+            response_json["message"] = (
+                f"Error while performing RPC init ({resp.status_code})"
+            )
+            raise WinixException(response_json)
+
+    @staticmethod
+    def _check_access_token(access_token: str, uuid: str, identity_id: str) -> None:
         """Validate the access token with Winix cloud using current app metadata.
 
         Raises WinixException.
@@ -181,7 +288,9 @@ class Helpers:
         resp = requests.post(
             "https://us.mobile.winix-iot.com/checkAccessToken",
             headers=HEADERS,
-            data=Helpers.encrypt(Helpers._build_mobile_app_payload(access_token, uuid)),
+            data=Helpers.encrypt(Helpers._build_mobile_app_payload(
+                access_token, uuid, identityId=identity_id
+            )),
             timeout=DEFAULT_POST_TIMEOUT,
         )
 
@@ -196,7 +305,7 @@ class Helpers:
             raise WinixException(response_json)
 
     @staticmethod
-    def _register_user(access_token: str, uuid: str, email: str) -> None:
+    def _register_user(access_token: str, uuid: str, email: str, identity_id: str) -> None:
         """Register the generated mobile identity with the Winix backend.
 
         Raises WinixException.
@@ -206,7 +315,9 @@ class Helpers:
             "https://us.mobile.winix-iot.com/registerUser",
             headers=HEADERS,
             data=Helpers.encrypt(
-                Helpers._build_mobile_app_payload(access_token, uuid, email=email)
+                Helpers._build_mobile_app_payload(
+                    access_token, uuid, email=email, identityId=identity_id
+                )
             ),
             timeout=DEFAULT_POST_TIMEOUT,
         )

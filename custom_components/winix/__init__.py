@@ -139,7 +139,9 @@ async def async_prepare_devices(
 
         if err.result_code in ("900", "400"):
             LOGGER.info(
-                f"Failed to get device list (code={err.result_code}, message={err.result_message}), reauthenticating with stored credentials"
+                "Failed to get device list (code=%s, message=%s), reauthenticating with stored credentials",
+                err.result_code,
+                err.result_message,
             )
 
             try:
@@ -154,13 +156,14 @@ async def async_prepare_devices(
 
             # Try preparing device wrappers again with new auth response
             try:
-                await manager.prepare_devices_wrappers(new_auth_response.access_token)
+                await manager.prepare_devices_wrappers(new_auth_response.access_token, new_auth_response.id_token)
             except WinixException as err_retry:
                 raise ConfigEntryAuthFailed(
                     "Unable to access device data even after re-login."
                 ) from err_retry
 
         else:
+            LOGGER.error("Unable to access device data (code=%s): %s", err.result_code, err, exc_info=True)
             raise ConfigEntryNotReady("Unable to access device data.") from err
 
     return new_auth_response

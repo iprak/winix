@@ -85,7 +85,7 @@ class WinixManager(DataUpdateCoordinator):
         for wrapper in self._device_wrappers:
             wrapper.update_features()
 
-    async def prepare_devices_wrappers(self, access_token: str = "") -> None:
+    async def prepare_devices_wrappers(self, access_token: str = "", id_token: str = "") -> None:
         """Prepare device wrappers.
 
         Raises WinixException.
@@ -93,8 +93,23 @@ class WinixManager(DataUpdateCoordinator):
         self._device_wrappers = []  # Reset device_stubs
 
         token = access_token or self._auth_response.access_token
+        id_tok = id_token or self._auth_response.id_token
         uuid = WinixAccount(token).get_uuid()
-        device_stubs = await Helpers.get_device_stubs(self._client, token, uuid)
+
+        try:
+            device_stubs = await Helpers.get_device_stubs(self._client, token, uuid)
+        except Exception as err:
+            LOGGER.error("Failed to get device stubs: %s", err, exc_info=True)
+            raise
+
+        # boto3 call must run in an executor thread (synchronous I/O).
+        try:
+            identity_id = await self.hass.async_add_executor_job(
+                Helpers._get_identity_id_sync, id_tok
+            )
+        except Exception as err:
+            LOGGER.error("Failed to get identity_id: %s", err, exc_info=True)
+            raise
 
         if device_stubs:
             for device_stub in device_stubs:
@@ -103,7 +118,7 @@ class WinixManager(DataUpdateCoordinator):
                 )
                 self._device_wrappers.append(
                     WinixDeviceWrapper(
-                        self._client, device_stub, filter_alarm_duration, LOGGER
+                        self._client, device_stub, filter_alarm_duration, LOGGER, identity_id
                     )
                 )
 
