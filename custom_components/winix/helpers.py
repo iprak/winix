@@ -241,7 +241,10 @@ class Helpers:
                 Logins={login_key: id_token},
             )
         except Exception as err:  # pylint: disable=broad-except
-            raise WinixException({"message": f"Failed to get Cognito Identity ID: {err}"}) from err
+            # Map NotAuthorizedException (expired id_token) to result_code so
+            # callers can trigger re-auth rather than failing permanently.
+            code = "NotAuthorizedException" if "NotAuthorizedException" in str(err) else ""
+            raise WinixException({"message": f"Failed to get Cognito Identity ID: {err}", "result_code": code}) from err
 
         identity_id = response.get("IdentityId")
         if not identity_id:
