@@ -53,10 +53,11 @@ class WinixDeviceWrapper:
         device_stub: MyWinixDeviceStub,
         filter_alarm_duration_hours: int,
         logger,
+        identity_id: str,
     ) -> None:
         """Initialize the wrapper."""
 
-        self._driver = WinixDriver(device_stub.id, client)
+        self._driver = WinixDriver(device_stub.id, client, identity_id)
 
         # Start as empty object in case fan was operated before it got updated
         self._state = {}

@@ -330,7 +330,7 @@ async def test_async_set_preset_mode_invalid() -> None:
     logger.warning = Mock()
 
     wrapper = WinixDeviceWrapper(
-        client, device_stub, DEFAULT_FILTER_ALARM_DURATION_HOURS, logger
+        client, device_stub, DEFAULT_FILTER_ALARM_DURATION_HOURS, logger, "test_identity_id"
     )
 
     with pytest.raises(ValueError):

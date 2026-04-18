@@ -31,7 +31,7 @@ class WinixDriver:
     """WinixDevice driver."""
 
     # pylint: disable=line-too-long
-    CTRL_URL = "https://us.api.winix-iot.com/common/control/devices/{deviceid}/A211/{attribute}:{value}"
+    CTRL_URL = "https://us.api.winix-iot.com/common/control/devices/{deviceid}/{identityid}/{attribute}:{value}"
     STATE_URL = "https://us.api.winix-iot.com/common/event/sttus/devices/{deviceid}"
     PARAM_URL = "https://us.api.winix-iot.com/common/event/param/devices/{deviceid}"
 
@@ -65,10 +65,11 @@ class WinixDriver:
         "air_quality": {"good": "01", "fair": "02", "poor": "03"},
     }
 
-    def __init__(self, device_id: str, client: aiohttp.ClientSession) -> None:
+    def __init__(self, device_id: str, client: aiohttp.ClientSession, identity_id: str) -> None:
         """Create an instance of WinixDevice."""
         self.device_id = device_id
         self._client = client
+        self._identity_id = identity_id
 
     async def turn_off(self) -> None:
         """Turn the device off."""
@@ -158,7 +159,10 @@ class WinixDriver:
         try:
             response = await self._client.get(
                 self.CTRL_URL.format(
-                    deviceid=self.device_id, attribute=attr, value=value
+                    deviceid=self.device_id,
+                    identityid=self._identity_id,
+                    attribute=attr,
+                    value=value,
                 )
             )
             response.raise_for_status()
