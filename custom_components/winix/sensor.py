@@ -133,8 +133,7 @@ async def async_setup_entry(
         WinixSensor(wrapper, manager, description)
         for description in SENSOR_DESCRIPTIONS
         for wrapper in manager.get_device_wrappers()
-        if (description.key != SENSOR_PM25)
-        or (description.key == SENSOR_PM25 and ATTR_PM25 in (wrapper.get_state() or {}))
+        if description.key != SENSOR_PM25 or ATTR_PM25 in (wrapper.get_state() or {})
     ]
     async_add_entities(entities)
     LOGGER.info("Added %s sensors", len(entities))
