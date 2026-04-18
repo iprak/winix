@@ -175,28 +175,30 @@ class Helpers:
                 raise WinixException.from_aws_exception(err) from err
 
             result = resp["AuthenticationResult"]
-            reponse = auth.WinixAuthResponse(
+            new_response = auth.WinixAuthResponse(
                 user_id=response.user_id,
                 access_token=result["AccessToken"],
                 refresh_token=response.refresh_token,
                 id_token=result["IdToken"],
             )
 
-            uuid = WinixAccount(reponse.access_token).get_uuid()
-            identity_id = Helpers.get_identity_id_sync(reponse.id_token)
+            uuid = WinixAccount(new_response.access_token).get_uuid()
+            identity_id = Helpers.get_identity_id_sync(new_response.id_token)
             LOGGER.debug("Re-establishing session after token refresh")
 
             try:
                 Helpers._register_user(
-                    reponse.access_token, uuid, response.user_id, identity_id
+                    new_response.access_token, uuid, response.user_id, identity_id
                 )
-                Helpers._init(reponse.access_token, uuid)
-                Helpers._check_access_token(reponse.access_token, uuid, identity_id)
+                Helpers._init(new_response.access_token, uuid)
+                Helpers._check_access_token(
+                    new_response.access_token, uuid, identity_id
+                )
             except Exception as err:  # pylint: disable=broad-except
                 raise WinixException.from_winix_exception(err) from err
 
             LOGGER.debug("Re-authentication successful")
-            return reponse
+            return new_response
 
         return await hass.async_add_executor_job(_refresh, response)
 
