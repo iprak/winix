@@ -375,7 +375,7 @@ class Helpers:
 
         # Sample json
         # {'resultCode': '200', 'resultMessage': 'SUCCESS', 'filterUsageAlarm': 9}
-        LOGGER.debug(f"getFilterAlarmInfo: {response_json}")
+        LOGGER.debug("getFilterAlarmInfo: %s", response_json)
 
         # Fall back to 9 months if filter alram has been turned off in mobile app in which case we receive this:
         # {'resultCode': '200', 'resultMessage': 'SUCCESS', 'filterUsageAlarm': 0}
