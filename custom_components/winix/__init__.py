@@ -224,8 +224,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     unload_ok = await hass.config_entries.async_unload_platforms(
         entry, SUPPORTED_PLATFORMS
     )
-    if unload_ok:
-        hass.data.pop(WINIX_DOMAIN)
 
     other_loaded_entries = [
         _entry
