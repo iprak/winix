@@ -41,11 +41,7 @@ def get_air_quality_attr(
 ) -> dict[str, Any]:
     """Get air quality attribute."""
 
-    attributes = {ATTR_AIR_QUALITY: None}
-    if state is not None:
-        attributes[ATTR_AIR_QUALITY] = state.get(ATTR_AIR_QUALITY)
-
-    return attributes
+    return {ATTR_AIR_QUALITY: state.get(ATTR_AIR_QUALITY)}
 
 
 def get_filter_replacement_cycle(
