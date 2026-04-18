@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from datetime import datetime, timedelta
 from http import HTTPStatus
 import json
 from typing import Any
@@ -146,8 +145,6 @@ class Helpers:
         except Exception as err:  # pylint: disable=broad-except
             raise WinixException.from_winix_exception(err) from err
 
-        expires_at = (datetime.now() + timedelta(seconds=3600)).timestamp()
-        LOGGER.debug("Login successful, token expires %d", expires_at)
         return response
 
     @staticmethod
