@@ -192,7 +192,9 @@ def setup_hass_services(hass: HomeAssistant) -> None:
             entity_id = state.entity_id
             entity = entity_registry.async_get(entity_id)
 
-            if entity.unique_id.startswith(f"{entity.domain}.{WINIX_DOMAIN}_"):
+            if entity and entity.unique_id.startswith(
+                f"{entity.domain}.{WINIX_DOMAIN}_"
+            ):
                 device_id = entity.device_id
                 device = device_registry.async_get(device_id)
 
