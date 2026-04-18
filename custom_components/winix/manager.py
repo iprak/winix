@@ -78,14 +78,19 @@ class WinixManager(DataUpdateCoordinator):
 
     async def _async_update_data(self) -> None:
         """Fetch the latest data from the source. This overrides the method in DataUpdateCoordinator."""
-        await self.async_update()
+
+        LOGGER.info("Updating devices")
+        for device_wrapper in self._device_wrappers:
+            await device_wrapper.update()
 
     def update_features(self) -> None:
         """Update the supported features based on the current state."""
         for wrapper in self._device_wrappers:
             wrapper.update_features()
 
-    async def prepare_devices_wrappers(self, access_token: str = "", id_token: str = "") -> None:
+    async def prepare_devices_wrappers(
+        self, access_token: str = "", id_token: str = ""
+    ) -> None:
         """Prepare device wrappers.
 
         Raises WinixException.
@@ -118,19 +123,17 @@ class WinixManager(DataUpdateCoordinator):
                 )
                 self._device_wrappers.append(
                     WinixDeviceWrapper(
-                        self._client, device_stub, filter_alarm_duration, LOGGER, identity_id
+                        self._client,
+                        device_stub,
+                        filter_alarm_duration,
+                        LOGGER,
+                        identity_id,
                     )
                 )
 
             LOGGER.info("%d purifiers found", len(self._device_wrappers))
         else:
             LOGGER.info("No purifiers found")
-
-    async def async_update(self, now=None) -> None:
-        """Asynchronously update all the devices."""
-        LOGGER.info("Updating devices")
-        for device_wrapper in self._device_wrappers:
-            await device_wrapper.update()
 
     def get_device_wrappers(self) -> list[WinixDeviceWrapper]:
         """Return the device wrapper objects."""

@@ -12,7 +12,6 @@ WINIX_DOMAIN: Final = "winix"
 
 WINIX_NAME: Final = "Winix Purifier"
 WINIX_AUTH_RESPONSE: Final = "WinixAuthResponse"
-WINIX_ACCESS_TOKEN_EXPIRATION: Final = "access_token_expiration"
 ATTR_AIRFLOW: Final = "airflow"
 ATTR_AIR_AQI: Final = "aqi"
 ATTR_AIR_QUALITY: Final = "air_quality"

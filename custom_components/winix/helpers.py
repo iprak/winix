@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from datetime import datetime, timedelta
 from http import HTTPStatus
 import json
 from typing import Any
@@ -39,8 +38,12 @@ _COGNITO_USER_POOL_ID = "us-east-1_Ofd50EosD"
 
 # Both Cognito services are public endpoints — no AWS credentials required.
 _UNSIGNED_CONFIG = Config(signature_version=UNSIGNED)
-_COGNITO_IDP_CLIENT = boto3.client("cognito-idp", config=_UNSIGNED_CONFIG, region_name="us-east-1")
-_COGNITO_IDENTITY_CLIENT = boto3.client("cognito-identity", config=_UNSIGNED_CONFIG, region_name="us-east-1")
+_COGNITO_IDP_CLIENT = boto3.client(
+    "cognito-idp", config=_UNSIGNED_CONFIG, region_name="us-east-1"
+)
+_COGNITO_IDENTITY_CLIENT = boto3.client(
+    "cognito-identity", config=_UNSIGNED_CONFIG, region_name="us-east-1"
+)
 
 HEADERS = {
     "Content-Type": "application/octet-stream",
@@ -142,8 +145,6 @@ class Helpers:
         except Exception as err:  # pylint: disable=broad-except
             raise WinixException.from_winix_exception(err) from err
 
-        expires_at = (datetime.now() + timedelta(seconds=3600)).timestamp()
-        LOGGER.debug("Login successful, token expires %d", expires_at)
         return response
 
     @staticmethod
@@ -171,26 +172,30 @@ class Helpers:
                 raise WinixException.from_aws_exception(err) from err
 
             result = resp["AuthenticationResult"]
-            reponse = auth.WinixAuthResponse(
+            new_response = auth.WinixAuthResponse(
                 user_id=response.user_id,
                 access_token=result["AccessToken"],
                 refresh_token=response.refresh_token,
                 id_token=result["IdToken"],
             )
 
-            uuid = WinixAccount(reponse.access_token).get_uuid()
-            identity_id = Helpers.get_identity_id_sync(reponse.id_token)
+            uuid = WinixAccount(new_response.access_token).get_uuid()
+            identity_id = Helpers.get_identity_id_sync(new_response.id_token)
             LOGGER.debug("Re-establishing session after token refresh")
 
             try:
-                Helpers._register_user(reponse.access_token, uuid, response.user_id, identity_id)
-                Helpers._init(reponse.access_token, uuid)
-                Helpers._check_access_token(reponse.access_token, uuid, identity_id)
+                Helpers._register_user(
+                    new_response.access_token, uuid, response.user_id, identity_id
+                )
+                Helpers._init(new_response.access_token, uuid)
+                Helpers._check_access_token(
+                    new_response.access_token, uuid, identity_id
+                )
             except Exception as err:  # pylint: disable=broad-except
                 raise WinixException.from_winix_exception(err) from err
 
             LOGGER.debug("Re-authentication successful")
-            return reponse
+            return new_response
 
         return await hass.async_add_executor_job(_refresh, response)
 
@@ -227,12 +232,21 @@ class Helpers:
         except Exception as err:  # pylint: disable=broad-except
             # Map NotAuthorizedException (expired id_token) to result_code so
             # callers can trigger re-auth rather than failing permanently.
-            code = "NotAuthorizedException" if "NotAuthorizedException" in str(err) else ""
-            raise WinixException({"message": f"Failed to get Cognito Identity ID: {err}", "result_code": code}) from err
+            code = (
+                "NotAuthorizedException" if "NotAuthorizedException" in str(err) else ""
+            )
+            raise WinixException(
+                {
+                    "message": f"Failed to get Cognito Identity ID: {err}",
+                    "result_code": code,
+                }
+            ) from err
 
         identity_id = response.get("IdentityId")
         if not identity_id:
-            raise WinixException({"message": "Cognito Identity ID missing from response."})
+            raise WinixException(
+                {"message": "Cognito Identity ID missing from response."}
+            )
 
         LOGGER.debug("Got Cognito identityId: %s", identity_id)
         return identity_id
@@ -247,11 +261,13 @@ class Helpers:
         resp = requests.post(
             "https://us.mobile.winix-iot.com/init",
             headers=HEADERS,
-            data=Helpers.encrypt({
-                "accessToken": access_token,
-                "uuid": uuid,
-                "region": "US",
-            }),
+            data=Helpers.encrypt(
+                {
+                    "accessToken": access_token,
+                    "uuid": uuid,
+                    "region": "US",
+                }
+            ),
             timeout=DEFAULT_POST_TIMEOUT,
         )
 
@@ -275,9 +291,11 @@ class Helpers:
         resp = requests.post(
             "https://us.mobile.winix-iot.com/checkAccessToken",
             headers=HEADERS,
-            data=Helpers.encrypt(Helpers._build_mobile_app_payload(
-                access_token, uuid, identityId=identity_id
-            )),
+            data=Helpers.encrypt(
+                Helpers._build_mobile_app_payload(
+                    access_token, uuid, identityId=identity_id
+                )
+            ),
             timeout=DEFAULT_POST_TIMEOUT,
         )
 
@@ -292,7 +310,9 @@ class Helpers:
             raise WinixException(response_json)
 
     @staticmethod
-    def _register_user(access_token: str, uuid: str, email: str, identity_id: str) -> None:
+    def _register_user(
+        access_token: str, uuid: str, email: str, identity_id: str
+    ) -> None:
         """Register the generated mobile identity with the Winix backend.
 
         Raises WinixException.
@@ -348,11 +368,13 @@ class Helpers:
                 }
             )
 
-        response_json = await resp.json()
+        response_json = (
+            await resp.json()
+        )  # Note: filterAlarmInfo returns unencrypted JSON
 
         # Sample json
         # {'resultCode': '200', 'resultMessage': 'SUCCESS', 'filterUsageAlarm': 9}
-        LOGGER.debug(f"getFilterAlarmInfo: {response_json}")
+        LOGGER.debug("getFilterAlarmInfo: %s", response_json)
 
         # Fall back to 9 months if filter alram has been turned off in mobile app in which case we receive this:
         # {'resultCode': '200', 'resultMessage': 'SUCCESS', 'filterUsageAlarm': 0}
@@ -392,12 +414,16 @@ class Helpers:
             timeout=DEFAULT_POST_TIMEOUT,
         )
 
-        binary_data = resp.content
-        response_json_text = Helpers.decrypt(await binary_data.read())
-        response_json = Helpers.json_loads(response_json_text)
+        binary_data = await resp.read()
 
         if resp.status != HTTPStatus.OK:
-            err_data = response_json
+            # Safely decrypt binary_data, generic errors might not be encrypted
+            try:
+                err_text = Helpers.decrypt(binary_data)
+                err_data = Helpers.json_loads(err_text)
+            except Exception:  # noqa: BLE001
+                err_data = {}
+
             result_code = err_data.get("resultCode")
             result_message = err_data.get("resultMessage")
 
@@ -408,6 +434,9 @@ class Helpers:
                     "result_message": result_message,
                 }
             )
+
+        response_json_text = Helpers.decrypt(binary_data)
+        response_json = Helpers.json_loads(response_json_text)
 
         return [
             MyWinixDeviceStub(
@@ -424,7 +453,7 @@ class Helpers:
 
 
 class WinixException(HomeAssistantError):
-    """Wiinx related operation exception."""
+    """Winix related operation exception."""
 
     result_code: str = ""
     """Error code."""
