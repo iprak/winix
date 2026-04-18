@@ -4,14 +4,17 @@ from __future__ import annotations
 
 from datetime import timedelta
 
+import aiohttp
 from winix import WinixAccount, auth
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
+    UpdateFailed,
 )
 
 from .const import LOGGER, WINIX_DOMAIN
@@ -80,8 +83,13 @@ class WinixManager(DataUpdateCoordinator):
         """Fetch the latest data from the source. This overrides the method in DataUpdateCoordinator."""
 
         LOGGER.info("Updating devices")
-        for device_wrapper in self._device_wrappers:
-            await device_wrapper.update()
+        try:
+            for device_wrapper in self._device_wrappers:
+                await device_wrapper.update()
+        except HomeAssistantError as err:
+            if isinstance(err.__cause__, aiohttp.ClientConnectorDNSError):
+                raise UpdateFailed(retry_after=timedelta(seconds=15)) from err
+            raise
 
     def update_features(self) -> None:
         """Update the supported features based on the current state."""
