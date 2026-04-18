@@ -296,8 +296,7 @@ class WinixDeviceWrapper:
     async def async_set_speed(self, speed) -> None:
         """Turn the purifier on, put it in Manual mode and set the speed."""
 
-        if self._state.get(ATTR_AIRFLOW) != speed:
-            self._state[ATTR_AIRFLOW] = speed
+        self._state[ATTR_AIRFLOW] = speed
 
         # Setting speed requires the fan to be in manual mode
         await self.async_ensure_on()

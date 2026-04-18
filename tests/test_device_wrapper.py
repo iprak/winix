@@ -263,10 +263,10 @@ async def test_async_set_speed() -> None:
         assert not wrapper.is_auto
         assert wrapper.is_manual
 
-        # Calling again at same speed does nothing
+        # Calling again at same speed still fires the command (guard removed; caller's responsibility)
         await wrapper.async_set_speed(AIRFLOW_LOW)
         assert high_speed.call_count == 0
-        assert low_speed.call_count == 1
+        assert low_speed.call_count == 2
         assert wrapper.is_on
         assert not wrapper.is_auto
         assert wrapper.is_manual
