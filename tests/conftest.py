@@ -90,7 +90,8 @@ def mock_driver() -> WinixDriver:
     """Return a mocked WinixDriver instance."""
     client = Mock()
     device_id = "device_1"
-    return WinixDriver(device_id, client)
+    identity_id = "test_identity_id"
+    return WinixDriver(device_id, client, identity_id)
 
 
 @pytest.fixture
@@ -107,4 +108,5 @@ def mock_driver_with_payload(request: pytest.FixtureRequest) -> WinixDriver:
     client.get = AsyncMock(return_value=response)
 
     device_id = "device_1"
-    return WinixDriver(device_id, client)
+    identity_id = "test_identity_id"
+    return WinixDriver(device_id, client, identity_id)

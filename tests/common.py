@@ -71,6 +71,10 @@ async def init_integration(
             return_value=[test_device_stub],
         ),
         patch("winix.WinixAccount.get_uuid"),
+        patch(
+            "custom_components.winix.manager.Helpers.get_identity_id_sync",
+            return_value="test_identity_id",
+        ),
     ):
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
@@ -92,7 +96,7 @@ def build_mock_wrapper(index: Number = 0) -> WinixDeviceWrapper:
     logger.warning = Mock()
 
     return WinixDeviceWrapper(
-        client, device_stub, DEFAULT_FILTER_ALARM_DURATION_HOURS, logger
+        client, device_stub, DEFAULT_FILTER_ALARM_DURATION_HOURS, logger, "test_identity_id"
     )
 
 

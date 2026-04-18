@@ -105,7 +105,7 @@ class WinixManager(DataUpdateCoordinator):
         # boto3 call must run in an executor thread (synchronous I/O).
         try:
             identity_id = await self.hass.async_add_executor_job(
-                Helpers._get_identity_id_sync, id_tok
+                Helpers.get_identity_id_sync, id_tok
             )
         except Exception as err:
             LOGGER.error("Failed to get identity_id: %s", err, exc_info=True)

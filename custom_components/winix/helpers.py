@@ -9,19 +9,13 @@ import json
 from typing import Any
 
 import aiohttp
+import boto3
+from botocore import UNSIGNED
+from botocore.client import Config
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 import requests
 from winix import WinixAccount, auth
-
-# Winix rotated their Cognito app client on 2026-04-16. The old client ID
-# (14og512b9u20b8vrdm55d8empi) is dead. Patch the pip package constants before
-# any auth calls are made. The new client has no client secret.
-auth.COGNITO_APP_CLIENT_ID = "5rjk59c5tt7k9g8gpj0vd2qfg9"
-auth.COGNITO_CLIENT_SECRET_KEY = None
-
-_COGNITO_IDENTITY_POOL_ID = "us-east-1:84008e15-d6af-4698-8646-66d05c1abe8b"
-_COGNITO_USER_POOL_ID = "us-east-1_Ofd50EosD"
 
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
@@ -33,6 +27,20 @@ from .const import (
     WINIX_DOMAIN,
 )
 from .device_wrapper import MyWinixDeviceStub
+
+# Winix rotated their Cognito app client on 2026-04-16. The old client ID
+# (14og512b9u20b8vrdm55d8empi) is dead. Patch the pip package constants before
+# any auth calls are made. The new client has no client secret.
+auth.COGNITO_APP_CLIENT_ID = "5rjk59c5tt7k9g8gpj0vd2qfg9"
+auth.COGNITO_CLIENT_SECRET_KEY = None
+
+_COGNITO_IDENTITY_POOL_ID = "us-east-1:84008e15-d6af-4698-8646-66d05c1abe8b"
+_COGNITO_USER_POOL_ID = "us-east-1_Ofd50EosD"
+
+# Both Cognito services are public endpoints — no AWS credentials required.
+_UNSIGNED_CONFIG = Config(signature_version=UNSIGNED)
+_COGNITO_IDP_CLIENT = boto3.client("cognito-idp", config=_UNSIGNED_CONFIG, region_name="us-east-1")
+_COGNITO_IDENTITY_CLIENT = boto3.client("cognito-identity", config=_UNSIGNED_CONFIG, region_name="us-east-1")
 
 HEADERS = {
     "Content-Type": "application/octet-stream",
@@ -123,7 +131,7 @@ class Helpers:
 
         access_token = response.access_token
         uuid = WinixAccount(access_token).get_uuid()
-        identity_id = Helpers._get_identity_id_sync(response.id_token)
+        identity_id = Helpers.get_identity_id_sync(response.id_token)
 
         try:
             # v1.5.7 session establishment order:
@@ -152,19 +160,9 @@ class Helpers:
 
             # Use boto3 directly — auth.refresh() calls WarrantLite.get_secret_hash()
             # which breaks with client_secret=None (new public client has no secret).
-            import boto3
-            from botocore import UNSIGNED
-            from botocore.client import Config
-
-            client = boto3.client(
-                "cognito-idp",
-                config=Config(signature_version=UNSIGNED),
-                region_name="us-east-1",
-            )
-
             # New public client has no secret — no SECRET_HASH in refresh params.
             try:
-                resp = client.initiate_auth(
+                resp = _COGNITO_IDP_CLIENT.initiate_auth(
                     ClientId=auth.COGNITO_APP_CLIENT_ID,
                     AuthFlow="REFRESH_TOKEN",
                     AuthParameters={"REFRESH_TOKEN": response.refresh_token},
@@ -181,7 +179,7 @@ class Helpers:
             )
 
             uuid = WinixAccount(reponse.access_token).get_uuid()
-            identity_id = Helpers._get_identity_id_sync(reponse.id_token)
+            identity_id = Helpers.get_identity_id_sync(reponse.id_token)
             LOGGER.debug("Re-establishing session after token refresh")
 
             try:
@@ -202,19 +200,15 @@ class Helpers:
     ) -> dict[str, str]:
         """Build a payload that matches the current mobile app metadata."""
 
-        payload = {
+        return {
             "accessToken": access_token,
             "uuid": uuid,
             **Helpers._MOBILE_APP_METADATA,
             **kwargs,
         }
-        # Only include the client secret key if one is configured (new app client has none).
-        if auth.COGNITO_CLIENT_SECRET_KEY is not None:
-            payload["cognitoClientSecretKey"] = auth.COGNITO_CLIENT_SECRET_KEY
-        return payload
 
     @staticmethod
-    def _get_identity_id_sync(id_token: str) -> str:
+    def get_identity_id_sync(id_token: str) -> str:
         """Get the Cognito Identity ID synchronously (for use in executor threads).
 
         The CTRL_URL requires the user's identityId from the Cognito Identity Pool
@@ -223,20 +217,10 @@ class Helpers:
 
         Raises WinixException.
         """
-        import boto3
-        from botocore import UNSIGNED
-        from botocore.client import Config
-
-        client = boto3.client(
-            "cognito-identity",
-            config=Config(signature_version=UNSIGNED),
-            region_name="us-east-1",
-        )
-
         login_key = f"cognito-idp.us-east-1.amazonaws.com/{_COGNITO_USER_POOL_ID}"
 
         try:
-            response = client.get_id(
+            response = _COGNITO_IDENTITY_CLIENT.get_id(
                 IdentityPoolId=_COGNITO_IDENTITY_POOL_ID,
                 Logins={login_key: id_token},
             )
