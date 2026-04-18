@@ -371,7 +371,9 @@ class Helpers:
                 }
             )
 
-        response_json = await resp.json()
+        response_json = (
+            await resp.json()
+        )  # Note: filterAlarmInfo returns unencrypted JSON
 
         # Sample json
         # {'resultCode': '200', 'resultMessage': 'SUCCESS', 'filterUsageAlarm': 9}
@@ -415,12 +417,16 @@ class Helpers:
             timeout=DEFAULT_POST_TIMEOUT,
         )
 
-        binary_data = resp.content
-        response_json_text = Helpers.decrypt(await binary_data.read())
-        response_json = Helpers.json_loads(response_json_text)
+        binary_data = await resp.read()
 
         if resp.status != HTTPStatus.OK:
-            err_data = response_json
+            # Safely decrypt binary_data, generic errors might not be encrypted
+            try:
+                err_text = Helpers.decrypt(binary_data)
+                err_data = Helpers.json_loads(err_text)
+            except Exception:  # noqa: BLE001
+                err_data = {}
+
             result_code = err_data.get("resultCode")
             result_message = err_data.get("resultMessage")
 
@@ -431,6 +437,9 @@ class Helpers:
                     "result_message": result_message,
                 }
             )
+
+        response_json_text = Helpers.decrypt(binary_data)
+        response_json = Helpers.json_loads(response_json_text)
 
         return [
             MyWinixDeviceStub(
