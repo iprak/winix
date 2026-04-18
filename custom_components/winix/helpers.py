@@ -456,7 +456,7 @@ class Helpers:
 
 
 class WinixException(HomeAssistantError):
-    """Wiinx related operation exception."""
+    """Winix related operation exception."""
 
     result_code: str = ""
     """Error code."""

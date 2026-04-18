@@ -80,15 +80,15 @@ def get_filter_life_percentage(hours: str | None, total: int) -> int | None:
 
 
 @dataclass(frozen=True, kw_only=True)
-class WininxSensorEntityDescription(SensorEntityDescription):
+class WinixSensorEntityDescription(SensorEntityDescription):
     """Describe Winix sensor entity."""
 
     value_fn: Callable[[dict[str, str], WinixDeviceWrapper], StateType]
     extra_state_attributes_fn: Callable[[dict[str, str]], dict[str, Any]]
 
 
-SENSOR_DESCRIPTIONS: tuple[WininxSensorEntityDescription, ...] = (
-    WininxSensorEntityDescription(
+SENSOR_DESCRIPTIONS: tuple[WinixSensorEntityDescription, ...] = (
+    WinixSensorEntityDescription(
         extra_state_attributes_fn=get_air_quality_attr,
         icon="mdi:cloud",
         key=SENSOR_AIR_QVALUE,
@@ -97,7 +97,7 @@ SENSOR_DESCRIPTIONS: tuple[WininxSensorEntityDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda state, wrapper: state.get(ATTR_AIR_QVALUE),
     ),
-    WininxSensorEntityDescription(
+    WinixSensorEntityDescription(
         extra_state_attributes_fn=get_filter_replacement_cycle,
         icon="mdi:air-filter",
         key=SENSOR_FILTER_LIFE,
@@ -106,7 +106,7 @@ SENSOR_DESCRIPTIONS: tuple[WininxSensorEntityDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=get_filter_life,
     ),
-    WininxSensorEntityDescription(
+    WinixSensorEntityDescription(
         extra_state_attributes_fn=None,
         icon="mdi:blur",
         key=SENSOR_AQI,
@@ -114,7 +114,7 @@ SENSOR_DESCRIPTIONS: tuple[WininxSensorEntityDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda state, wrapper: state.get(ATTR_AIR_AQI),
     ),
-    WininxSensorEntityDescription(
+    WinixSensorEntityDescription(
         device_class=SensorDeviceClass.PM25,
         extra_state_attributes_fn=None,
         key=SENSOR_PM25,
@@ -147,13 +147,13 @@ async def async_setup_entry(
 class WinixSensor(WinixEntity, SensorEntity):
     """Representation of a Winix Purifier sensor."""
 
-    entity_description: WininxSensorEntityDescription
+    entity_description: WinixSensorEntityDescription
 
     def __init__(
         self,
         wrapper: WinixDeviceWrapper,
         coordinator: WinixManager,
-        description: WininxSensorEntityDescription,
+        description: WinixSensorEntityDescription,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(wrapper, coordinator)
