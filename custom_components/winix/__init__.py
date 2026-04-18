@@ -137,7 +137,7 @@ async def async_prepare_devices(
         # login again and get new tokens.
         # 400:The user is not valid.
 
-        if err.result_code in ("900", "400"):
+        if err.result_code in ("900", "400", "NotAuthorizedException"):
             LOGGER.info(
                 "Failed to get device list (code=%s, message=%s), reauthenticating with stored credentials",
                 err.result_code,
