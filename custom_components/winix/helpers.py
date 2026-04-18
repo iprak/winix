@@ -39,8 +39,12 @@ _COGNITO_USER_POOL_ID = "us-east-1_Ofd50EosD"
 
 # Both Cognito services are public endpoints — no AWS credentials required.
 _UNSIGNED_CONFIG = Config(signature_version=UNSIGNED)
-_COGNITO_IDP_CLIENT = boto3.client("cognito-idp", config=_UNSIGNED_CONFIG, region_name="us-east-1")
-_COGNITO_IDENTITY_CLIENT = boto3.client("cognito-identity", config=_UNSIGNED_CONFIG, region_name="us-east-1")
+_COGNITO_IDP_CLIENT = boto3.client(
+    "cognito-idp", config=_UNSIGNED_CONFIG, region_name="us-east-1"
+)
+_COGNITO_IDENTITY_CLIENT = boto3.client(
+    "cognito-identity", config=_UNSIGNED_CONFIG, region_name="us-east-1"
+)
 
 HEADERS = {
     "Content-Type": "application/octet-stream",
@@ -183,7 +187,9 @@ class Helpers:
             LOGGER.debug("Re-establishing session after token refresh")
 
             try:
-                Helpers._register_user(reponse.access_token, uuid, response.user_id, identity_id)
+                Helpers._register_user(
+                    reponse.access_token, uuid, response.user_id, identity_id
+                )
                 Helpers._init(reponse.access_token, uuid)
                 Helpers._check_access_token(reponse.access_token, uuid, identity_id)
             except Exception as err:  # pylint: disable=broad-except
@@ -227,12 +233,21 @@ class Helpers:
         except Exception as err:  # pylint: disable=broad-except
             # Map NotAuthorizedException (expired id_token) to result_code so
             # callers can trigger re-auth rather than failing permanently.
-            code = "NotAuthorizedException" if "NotAuthorizedException" in str(err) else ""
-            raise WinixException({"message": f"Failed to get Cognito Identity ID: {err}", "result_code": code}) from err
+            code = (
+                "NotAuthorizedException" if "NotAuthorizedException" in str(err) else ""
+            )
+            raise WinixException(
+                {
+                    "message": f"Failed to get Cognito Identity ID: {err}",
+                    "result_code": code,
+                }
+            ) from err
 
         identity_id = response.get("IdentityId")
         if not identity_id:
-            raise WinixException({"message": "Cognito Identity ID missing from response."})
+            raise WinixException(
+                {"message": "Cognito Identity ID missing from response."}
+            )
 
         LOGGER.debug("Got Cognito identityId: %s", identity_id)
         return identity_id
@@ -247,11 +262,13 @@ class Helpers:
         resp = requests.post(
             "https://us.mobile.winix-iot.com/init",
             headers=HEADERS,
-            data=Helpers.encrypt({
-                "accessToken": access_token,
-                "uuid": uuid,
-                "region": "US",
-            }),
+            data=Helpers.encrypt(
+                {
+                    "accessToken": access_token,
+                    "uuid": uuid,
+                    "region": "US",
+                }
+            ),
             timeout=DEFAULT_POST_TIMEOUT,
         )
 
@@ -275,9 +292,11 @@ class Helpers:
         resp = requests.post(
             "https://us.mobile.winix-iot.com/checkAccessToken",
             headers=HEADERS,
-            data=Helpers.encrypt(Helpers._build_mobile_app_payload(
-                access_token, uuid, identityId=identity_id
-            )),
+            data=Helpers.encrypt(
+                Helpers._build_mobile_app_payload(
+                    access_token, uuid, identityId=identity_id
+                )
+            ),
             timeout=DEFAULT_POST_TIMEOUT,
         )
 
@@ -292,7 +311,9 @@ class Helpers:
             raise WinixException(response_json)
 
     @staticmethod
-    def _register_user(access_token: str, uuid: str, email: str, identity_id: str) -> None:
+    def _register_user(
+        access_token: str, uuid: str, email: str, identity_id: str
+    ) -> None:
         """Register the generated mobile identity with the Winix backend.
 
         Raises WinixException.

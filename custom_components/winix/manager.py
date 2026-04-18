@@ -85,7 +85,9 @@ class WinixManager(DataUpdateCoordinator):
         for wrapper in self._device_wrappers:
             wrapper.update_features()
 
-    async def prepare_devices_wrappers(self, access_token: str = "", id_token: str = "") -> None:
+    async def prepare_devices_wrappers(
+        self, access_token: str = "", id_token: str = ""
+    ) -> None:
         """Prepare device wrappers.
 
         Raises WinixException.
@@ -118,7 +120,11 @@ class WinixManager(DataUpdateCoordinator):
                 )
                 self._device_wrappers.append(
                     WinixDeviceWrapper(
-                        self._client, device_stub, filter_alarm_duration, LOGGER, identity_id
+                        self._client,
+                        device_stub,
+                        filter_alarm_duration,
+                        LOGGER,
+                        identity_id,
                     )
                 )
 

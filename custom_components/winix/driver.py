@@ -65,7 +65,9 @@ class WinixDriver:
         "air_quality": {"good": "01", "fair": "02", "poor": "03"},
     }
 
-    def __init__(self, device_id: str, client: aiohttp.ClientSession, identity_id: str) -> None:
+    def __init__(
+        self, device_id: str, client: aiohttp.ClientSession, identity_id: str
+    ) -> None:
         """Create an instance of WinixDevice."""
         self.device_id = device_id
         self._client = client

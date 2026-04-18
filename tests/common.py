@@ -96,7 +96,11 @@ def build_mock_wrapper(index: Number = 0) -> WinixDeviceWrapper:
     logger.warning = Mock()
 
     return WinixDeviceWrapper(
-        client, device_stub, DEFAULT_FILTER_ALARM_DURATION_HOURS, logger, "test_identity_id"
+        client,
+        device_stub,
+        DEFAULT_FILTER_ALARM_DURATION_HOURS,
+        logger,
+        "test_identity_id",
     )
 
 
