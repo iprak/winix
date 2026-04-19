@@ -127,10 +127,28 @@ class Helpers:
     def login(username: str, password: str) -> auth.WinixAuthResponse:
         """Log in synchronously."""
 
+        # Use boto3 directly — auth.login() uses WarrantLite's SRP flow which calls
+        # get_secret_hash() and breaks with client_secret=None (new public client has
+        # no secret). USER_PASSWORD_AUTH bypasses SRP entirely.
         try:
-            response = auth.login(username, password)
+            resp = _COGNITO_IDP_CLIENT.initiate_auth(
+                ClientId=auth.COGNITO_APP_CLIENT_ID,
+                AuthFlow="USER_PASSWORD_AUTH",
+                AuthParameters={
+                    "USERNAME": username,
+                    "PASSWORD": password,
+                },
+            )
         except Exception as err:  # pylint: disable=broad-except
             raise WinixException.from_aws_exception(err) from err
+
+        result = resp["AuthenticationResult"]
+        response = auth.WinixAuthResponse(
+            user_id=username,
+            access_token=result["AccessToken"],
+            refresh_token=result["RefreshToken"],
+            id_token=result["IdToken"],
+        )
 
         access_token = response.access_token
         uuid = WinixAccount(access_token).get_uuid()
