@@ -101,87 +101,66 @@ class WinixDriver:
 
     async def turn_off(self) -> None:
         """Turn the device off."""
-        await self._rpc_attr(
-            self.category_keys[ATTR_POWER], self.state_keys[ATTR_POWER][OFF_VALUE]
-        )
+        await self.control(ATTR_POWER, OFF_VALUE)
 
     async def turn_on(self) -> None:
         """Turn the device on."""
-        await self._rpc_attr(
-            self.category_keys[ATTR_POWER], self.state_keys[ATTR_POWER][ON_VALUE]
-        )
+        await self.control(ATTR_POWER, ON_VALUE)
 
     async def auto(self) -> None:
         """Set device in auto mode."""
-        await self._rpc_attr(
-            self.category_keys[ATTR_MODE], self.state_keys[ATTR_MODE][MODE_AUTO]
-        )
+        await self.control(ATTR_MODE, MODE_AUTO)
 
     async def manual(self) -> None:
         """Set device in manual mode."""
-        await self._rpc_attr(
-            self.category_keys[ATTR_MODE], self.state_keys[ATTR_MODE][MODE_MANUAL]
-        )
+        await self.control(ATTR_MODE, MODE_MANUAL)
 
     async def child_lock_off(self) -> None:
         """Turn child lock off."""
-        await self._rpc_attr(self.category_keys[ATTR_CHILD_LOCK], "0")
+        await self.control(ATTR_CHILD_LOCK, OFF_VALUE)
 
     async def child_lock_on(self) -> None:
         """Turn child lock on."""
-        await self._rpc_attr(self.category_keys[ATTR_CHILD_LOCK], "1")
+        await self.control(ATTR_CHILD_LOCK, ON_VALUE)
 
     async def set_brightness_level(self, value: int) -> bool:
         """Set brightness level."""
         if not any(e.value == value for e in BrightnessLevel):
             return False
 
-        await self._rpc_attr(self.category_keys[ATTR_BRIGHTNESS_LEVEL], value)
+        await self._rpc_attr(self.category_keys[ATTR_BRIGHTNESS_LEVEL], str(value))
         return True
 
     async def plasmawave_off(self) -> None:
         """Turn plasmawave off."""
-        await self._rpc_attr(
-            self.category_keys[ATTR_PLASMA], self.state_keys[ATTR_PLASMA][OFF_VALUE]
-        )
+        await self.control(ATTR_PLASMA, OFF_VALUE)
 
     async def plasmawave_on(self) -> None:
         """Turn plasmawave on."""
-        await self._rpc_attr(
-            self.category_keys[ATTR_PLASMA], self.state_keys[ATTR_PLASMA][ON_VALUE]
-        )
+        await self.control(ATTR_PLASMA, ON_VALUE)
 
     async def low(self) -> None:
         """Set speed low."""
-        await self._rpc_attr(
-            self.category_keys[ATTR_AIRFLOW], self.state_keys[ATTR_AIRFLOW][AIRFLOW_LOW]
-        )
+        await self.control(ATTR_AIRFLOW, AIRFLOW_LOW)
 
     async def medium(self) -> None:
         """Set speed medium."""
-        await self._rpc_attr(
-            self.category_keys[ATTR_AIRFLOW], self.state_keys[ATTR_AIRFLOW][AIRFLOW_MEDIUM]
-        )
+        await self.control(ATTR_AIRFLOW, AIRFLOW_MEDIUM)
 
     async def high(self) -> None:
         """Set speed high."""
-        await self._rpc_attr(
-            self.category_keys[ATTR_AIRFLOW], self.state_keys[ATTR_AIRFLOW][AIRFLOW_HIGH]
-        )
+        await self.control(ATTR_AIRFLOW, AIRFLOW_HIGH)
 
     async def turbo(self) -> None:
         """Set speed turbo."""
-        await self._rpc_attr(
-            self.category_keys[ATTR_AIRFLOW], self.state_keys[ATTR_AIRFLOW][AIRFLOW_TURBO]
-        )
+        await self.control(ATTR_AIRFLOW, AIRFLOW_TURBO)
 
     async def sleep(self) -> None:
         """Set device in sleep mode."""
-        await self._rpc_attr(
-            self.category_keys[ATTR_AIRFLOW], self.state_keys[ATTR_AIRFLOW][AIRFLOW_SLEEP]
-        )
+        await self.control(ATTR_AIRFLOW, AIRFLOW_SLEEP)
 
     async def _rpc_attr(self, attr: str, value: str) -> None:
+        """Make a raw API call with the given attribute code and value."""
         LOGGER.debug("_rpc_attr attribute=%s, value=%s", attr, value)
 
         try:
@@ -204,6 +183,13 @@ class WinixDriver:
             raise HomeAssistantError(f"Error communicating with Winix: {err}") from err
         except TimeoutError as err:
             raise HomeAssistantError("Timeout communicating with Winix") from err
+
+    async def control(self, category: str, state_key: str) -> None:
+        """Control the device using semantic category/state names."""
+        await self._rpc_attr(
+            self.category_keys[category],
+            self.state_keys[category][state_key],
+        )
 
     async def get_filter_life(self) -> int | None:
         """Get the total filter life.
