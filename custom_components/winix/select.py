@@ -52,7 +52,7 @@ SELECT_DESCRIPTIONS: Final[tuple[WinixSelectEntityDescription, ...]] = (
         exists_fn=lambda device: device.features.supports_brightness_level,
         icon="mdi:brightness-6",
         key="brightness_level",
-        name="Brightness level",
+        name="Brightness Level",
         options=BRIGHTNESS_OPTIONS,
         select_option_fn=lambda device, value: device.async_set_brightness_level(
             parse_brightness_level(value)
