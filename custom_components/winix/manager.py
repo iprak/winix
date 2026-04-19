@@ -20,6 +20,8 @@ from .device_wrapper import WinixDeviceWrapper
 from .driver import WinixTransientError
 from .helpers import Helpers
 
+RETRY_INTERVAL_SECONDS = 15
+
 
 class WinixEntity(CoordinatorEntity):
     """Represents a Winix entity."""
@@ -90,11 +92,15 @@ class WinixManager(DataUpdateCoordinator):
         except WinixTransientError as err:
             if not self._retry_on_error:
                 self._retry_on_error = True
-                LOGGER.info("Transient error during update, will retry in 15s: %s", err)
-                raise UpdateFailed(retry_after=timedelta(seconds=15)) from err
+                LOGGER.info(
+                    "Transient error during update, will retry in %ds: %s",
+                    RETRY_INTERVAL_SECONDS,
+                    err,
+                )
+                raise UpdateFailed(retry_after=RETRY_INTERVAL_SECONDS) from err
             self._retry_on_error = False
             LOGGER.info("Retry also failed, resuming normal poll interval: %s", err)
-            raise UpdateFailed() from err
+            raise UpdateFailed from err
 
     def update_features(self) -> None:
         """Update the supported features based on the current state."""
