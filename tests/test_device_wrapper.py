@@ -263,7 +263,10 @@ async def test_async_set_speed() -> None:
         assert not wrapper.is_auto
         assert wrapper.is_manual
 
-        # Calling again at same speed does nothing
+        high_speed.reset_mock()
+        low_speed.reset_mock()
+
+        # Calling again at same speed still fires (guard removed; caller's responsibility)
         await wrapper.async_set_speed(AIRFLOW_LOW)
         assert high_speed.call_count == 0
         assert low_speed.call_count == 1
