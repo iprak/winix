@@ -12,10 +12,12 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
+    UpdateFailed,
 )
 
 from .const import LOGGER, WINIX_DOMAIN
 from .device_wrapper import WinixDeviceWrapper
+from .driver import WinixTransientError
 from .helpers import Helpers
 
 
@@ -67,6 +69,7 @@ class WinixManager(DataUpdateCoordinator):
         self._device_wrappers: list[WinixDeviceWrapper] = []
         self._auth_response = auth_response
         self._client = client
+        self._retry_on_error = False
 
         super().__init__(
             hass,
@@ -80,8 +83,18 @@ class WinixManager(DataUpdateCoordinator):
         """Fetch the latest data from the source. This overrides the method in DataUpdateCoordinator."""
 
         LOGGER.info("Updating devices")
-        for device_wrapper in self._device_wrappers:
-            await device_wrapper.update()
+        try:
+            for device_wrapper in self._device_wrappers:
+                await device_wrapper.update()
+            self._retry_on_error = False
+        except WinixTransientError as err:
+            if not self._retry_on_error:
+                self._retry_on_error = True
+                LOGGER.info("Transient error during update, will retry in 15s: %s", err)
+                raise UpdateFailed(retry_after=timedelta(seconds=15)) from err
+            self._retry_on_error = False
+            LOGGER.info("Retry also failed, resuming normal poll interval: %s", err)
+            raise UpdateFailed() from err
 
     def update_features(self) -> None:
         """Update the supported features based on the current state."""
