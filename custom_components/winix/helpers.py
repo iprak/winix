@@ -3,22 +3,28 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from datetime import datetime, timedelta
 from http import HTTPStatus
 import json
 from typing import Any
 
 import aiohttp
-import boto3
-from botocore import UNSIGNED
-from botocore.client import Config
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 import requests
-from winix import WinixAccount, auth
 
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 
+from .cloud import (
+    MOBILE_APP_VERSION,
+    MOBILE_MODEL,
+    WinixAuthResponse,
+    generate_uuid,
+    login as cloud_login,
+    refresh as cloud_refresh,
+    resolve_identity_id,
+)
 from .const import (
     DEFAULT_FILTER_ALARM_DURATION,
     DEFAULT_POST_TIMEOUT,
@@ -26,24 +32,6 @@ from .const import (
     WINIX_DOMAIN,
 )
 from .device_wrapper import MyWinixDeviceStub
-
-# Winix rotated their Cognito app client on 2026-04-16. The old client ID
-# (14og512b9u20b8vrdm55d8empi) is dead. Patch the pip package constants before
-# any auth calls are made. The new client has no client secret.
-auth.COGNITO_APP_CLIENT_ID = "5rjk59c5tt7k9g8gpj0vd2qfg9"
-auth.COGNITO_CLIENT_SECRET_KEY = None
-
-_COGNITO_IDENTITY_POOL_ID = "us-east-1:84008e15-d6af-4698-8646-66d05c1abe8b"
-_COGNITO_USER_POOL_ID = "us-east-1_Ofd50EosD"
-
-# Both Cognito services are public endpoints — no AWS credentials required.
-_UNSIGNED_CONFIG = Config(signature_version=UNSIGNED)
-_COGNITO_IDP_CLIENT = boto3.client(
-    "cognito-idp", config=_UNSIGNED_CONFIG, region_name="us-east-1"
-)
-_COGNITO_IDENTITY_CLIENT = boto3.client(
-    "cognito-identity", config=_UNSIGNED_CONFIG, region_name="us-east-1"
-)
 
 HEADERS = {
     "Content-Type": "application/octet-stream",
@@ -65,8 +53,8 @@ class Helpers:
         "osType": "android",
         "osVersion": "29",
         "mobileLang": "en",
-        "appVersion": "1.5.7",
-        "mobileModel": "SM-G988B",
+        "appVersion": MOBILE_APP_VERSION,
+        "mobileModel": MOBILE_MODEL,
     }
 
     @staticmethod
@@ -118,86 +106,84 @@ class Helpers:
     @staticmethod
     async def async_login(
         hass: HomeAssistant, username: str, password: str
-    ) -> auth.WinixAuthResponse:
+    ) -> WinixAuthResponse:
         """Log in asynchronously."""
 
         return await hass.async_add_executor_job(Helpers.login, username, password)
 
     @staticmethod
-    def login(username: str, password: str) -> auth.WinixAuthResponse:
+    def login(username: str, password: str) -> WinixAuthResponse:
         """Log in synchronously."""
 
         try:
-            response = auth.login(username, password)
+            response = cloud_login(username, password)
         except Exception as err:  # pylint: disable=broad-except
             raise WinixException.from_aws_exception(err) from err
 
         access_token = response.access_token
-        uuid = WinixAccount(access_token).get_uuid()
-        identity_id = Helpers.get_identity_id_sync(response.id_token)
+        uuid = generate_uuid(access_token)
 
         try:
-            # v1.5.7 session establishment order:
-            # registerUser (needs identityId) → init → checkAccessToken (needs identityId)
-            Helpers._register_user(access_token, uuid, username, identity_id)
-            Helpers._init(access_token, uuid)
-            Helpers._check_access_token(access_token, uuid, identity_id)
+            response.identity_id = resolve_identity_id(response.id_token)
+            Helpers._register_user(
+                access_token, uuid, username, response.identity_id
+            )
+            Helpers._init_session(access_token, uuid)
+            Helpers._check_access_token(access_token, uuid, response.identity_id)
         except Exception as err:  # pylint: disable=broad-except
             raise WinixException.from_winix_exception(err) from err
 
+        expires_at = response.expires_at or (
+            datetime.now() + timedelta(seconds=3600)
+        ).timestamp()
+        LOGGER.debug("Login successful, token expires %.0f", expires_at)
         return response
 
     @staticmethod
     async def async_refresh_auth(
-        hass: HomeAssistant, response: auth.WinixAuthResponse
-    ) -> auth.WinixAuthResponse:
+        hass: HomeAssistant, username: str, response: WinixAuthResponse
+    ) -> WinixAuthResponse:
         """Refresh authentication.
 
         Raises WinixException.
         """
 
-        def _refresh(response: auth.WinixAuthResponse) -> auth.WinixAuthResponse:
+        def _refresh(username: str, response: WinixAuthResponse) -> WinixAuthResponse:
             LOGGER.debug("Attempting re-authentication")
 
-            # Use boto3 directly — auth.refresh() calls WarrantLite.get_secret_hash()
-            # which breaks with client_secret=None (new public client has no secret).
-            # New public client has no secret — no SECRET_HASH in refresh params.
             try:
-                resp = _COGNITO_IDP_CLIENT.initiate_auth(
-                    ClientId=auth.COGNITO_APP_CLIENT_ID,
-                    AuthFlow="REFRESH_TOKEN",
-                    AuthParameters={"REFRESH_TOKEN": response.refresh_token},
+                refreshed_response = cloud_refresh(
+                    user_id=response.user_id, refresh_token=response.refresh_token
                 )
             except Exception as err:  # pylint: disable=broad-except
                 raise WinixException.from_aws_exception(err) from err
 
-            result = resp["AuthenticationResult"]
-            new_response = auth.WinixAuthResponse(
-                user_id=response.user_id,
-                access_token=result["AccessToken"],
-                refresh_token=response.refresh_token,
-                id_token=result["IdToken"],
-            )
-
-            uuid = WinixAccount(new_response.access_token).get_uuid()
-            identity_id = Helpers.get_identity_id_sync(new_response.id_token)
-            LOGGER.debug("Re-establishing session after token refresh")
+            uuid = generate_uuid(refreshed_response.access_token)
+            LOGGER.debug("Attempting session re-establishment")
 
             try:
-                Helpers._register_user(
-                    new_response.access_token, uuid, response.user_id, identity_id
+                refreshed_response.identity_id = resolve_identity_id(
+                    refreshed_response.id_token
                 )
-                Helpers._init(new_response.access_token, uuid)
+                Helpers._register_user(
+                    refreshed_response.access_token,
+                    uuid,
+                    username,
+                    refreshed_response.identity_id,
+                )
+                Helpers._init_session(refreshed_response.access_token, uuid)
                 Helpers._check_access_token(
-                    new_response.access_token, uuid, identity_id
+                    refreshed_response.access_token,
+                    uuid,
+                    refreshed_response.identity_id,
                 )
             except Exception as err:  # pylint: disable=broad-except
                 raise WinixException.from_winix_exception(err) from err
 
             LOGGER.debug("Re-authentication successful")
-            return new_response
+            return refreshed_response
 
-        return await hass.async_add_executor_job(_refresh, response)
+        return await hass.async_add_executor_job(_refresh, username, response)
 
     @staticmethod
     def _build_mobile_app_payload(
@@ -211,103 +197,6 @@ class Helpers:
             **Helpers._MOBILE_APP_METADATA,
             **kwargs,
         }
-
-    @staticmethod
-    def get_identity_id_sync(id_token: str) -> str:
-        """Get the Cognito Identity ID synchronously (for use in executor threads).
-
-        The CTRL_URL requires the user's identityId from the Cognito Identity Pool
-        instead of the old hardcoded 'A211' path segment. Uses boto3 so the AWS
-        JSON protocol headers are handled correctly.
-
-        Raises WinixException.
-        """
-        login_key = f"cognito-idp.us-east-1.amazonaws.com/{_COGNITO_USER_POOL_ID}"
-
-        try:
-            response = _COGNITO_IDENTITY_CLIENT.get_id(
-                IdentityPoolId=_COGNITO_IDENTITY_POOL_ID,
-                Logins={login_key: id_token},
-            )
-        except Exception as err:  # pylint: disable=broad-except
-            # Map NotAuthorizedException (expired id_token) to result_code so
-            # callers can trigger re-auth rather than failing permanently.
-            code = (
-                "NotAuthorizedException" if "NotAuthorizedException" in str(err) else ""
-            )
-            raise WinixException(
-                {
-                    "message": f"Failed to get Cognito Identity ID: {err}",
-                    "result_code": code,
-                }
-            ) from err
-
-        identity_id = response.get("IdentityId")
-        if not identity_id:
-            raise WinixException(
-                {"message": "Cognito Identity ID missing from response."}
-            )
-
-        LOGGER.debug("Got Cognito identityId: %s", identity_id)
-        return identity_id
-
-    @staticmethod
-    def _init(access_token: str, uuid: str) -> None:
-        """Call the Winix /init endpoint. Required as of v1.5.7 between registerUser and checkAccessToken.
-
-        Raises WinixException.
-        """
-
-        resp = requests.post(
-            "https://us.mobile.winix-iot.com/init",
-            headers=HEADERS,
-            data=Helpers.encrypt(
-                {
-                    "accessToken": access_token,
-                    "uuid": uuid,
-                    "region": "US",
-                }
-            ),
-            timeout=DEFAULT_POST_TIMEOUT,
-        )
-
-        binary_data = resp.content
-        response_json_text = Helpers.decrypt(binary_data)
-        response_json = Helpers.json_loads(response_json_text)
-
-        if resp.status_code != HTTPStatus.OK:
-            response_json["message"] = (
-                f"Error while performing RPC init ({resp.status_code})"
-            )
-            raise WinixException(response_json)
-
-    @staticmethod
-    def _check_access_token(access_token: str, uuid: str, identity_id: str) -> None:
-        """Validate the access token with Winix cloud using current app metadata.
-
-        Raises WinixException.
-        """
-
-        resp = requests.post(
-            "https://us.mobile.winix-iot.com/checkAccessToken",
-            headers=HEADERS,
-            data=Helpers.encrypt(
-                Helpers._build_mobile_app_payload(
-                    access_token, uuid, identityId=identity_id
-                )
-            ),
-            timeout=DEFAULT_POST_TIMEOUT,
-        )
-
-        binary_data = resp.content
-        response_json_text = Helpers.decrypt(binary_data)
-        response_json = Helpers.json_loads(response_json_text)
-
-        if resp.status_code != HTTPStatus.OK:
-            response_json["message"] = (
-                f"Error while performing RPC checkAccessToken ({resp.status_code})"
-            )
-            raise WinixException(response_json)
 
     @staticmethod
     def _register_user(
@@ -332,12 +221,69 @@ class Helpers:
         binary_data = resp.content
         response_json_text = Helpers.decrypt(binary_data)
         response_json = Helpers.json_loads(response_json_text)
+        Helpers._ensure_mobile_success("registerUser", resp.status_code, response_json)
 
-        if resp.status_code != HTTPStatus.OK:
-            response_json["message"] = (
-                f"Error while performing RPC registerUser ({resp.status_code})"
-            )
-            raise WinixException(response_json)
+    @staticmethod
+    def _init_session(access_token: str, uuid: str) -> None:
+        """Initialize the Winix mobile session for the new cloud flow."""
+
+        resp = requests.post(
+            "https://us.mobile.winix-iot.com/init",
+            headers=HEADERS,
+            data=Helpers.encrypt(
+                Helpers._build_mobile_app_payload(access_token, uuid, region="US")
+            ),
+            timeout=DEFAULT_POST_TIMEOUT,
+        )
+
+        binary_data = resp.content
+        response_json_text = Helpers.decrypt(binary_data)
+        response_json = Helpers.json_loads(response_json_text)
+        Helpers._ensure_mobile_success("init", resp.status_code, response_json)
+
+    @staticmethod
+    def _check_access_token(access_token: str, uuid: str, identity_id: str) -> None:
+        """Validate the access token with Winix cloud using current app metadata.
+
+        Raises WinixException.
+        """
+
+        resp = requests.post(
+            "https://us.mobile.winix-iot.com/checkAccessToken",
+            headers=HEADERS,
+            data=Helpers.encrypt(
+                Helpers._build_mobile_app_payload(
+                    access_token, uuid, identityId=identity_id
+                )
+            ),
+            timeout=DEFAULT_POST_TIMEOUT,
+        )
+
+        binary_data = resp.content
+        response_json_text = Helpers.decrypt(binary_data)
+        response_json = Helpers.json_loads(response_json_text)
+        Helpers._ensure_mobile_success(
+            "checkAccessToken", resp.status_code, response_json
+        )
+
+    @staticmethod
+    def _ensure_mobile_success(
+        operation: str, status_code: int, response_json: dict[str, Any]
+    ) -> None:
+        """Validate the decrypted mobile API response."""
+
+        result_code = str(response_json.get("resultCode", ""))
+        result_message = response_json.get("resultMessage", "")
+
+        if status_code == HTTPStatus.OK and (not result_code or result_code == "200"):
+            return
+
+        response_json["message"] = (
+            f"Error while performing RPC {operation} ({status_code})"
+        )
+        response_json["result_code"] = result_code
+        response_json["result_message"] = result_message
+        raise WinixException(response_json)
 
     @staticmethod
     async def get_filter_alarm_duration(
@@ -368,16 +314,10 @@ class Helpers:
                 }
             )
 
-        response_json = (
-            await resp.json()
-        )  # Note: filterAlarmInfo returns unencrypted JSON
+        response_json = await resp.json()
 
-        # Sample json
-        # {'resultCode': '200', 'resultMessage': 'SUCCESS', 'filterUsageAlarm': 9}
-        LOGGER.debug("getFilterAlarmInfo: %s", response_json)
+        LOGGER.debug(f"getFilterAlarmInfo: {response_json}")
 
-        # Fall back to 9 months if filter alram has been turned off in mobile app in which case we receive this:
-        # {'resultCode': '200', 'resultMessage': 'SUCCESS', 'filterUsageAlarm': 0}
         value = int(response_json["filterUsageAlarm"])
 
         if value == 0:
@@ -393,15 +333,6 @@ class Helpers:
         Raises WinixException.
         """
 
-        # Modified from https://github.com/hfern/winix to support additional attributes.
-
-        # com.google.gson.k kVar = new com.google.gson.k();
-        # kVar.p("accessToken", deviceMainActivity2.f2938o);
-        # kVar.p("uuid", Common.w(deviceMainActivity2.f2934k));
-        # new com.winix.smartiot.util.o0(deviceMainActivity2.f2934k, "https://us.mobile.winix-iot.com/getDeviceInfoList", kVar).a(new TypeToken<g4.v>() {
-        #  // from class: com.winix.smartiot.activity.DeviceMainActivity.9
-        # }, new com.winix.smartiot.activity.d(deviceMainActivity2, 4));
-
         resp = await client.post(
             "https://us.mobile.winix-iot.com/getDeviceInfoList",
             headers=HEADERS,
@@ -414,19 +345,13 @@ class Helpers:
             timeout=DEFAULT_POST_TIMEOUT,
         )
 
-        binary_data = await resp.read()
+        binary_data = resp.content
+        response_json_text = Helpers.decrypt(await binary_data.read())
+        response_json = Helpers.json_loads(response_json_text)
 
-        if resp.status != HTTPStatus.OK:
-            # Safely decrypt binary_data, generic errors might not be encrypted
-            try:
-                err_text = Helpers.decrypt(binary_data)
-                err_data = Helpers.json_loads(err_text)
-            except Exception:  # noqa: BLE001
-                err_data = {}
-
-            result_code = err_data.get("resultCode")
-            result_message = err_data.get("resultMessage")
-
+        result_code = str(response_json.get("resultCode", "200"))
+        result_message = response_json.get("resultMessage", "")
+        if resp.status != HTTPStatus.OK or result_code != "200":
             raise WinixException(
                 {
                     "message": f"Failed to get device list (code-{result_code}). {result_message}.",
@@ -434,9 +359,6 @@ class Helpers:
                     "result_message": result_message,
                 }
             )
-
-        response_json_text = Helpers.decrypt(binary_data)
-        response_json = Helpers.json_loads(response_json_text)
 
         return [
             MyWinixDeviceStub(
@@ -453,7 +375,7 @@ class Helpers:
 
 
 class WinixException(HomeAssistantError):
-    """Winix related operation exception."""
+    """Wiinx related operation exception."""
 
     result_code: str = ""
     """Error code."""
@@ -504,7 +426,6 @@ class WinixException(HomeAssistantError):
         """Parse AWS operation exception."""
         message = str(err)
 
-        # https://stackoverflow.com/questions/60703127/how-to-catch-botocore-errorfactory-usernotfoundexception
         try:
             response = err.response
             if response:

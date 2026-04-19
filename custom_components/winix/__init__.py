@@ -6,7 +6,6 @@ from collections.abc import Iterable
 from typing import Final
 
 from awesomeversion import AwesomeVersion
-from winix import auth
 
 from homeassistant.components import persistent_notification
 from homeassistant.config_entries import ConfigEntry
@@ -25,6 +24,7 @@ from homeassistant.helpers import (
     entity_registry as er,
 )
 
+from .cloud import WinixAuthResponse
 from .const import (
     FAN_SERVICES,
     LOGGER,
@@ -37,7 +37,7 @@ from .const import (
 from .helpers import Helpers, WinixException
 from .manager import WinixManager
 
-type WinixConfigEntry = ConfigEntry[WinixManager]
+WinixConfigEntry = ConfigEntry[WinixManager]
 
 SUPPORTED_PLATFORMS = [Platform.FAN, Platform.SENSOR, Platform.SELECT, Platform.SWITCH]
 DEFAULT_SCAN_INTERVAL: Final = 30
@@ -62,18 +62,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: WinixConfigEntry) -> boo
     user_input = entry.data
 
     auth_response_data = user_input.get(WINIX_AUTH_RESPONSE)
-    auth_response = (
-        auth_response_data
-        if isinstance(auth_response_data, auth.WinixAuthResponse)
-        else auth.WinixAuthResponse(**auth_response_data)
-    )
+    auth_response = WinixAuthResponse.from_dict(auth_response_data)
 
     if not auth_response:
         raise ConfigEntryAuthFailed(
             "No authentication data found. Please reconfigure the integration."
         )
 
-    # Grab the client once and pass it around
+    if not auth_response.identity_id:
+        try:
+            auth_response = await Helpers.async_refresh_auth(
+                hass, user_input[CONF_USERNAME], auth_response
+            )
+        except WinixException:
+            auth_response = await Helpers.async_login(
+                hass, user_input[CONF_USERNAME], user_input[CONF_PASSWORD]
+            )
+
+        hass.config_entries.async_update_entry(
+            entry,
+            data={**user_input, WINIX_AUTH_RESPONSE: auth_response.as_dict()},
+        )
+
     client = aiohttp_client.async_get_clientsession(hass)
 
     manager = WinixManager(hass, entry, auth_response, DEFAULT_SCAN_INTERVAL, client)
@@ -81,7 +91,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: WinixConfigEntry) -> boo
         hass, manager, user_input[CONF_USERNAME], user_input[CONF_PASSWORD]
     )
     if new_auth_response is not None:
-        # Copy over new values
         LOGGER.debug(
             "access_token %s",
             "changed"
@@ -104,15 +113,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: WinixConfigEntry) -> boo
         auth_response.access_token = new_auth_response.access_token
         auth_response.refresh_token = new_auth_response.refresh_token
         auth_response.id_token = new_auth_response.id_token
+        auth_response.identity_id = new_auth_response.identity_id
+        auth_response.expires_at = new_auth_response.expires_at
 
-        # Update tokens into entry.data
         hass.config_entries.async_update_entry(
             entry,
-            data={**user_input, WINIX_AUTH_RESPONSE: auth_response},
+            data={**user_input, WINIX_AUTH_RESPONSE: auth_response.as_dict()},
         )
 
     await manager.async_config_entry_first_refresh()
-    manager.update_features()  # Update features after the first refresh to ensure we have the latest state
+    manager.update_features()
 
     entry.runtime_data = manager
     await hass.config_entries.async_forward_entry_setups(entry, SUPPORTED_PLATFORMS)
@@ -123,20 +133,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: WinixConfigEntry) -> boo
 
 async def async_prepare_devices(
     hass: HomeAssistant, manager: WinixManager, username: str, password: str
-) -> auth.WinixAuthResponse | None:
+) -> WinixAuthResponse | None:
     """Prepare devices asynchronously. Returns new auth response if re-login was performed.
 
     Raises ConfigEntryAuthFailed or ConfigEntryNotReady.
     """
-    new_auth_response: auth.WinixAuthResponse = None
+    new_auth_response: WinixAuthResponse = None
 
     try:
         await manager.prepare_devices_wrappers()
     except WinixException as err:
-        # 900:MULTI LOGIN: Same credentials were used to login elwsewhere. We need to
-        # login again and get new tokens.
-        # 400:The user is not valid.
-
         if err.result_code in ("900", "400", "NotAuthorizedException"):
             LOGGER.info(
                 "Failed to get device list (code=%s, message=%s), reauthenticating with stored credentials",
@@ -145,7 +151,6 @@ async def async_prepare_devices(
             )
 
             try:
-                # Avoid blocking the event loop (https://developers.home-assistant.io/docs/asyncio_blocking_operations)
                 new_auth_response = await hass.async_add_executor_job(
                     Helpers.login, username, password
                 )
@@ -154,10 +159,9 @@ async def async_prepare_devices(
 
             LOGGER.info("Reauthenticating successful, getting device list again")
 
-            # Try preparing device wrappers again with new auth response
             try:
                 await manager.prepare_devices_wrappers(
-                    new_auth_response.access_token, new_auth_response.id_token
+                    new_auth_response.access_token, new_auth_response.identity_id
                 )
             except WinixException as err_retry:
                 raise ConfigEntryAuthFailed(
@@ -184,7 +188,6 @@ def setup_hass_services(hass: HomeAssistant) -> None:
         device_registry = dr.async_get(hass)
         entity_registry = er.async_get(hass)
 
-        # Using set to avoid duplicates
         entity_ids = set()
         device_ids = set()
 
@@ -236,6 +239,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     unload_ok = await hass.config_entries.async_unload_platforms(
         entry, SUPPORTED_PLATFORMS
     )
+    if unload_ok:
+        hass.data.pop(WINIX_DOMAIN, None)
 
     other_loaded_entries = [
         _entry
@@ -243,7 +248,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if _entry.entry_id != entry.entry_id
     ]
     if not other_loaded_entries:
-        # If this is the last loaded instance, then unregister services
         hass.services.async_remove(WINIX_DOMAIN, SERVICE_REMOVE_STALE_ENTITIES)
 
         for service_name in FAN_SERVICES:

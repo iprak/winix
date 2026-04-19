@@ -66,12 +66,12 @@ class WinixDriver:
     }
 
     def __init__(
-        self, device_id: str, client: aiohttp.ClientSession, identity_id: str
+        self, device_id: str, identity_id: str | None, client: aiohttp.ClientSession
     ) -> None:
         """Create an instance of WinixDevice."""
         self.device_id = device_id
+        self.identity_id = identity_id
         self._client = client
-        self._identity_id = identity_id
 
     async def turn_off(self) -> None:
         """Turn the device off."""
@@ -158,11 +158,16 @@ class WinixDriver:
     async def _rpc_attr(self, attr: str, value: str) -> None:
         LOGGER.debug("_rpc_attr attribute=%s, value=%s", attr, value)
 
+        if not self.identity_id:
+            raise HomeAssistantError(
+                "Missing Winix identity_id. Reconfigure the integration."
+            )
+
         try:
             response = await self._client.get(
                 self.CTRL_URL.format(
                     deviceid=self.device_id,
-                    identityid=self._identity_id,
+                    identityid=self.identity_id,
                     attribute=attr,
                     value=value,
                 )
