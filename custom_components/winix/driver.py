@@ -13,6 +13,11 @@ from .const import ATTR_PM25, LOGGER
 
 # Modified from https://github.com/hfern/winix to support async operations
 
+
+class WinixTransientError(HomeAssistantError):
+    """Raised for transient network errors that may resolve on retry."""
+
+
 ATTR_BRIGHTNESS_LEVEL: Final = "brightness_level"
 ATTR_CHILD_LOCK: Final = "child_lock"
 
@@ -248,13 +253,13 @@ class WinixDriver:
             response.raise_for_status()
             json = await response.json()
         except aiohttp.ClientResponseError as err:
-            raise HomeAssistantError(
+            raise WinixTransientError(
                 f"Failed to download data: HTTP {err.status}"
             ) from err
         except aiohttp.ClientError as err:
-            raise HomeAssistantError(f"Error communicating with Winix: {err}") from err
+            raise WinixTransientError(f"Error communicating with Winix: {err}") from err
         except TimeoutError as err:
-            raise HomeAssistantError("Timeout communicating with Winix") from err
+            raise WinixTransientError("Timeout communicating with Winix") from err
 
         # pylint: disable=pointless-string-statement
         """

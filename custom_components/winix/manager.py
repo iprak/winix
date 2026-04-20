@@ -10,12 +10,16 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
+    UpdateFailed,
 )
 
 from .cloud import WinixAuthResponse, generate_uuid
 from .const import LOGGER, WINIX_DOMAIN
 from .device_wrapper import WinixDeviceWrapper
+from .driver import WinixTransientError
 from .helpers import Helpers
+
+RETRY_INTERVAL_SECONDS = 15
 
 
 class WinixEntity(CoordinatorEntity):
@@ -64,6 +68,7 @@ class WinixManager(DataUpdateCoordinator):
         self._device_wrappers: list[WinixDeviceWrapper] = []
         self._auth_response = auth_response
         self._client = client
+        self._retry_on_error = False
 
         super().__init__(
             hass,
@@ -75,7 +80,24 @@ class WinixManager(DataUpdateCoordinator):
 
     async def _async_update_data(self) -> None:
         """Fetch the latest data from the source. This overrides the method in DataUpdateCoordinator."""
-        await self.async_update()
+
+        LOGGER.info("Updating devices")
+        try:
+            for device_wrapper in self._device_wrappers:
+                await device_wrapper.update()
+            self._retry_on_error = False
+        except WinixTransientError as err:
+            if not self._retry_on_error:
+                self._retry_on_error = True
+                LOGGER.info(
+                    "Transient error during update, will retry in %ds: %s",
+                    RETRY_INTERVAL_SECONDS,
+                    err,
+                )
+                raise UpdateFailed(retry_after=RETRY_INTERVAL_SECONDS) from err
+            self._retry_on_error = False
+            LOGGER.info("Retry also failed, resuming normal poll interval: %s", err)
+            raise UpdateFailed from err
 
     def update_features(self) -> None:
         """Update the supported features based on the current state."""
@@ -114,12 +136,6 @@ class WinixManager(DataUpdateCoordinator):
             LOGGER.info("%d purifiers found", len(self._device_wrappers))
         else:
             LOGGER.info("No purifiers found")
-
-    async def async_update(self, now=None) -> None:
-        """Asynchronously update all the devices."""
-        LOGGER.info("Updating devices")
-        for device_wrapper in self._device_wrappers:
-            await device_wrapper.update()
 
     def get_device_wrappers(self) -> list[WinixDeviceWrapper]:
         """Return the device wrapper objects."""
