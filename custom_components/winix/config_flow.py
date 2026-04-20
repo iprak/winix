@@ -6,12 +6,12 @@ from collections.abc import Mapping
 from typing import Any
 
 import voluptuous as vol
-from winix import auth
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.data_entry_flow import FlowResult
 
+from .cloud import WinixAuthResponse
 from .const import LOGGER, WINIX_AUTH_RESPONSE, WINIX_DOMAIN, WINIX_NAME
 from .helpers import Helpers, WinixException
 
@@ -64,14 +64,12 @@ class WinixFlowHandler(config_entries.ConfigFlow, domain=WINIX_DOMAIN):
             )
             errors = errors_and_auth["errors"]
             if not errors:
-                auth_response: auth.WinixAuthResponse = errors_and_auth[
-                    WINIX_AUTH_RESPONSE
-                ]
+                auth_response: WinixAuthResponse = errors_and_auth[WINIX_AUTH_RESPONSE]
                 await self.async_set_unique_id(username)
                 self._abort_if_unique_id_configured()
                 return self.async_create_entry(
                     title=WINIX_NAME,
-                    data={**user_input, WINIX_AUTH_RESPONSE: auth_response},
+                    data={**user_input, WINIX_AUTH_RESPONSE: auth_response.as_dict()},
                 )
 
         return self.async_show_form(
@@ -96,13 +94,13 @@ class WinixFlowHandler(config_entries.ConfigFlow, domain=WINIX_DOMAIN):
             errors_and_auth = await self._validate_input(username, password)
             errors = errors_and_auth["errors"]
             if not errors:
-                auth_response = errors_and_auth[WINIX_AUTH_RESPONSE]
+                auth_response: WinixAuthResponse = errors_and_auth[WINIX_AUTH_RESPONSE]
                 self.hass.config_entries.async_update_entry(
                     existing_entry,
                     data={
                         **existing_entry.data,
                         CONF_PASSWORD: password,
-                        WINIX_AUTH_RESPONSE: auth_response,
+                        WINIX_AUTH_RESPONSE: auth_response.as_dict(),
                     },
                 )
                 await self.hass.config_entries.async_reload(existing_entry.entry_id)

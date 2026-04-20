@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from datetime import timedelta
 
-from winix import WinixAccount, auth
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
@@ -15,6 +13,7 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 
+from .cloud import WinixAuthResponse, generate_uuid
 from .const import LOGGER, WINIX_DOMAIN
 from .device_wrapper import WinixDeviceWrapper
 from .driver import WinixTransientError
@@ -60,14 +59,12 @@ class WinixManager(DataUpdateCoordinator):
         self,
         hass: HomeAssistant,
         entry: ConfigEntry,
-        auth_response: auth.WinixAuthResponse,
+        auth_response: WinixAuthResponse,
         scan_interval: int,
         client,
     ) -> None:
         """Initialize the manager."""
 
-        # Always initialize _device_wrappers in case async_prepare_devices_wrappers
-        # was not invoked.
         self._device_wrappers: list[WinixDeviceWrapper] = []
         self._auth_response = auth_response
         self._client = client
@@ -108,32 +105,18 @@ class WinixManager(DataUpdateCoordinator):
             wrapper.update_features()
 
     async def prepare_devices_wrappers(
-        self, access_token: str = "", id_token: str = ""
+        self, access_token: str = "", identity_id: str | None = None
     ) -> None:
         """Prepare device wrappers.
 
         Raises WinixException.
         """
-        self._device_wrappers = []  # Reset device_stubs
+        self._device_wrappers = []
 
         token = access_token or self._auth_response.access_token
-        id_tok = id_token or self._auth_response.id_token
-        uuid = WinixAccount(token).get_uuid()
-
-        try:
-            device_stubs = await Helpers.get_device_stubs(self._client, token, uuid)
-        except Exception as err:
-            LOGGER.error("Failed to get device stubs: %s", err, exc_info=True)
-            raise
-
-        # boto3 call must run in an executor thread (synchronous I/O).
-        try:
-            identity_id = await self.hass.async_add_executor_job(
-                Helpers.get_identity_id_sync, id_tok
-            )
-        except Exception as err:
-            LOGGER.error("Failed to get identity_id: %s", err, exc_info=True)
-            raise
+        resolved_identity_id = identity_id or self._auth_response.identity_id
+        uuid = generate_uuid(token)
+        device_stubs = await Helpers.get_device_stubs(self._client, token, uuid)
 
         if device_stubs:
             for device_stub in device_stubs:
@@ -145,8 +128,8 @@ class WinixManager(DataUpdateCoordinator):
                         self._client,
                         device_stub,
                         filter_alarm_duration,
+                        resolved_identity_id,
                         LOGGER,
-                        identity_id,
                     )
                 )
 
