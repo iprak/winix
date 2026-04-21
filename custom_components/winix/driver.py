@@ -24,14 +24,24 @@ from .const import (
     ATTR_AMBIENT_LIGHT,
     ATTR_BRIGHTNESS_LEVEL,
     ATTR_CHILD_LOCK,
+    ATTR_CURRENT_HUMIDITY,
     ATTR_FILTER_HOUR,
     ATTR_MODE,
     ATTR_PLASMA,
     ATTR_PM25,
     ATTR_POWER,
+    ATTR_TARGET_HUMIDITY,
+    ATTR_TIMER,
+    ATTR_UV_SANITIZE,
+    ATTR_WATER_TANK,
+    AUTO_DRY_VALUE,
     LOGGER,
     MODE_AUTO,
+    MODE_CLOTHES,
+    MODE_CONTINUOUS,
     MODE_MANUAL,
+    MODE_QUIET,
+    MODE_SHOES,
     OFF_VALUE,
     ON_VALUE,
 )
@@ -324,3 +334,92 @@ class AirPurifierDriver(WinixDriver):
                 return int(attributes["P01"])
         except Exception:  # pylint: disable=broad-except # noqa: BLE001
             return None
+
+
+class DehumidifierDriver(WinixDriver):
+    """Winix Dehumidifier driver."""
+
+    category_keys = {
+        ATTR_POWER: "D02",
+        ATTR_MODE: "D03",
+        ATTR_AIRFLOW: "D04",
+        ATTR_TARGET_HUMIDITY: "D05",
+        ATTR_CHILD_LOCK: "D08",
+        ATTR_CURRENT_HUMIDITY: "D10",
+        ATTR_WATER_TANK: "D11",
+        ATTR_UV_SANITIZE: "D13",
+        ATTR_TIMER: "D15",
+    }
+
+    state_keys = {
+        ATTR_POWER: {
+            OFF_VALUE: "0",
+            ON_VALUE: "1",
+            AUTO_DRY_VALUE: "2",
+        },
+        ATTR_MODE: {
+            MODE_AUTO: "01",
+            MODE_MANUAL: "02",
+            MODE_CLOTHES: "03",
+            MODE_SHOES: "04",
+            MODE_QUIET: "05",
+            MODE_CONTINUOUS: "06",
+        },
+        ATTR_AIRFLOW: {
+            AIRFLOW_HIGH: "01",
+            AIRFLOW_LOW: "02",
+            AIRFLOW_TURBO: "03",
+        },
+        ATTR_CHILD_LOCK: {
+            OFF_VALUE: "0",
+            ON_VALUE: "1",
+        },
+        ATTR_WATER_TANK: {
+            OFF_VALUE: "0",  # not full and tank attached
+            ON_VALUE: "1",  # full or tank detached
+        },
+        ATTR_UV_SANITIZE: {
+            OFF_VALUE: "0",
+            ON_VALUE: "1",
+        },
+    }
+
+    async def turn_on(self) -> None:
+        """Turn the device on."""
+        await self.control(ATTR_POWER, ON_VALUE)
+
+    async def turn_off(self) -> None:
+        """Turn the device off."""
+        await self.control(ATTR_POWER, OFF_VALUE)
+
+    async def set_mode(self, mode: str) -> None:
+        """Set operating mode."""
+        await self.control(ATTR_MODE, mode)
+
+    async def set_fan_speed(self, speed: str) -> None:
+        """Set fan speed."""
+        await self.control(ATTR_AIRFLOW, speed)
+
+    async def set_humidity(self, humidity: int) -> None:
+        """Set target humidity."""
+        await self._rpc_attr(self.category_keys[ATTR_TARGET_HUMIDITY], str(humidity))
+
+    async def child_lock_off(self) -> None:
+        """Turn child lock off."""
+        await self.control(ATTR_CHILD_LOCK, OFF_VALUE)
+
+    async def child_lock_on(self) -> None:
+        """Turn child lock on."""
+        await self.control(ATTR_CHILD_LOCK, ON_VALUE)
+
+    async def uv_sanitize_off(self) -> None:
+        """Turn UV sanitize off."""
+        await self.control(ATTR_UV_SANITIZE, OFF_VALUE)
+
+    async def uv_sanitize_on(self) -> None:
+        """Turn UV sanitize on."""
+        await self.control(ATTR_UV_SANITIZE, ON_VALUE)
+
+    async def set_timer(self, hours: int) -> None:
+        """Set timer in hours (0 to disable)."""
+        await self._rpc_attr(self.category_keys[ATTR_TIMER], str(hours))
