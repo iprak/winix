@@ -25,6 +25,9 @@ ATTR_MODE: Final = "mode"
 ATTR_PLASMA: Final = "plasma"
 ATTR_POWER: Final = "power"
 ATTR_LAST_BRIGHTNESS_LEVEL: Final = "last_brightness_level"
+ATTR_BRIGHTNESS_LEVEL: Final = "brightness_level"
+ATTR_CHILD_LOCK: Final = "child_lock"
+ATTR_AMBIENT_LIGHT: Final = "ambient_light"
 
 SENSOR_AIR_QVALUE: Final = "air_qvalue"
 SENSOR_PM25: Final = "pm2_5"
@@ -33,6 +36,10 @@ SENSOR_FILTER_LIFE: Final = "filter_life"
 
 OFF_VALUE: Final = "off"
 ON_VALUE: Final = "on"
+
+AIR_QUALITY_GOOD: Final = "good"
+AIR_QUALITY_FAIR: Final = "fair"
+AIR_QUALITY_POOR: Final = "poor"
 
 # The service name is the partial name of the method in WinixPurifier
 SERVICE_PLASMAWAVE_ON: Final = "plasmawave_on"
