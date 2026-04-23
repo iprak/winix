@@ -447,6 +447,7 @@ class Helpers:
                 filter_replace_date=item.get("filterReplaceDate"),
                 model=item.get("modelName"),
                 sw_version=item.get("mcuVer"),
+                product_group=item.get("productGroup"),
             )
             for item in response_json["deviceInfoList"]
         ]

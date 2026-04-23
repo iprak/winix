@@ -22,6 +22,7 @@ async def device_stub() -> MyWinixDeviceStub:
         filter_replace_date="filterReplaceDate",
         model="modelName",
         sw_version="mcuVer",
+        product_group="Air01",
     )
 
 
@@ -86,7 +87,7 @@ def mock_device_wrapper() -> WinixDeviceWrapper:
 
 
 @pytest.fixture
-def mock_driver() -> AirPurifierDriver:
+def mock_airpurifier_driver() -> AirPurifierDriver:
     """Return a mocked AirPurifierDriver instance."""
     client = Mock()
     device_id = "device_1"
@@ -95,7 +96,7 @@ def mock_driver() -> AirPurifierDriver:
 
 
 @pytest.fixture
-def mock_driver_with_payload(request: pytest.FixtureRequest) -> AirPurifierDriver:
+def mock_airpurifier_driver_with_payload(request: pytest.FixtureRequest) -> AirPurifierDriver:
     """Return a mocked AirPurifierDriver instance."""
 
     json_value = {"body": {"data": [{"attributes": request.param}]}}

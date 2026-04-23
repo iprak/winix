@@ -28,12 +28,12 @@ from .const import (
     Features,
     NumericPresetModes,
 )
-from .driver import AirPurifierDriver
+from .driver import AirPurifierDriver, WinixDriver
 
 
 @dataclasses.dataclass
 class MyWinixDeviceStub:
-    """Winix purifier device information."""
+    """Winix device information."""
 
     id: str
     mac: str
@@ -42,6 +42,23 @@ class MyWinixDeviceStub:
     filter_replace_date: str
     model: str
     sw_version: str
+    product_group: str
+
+
+def _select_driver(
+    device_stub: MyWinixDeviceStub,
+    client: aiohttp.ClientSession,
+    identity_id: str,
+) -> WinixDriver:
+    """Return the driver that matches the device's product group."""
+
+    product_group = (device_stub.product_group or "").casefold()
+    if product_group.startswith("air"):
+        return AirPurifierDriver(device_stub.id, client, identity_id)
+
+    raise ValueError(
+        f"Unsupported product_group '{device_stub.product_group}' for device {device_stub.alias}"
+    )
 
 
 class WinixDeviceWrapper:
@@ -59,7 +76,7 @@ class WinixDeviceWrapper:
     ) -> None:
         """Initialize the wrapper."""
 
-        self._driver = AirPurifierDriver(device_stub.id, client, identity_id)
+        self._driver = _select_driver(device_stub, client, identity_id)
 
         # Start as empty object in case fan was operated before it got updated
         self._state = {}
