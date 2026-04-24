@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, Mock
 import pytest
 
 from custom_components.winix.device_wrapper import MyWinixDeviceStub, WinixDeviceWrapper
-from custom_components.winix.driver import AirPurifierDriver
+from custom_components.winix.driver import AirPurifierDriver, DehumidifierDriver
 
 from .common import TEST_DEVICE_ID  # noqa: TID251
 
@@ -111,3 +111,30 @@ def mock_airpurifier_driver_with_payload(request: pytest.FixtureRequest) -> AirP
     device_id = "device_1"
     identity_id = "test_identity_id"
     return AirPurifierDriver(device_id, client, identity_id)
+
+
+@pytest.fixture
+def mock_dehumidifier_driver() -> DehumidifierDriver:
+    """Return a mocked DehumidifierDriver instance."""
+    client = Mock()
+    device_id = "device_1"
+    identity_id = "test_identity_id"
+    return DehumidifierDriver(device_id, client, identity_id)
+
+
+@pytest.fixture
+def mock_dehumidifier_driver_with_payload(request: pytest.FixtureRequest) -> DehumidifierDriver:
+    """Return a mocked DehumidifierDriver instance with preset payload."""
+
+    json_value = {"body": {"data": [{"attributes": request.param}]}}
+
+    response = Mock()
+    response.json = AsyncMock(return_value=json_value)
+    response.status = 200
+
+    client = Mock()  # aiohttp.ClientSession
+    client.get = AsyncMock(return_value=response)
+
+    device_id = "device_1"
+    identity_id = "test_identity_id"
+    return DehumidifierDriver(device_id, client, identity_id)

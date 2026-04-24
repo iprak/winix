@@ -28,6 +28,11 @@ ATTR_LAST_BRIGHTNESS_LEVEL: Final = "last_brightness_level"
 ATTR_BRIGHTNESS_LEVEL: Final = "brightness_level"
 ATTR_CHILD_LOCK: Final = "child_lock"
 ATTR_AMBIENT_LIGHT: Final = "ambient_light"
+ATTR_TARGET_HUMIDITY: Final = "target_humidity"
+ATTR_CURRENT_HUMIDITY: Final = "current_humidity"
+ATTR_WATER_TANK: Final = "water_tank"
+ATTR_UV_SANITIZE: Final = "uv_sanitize"
+ATTR_TIMER: Final = "timer"
 
 SENSOR_AIR_QVALUE: Final = "air_qvalue"
 SENSOR_PM25: Final = "pm2_5"
@@ -36,6 +41,7 @@ SENSOR_FILTER_LIFE: Final = "filter_life"
 
 OFF_VALUE: Final = "off"
 ON_VALUE: Final = "on"
+AUTO_DRY_VALUE: Final = "auto-dry"
 
 AIR_QUALITY_GOOD: Final = "good"
 AIR_QUALITY_FAIR: Final = "fair"
@@ -74,6 +80,10 @@ DEFAULT_POST_TIMEOUT: Final = 5
 # mode can contain the special preset value of manual.
 MODE_AUTO: Final = "auto"
 MODE_MANUAL: Final = "manual"
+MODE_CLOTHES: Final = "clothes"
+MODE_SHOES: Final = "shoes"
+MODE_QUIET: Final = "quiet"
+MODE_CONTINUOUS: Final = "continuous"
 
 PRESET_MODE_AUTO: Final = "Auto"
 PRESET_MODE_AUTO_PLASMA_OFF: Final = "Auto (PlasmaWave off)"
