@@ -155,7 +155,7 @@ class WinixDeviceWrapper:
 
     @property
     def is_on(self) -> bool:
-        """Return if the purifier is on."""
+        """Return True if the device is powered on."""
         return self._on
 
     @property
@@ -184,7 +184,7 @@ class WinixDeviceWrapper:
         return self._filter_alarm_duration
 
     async def async_ensure_on(self) -> None:
-        """Turn on the purifier."""
+        """Ensure the device is powered on."""
         if not self._on:
             self._on = True
             self._state[ATTR_POWER] = ON_VALUE
@@ -198,7 +198,7 @@ class WinixDeviceWrapper:
         await self.async_set_mode(MODE_AUTO)
 
     async def async_turn_off(self) -> None:
-        """Turn off the purifier."""
+        """Turn off the device."""
         if self._on:
             self._on = False
             self._state[ATTR_POWER] = OFF_VALUE
