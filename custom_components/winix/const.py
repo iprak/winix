@@ -114,7 +114,8 @@ class NumericPresetModes(StrEnum):
 
 
 class Features:
-    """Additional Winix purifier features."""
+    """Additional Winix device features."""
 
     supports_brightness_level = False
     supports_child_lock = False
+    supports_uv_sanitize = False

@@ -8,12 +8,17 @@ from custom_components.winix.const import (
     AIRFLOW_HIGH,
     AIRFLOW_LOW,
     AIRFLOW_SLEEP,
+    AIRFLOW_TURBO,
     ATTR_AIRFLOW,
     ATTR_MODE,
     ATTR_PLASMA,
     ATTR_POWER,
+    ATTR_TARGET_HUMIDITY,
+    ATTR_TIMER,
+    AUTO_DRY_VALUE,
     DEFAULT_FILTER_ALARM_DURATION_HOURS,
     MODE_AUTO,
+    MODE_CONTINUOUS,
     MODE_MANUAL,
     OFF_VALUE,
     ON_VALUE,
@@ -26,9 +31,10 @@ from custom_components.winix.const import (
 )
 from custom_components.winix.device_wrapper import WinixDeviceWrapper
 
-from .common import build_mock_wrapper  # noqa: TID251
+from .common import build_mock_dehumidifier_wrapper, build_mock_wrapper  # noqa: TID251
 
 AirPurifierDriver_TypeName = "custom_components.winix.driver.AirPurifierDriver"
+DehumidifierDriver_TypeName = "custom_components.winix.driver.DehumidifierDriver"
 
 
 @pytest.mark.parametrize(
@@ -361,3 +367,122 @@ async def test_async_set_preset_mode_invalid() -> None:
 
     with pytest.raises(ValueError):
         await wrapper.async_set_preset_mode("INVALID_PRESET")
+
+
+async def test_async_set_mode_dehumidifier() -> None:
+    """Test setting the dehumidifier operating mode via the unified async_set_mode."""
+
+    with patch(f"{DehumidifierDriver_TypeName}.set_mode") as set_mode:
+        wrapper = build_mock_dehumidifier_wrapper()
+
+        await wrapper.async_set_mode(MODE_AUTO)
+        set_mode.assert_called_once_with(MODE_AUTO)
+        assert wrapper.get_state().get(ATTR_MODE) == MODE_AUTO
+
+        # Same value -> no-op
+        await wrapper.async_set_mode(MODE_AUTO)
+        assert set_mode.call_count == 1
+
+        # New value -> sends command
+        await wrapper.async_set_mode(MODE_CONTINUOUS)
+        assert set_mode.call_count == 2
+        assert wrapper.get_state().get(ATTR_MODE) == MODE_CONTINUOUS
+
+
+async def test_async_set_mode_dehumidifier_unsupported() -> None:
+    """Unsupported dehumidifier modes should be ignored without raising."""
+
+    with patch(f"{DehumidifierDriver_TypeName}.set_mode") as set_mode:
+        wrapper = build_mock_dehumidifier_wrapper()
+
+        await wrapper.async_set_mode("not-a-real-mode")
+
+        assert set_mode.call_count == 0
+        assert wrapper.get_state().get(ATTR_MODE) is None
+
+
+async def test_async_set_speed_dehumidifier() -> None:
+    """Test setting the dehumidifier fan speed via the unified async_set_speed."""
+
+    with patch(f"{DehumidifierDriver_TypeName}.set_fan_speed") as set_fan_speed:
+        wrapper = build_mock_dehumidifier_wrapper()
+
+        await wrapper.async_set_speed(AIRFLOW_HIGH)
+        set_fan_speed.assert_called_once_with(AIRFLOW_HIGH)
+        assert wrapper.get_state().get(ATTR_AIRFLOW) == AIRFLOW_HIGH
+
+        # Same value -> no-op
+        await wrapper.async_set_speed(AIRFLOW_HIGH)
+        assert set_fan_speed.call_count == 1
+
+        # New value -> sends command
+        await wrapper.async_set_speed(AIRFLOW_TURBO)
+        assert set_fan_speed.call_count == 2
+        assert wrapper.get_state().get(ATTR_AIRFLOW) == AIRFLOW_TURBO
+
+
+async def test_async_set_humidity() -> None:
+    """Test setting the dehumidifier target humidity."""
+
+    with patch(f"{DehumidifierDriver_TypeName}.set_humidity") as set_humidity:
+        wrapper = build_mock_dehumidifier_wrapper()
+
+        assert await wrapper.async_set_humidity(50) is True
+        set_humidity.assert_called_once_with(50)
+        assert wrapper.get_state().get(ATTR_TARGET_HUMIDITY) == 50
+
+        # Same value -> no-op
+        assert await wrapper.async_set_humidity(50) is False
+        assert set_humidity.call_count == 1
+
+        # New value -> sends command
+        assert await wrapper.async_set_humidity(60) is True
+        assert set_humidity.call_count == 2
+        assert wrapper.get_state().get(ATTR_TARGET_HUMIDITY) == 60
+
+
+async def test_async_set_timer() -> None:
+    """Test setting the dehumidifier timer."""
+
+    with patch(f"{DehumidifierDriver_TypeName}.set_timer") as set_timer:
+        wrapper = build_mock_dehumidifier_wrapper()
+
+        # First call should send the command
+        assert await wrapper.async_set_timer(3) is True
+        set_timer.assert_called_once_with(3)
+        assert wrapper.get_state().get(ATTR_TIMER) == 3
+
+        # Calling with the same value should be a no-op
+        assert await wrapper.async_set_timer(3) is False
+        assert set_timer.call_count == 1
+
+        # A different value should send the command again
+        assert await wrapper.async_set_timer(0) is True
+        assert set_timer.call_count == 2
+        assert wrapper.get_state().get(ATTR_TIMER) == 0
+
+
+@pytest.mark.parametrize(
+    ("power_value", "is_on", "is_auto_dry"),
+    [
+        (None, False, False),
+        (OFF_VALUE, False, False),
+        (ON_VALUE, True, False),
+        (AUTO_DRY_VALUE, False, True),
+    ],
+)
+async def test_dehumidifier_auto_dry_flag(
+    power_value, is_on, is_auto_dry
+) -> None:
+    """Auto-dry power state is exposed as a dedicated flag."""
+
+    mock_state = {ATTR_POWER: power_value} if power_value is not None else {}
+    with patch(
+        f"{DehumidifierDriver_TypeName}.get_state",
+        AsyncMock(return_value=mock_state),
+    ):
+        wrapper = build_mock_dehumidifier_wrapper()
+        await wrapper.update()
+
+        assert wrapper.is_on is is_on
+        assert wrapper.is_auto_dry is is_auto_dry
