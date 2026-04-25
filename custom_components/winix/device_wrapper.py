@@ -109,29 +109,8 @@ class WinixDeviceWrapper:
     async def update(self) -> None:
         """Update the device data."""
         self._state = await self._driver.get_state()
-        self._auto = self._manual = self._sleep = self._plasma_on = False
-
-        self._on = self._state.get(ATTR_POWER) == ON_VALUE
-        self._plasma_on = self._state.get(ATTR_PLASMA) == ON_VALUE
-
-        value = self._state.get(ATTR_CHILD_LOCK)
-        self._child_lock_on = value == ON_VALUE if value is not None else None
-
-        self._brightness_level = self._state.get(ATTR_BRIGHTNESS_LEVEL)
-
-        # Sleep: airflow=sleep, mode can be manual
-        # Auto: mode=auto, airflow can be anything
-        # Low: manual+low
-
-        if self._state.get(ATTR_MODE) == MODE_AUTO:
-            self._auto = True
-            self._manual = False
-        elif self._state.get(ATTR_MODE) == MODE_MANUAL:
-            self._auto = False
-            self._manual = True
-
-        if self._state.get(ATTR_AIRFLOW) == AIRFLOW_SLEEP:
-            self._sleep = True
+        self._update_common_flags()
+        self._update_air_purifier_flags()
 
         self._logger.debug(
             "%s: updated on=%s, auto=%s, manual=%s, sleep=%s, airflow=%s, plasma=%s",
@@ -143,6 +122,32 @@ class WinixDeviceWrapper:
             self._state.get(ATTR_AIRFLOW),
             self._plasma_on,
         )
+
+    def _update_common_flags(self) -> None:
+        """Refresh device-common flags from the latest state."""
+        self._on = self._state.get(ATTR_POWER) == ON_VALUE
+        self._plasma_on = self._state.get(ATTR_PLASMA) == ON_VALUE
+
+        value = self._state.get(ATTR_CHILD_LOCK)
+        self._child_lock_on = value == ON_VALUE if value is not None else None
+
+        self._brightness_level = self._state.get(ATTR_BRIGHTNESS_LEVEL)
+
+    def _update_air_purifier_flags(self) -> None:
+        """Refresh air-purifier-only flags from the latest state."""
+        self._auto = self._manual = self._sleep = False
+
+        # Sleep: airflow=sleep, mode can be manual
+        # Auto: mode=auto, airflow can be anything
+        # Low: manual+low
+
+        if self._state.get(ATTR_MODE) == MODE_AUTO:
+            self._auto = True
+        elif self._state.get(ATTR_MODE) == MODE_MANUAL:
+            self._manual = True
+
+        if self._state.get(ATTR_AIRFLOW) == AIRFLOW_SLEEP:
+            self._sleep = True
 
     def get_state(self) -> dict[str, str]:
         """Return the device data."""
