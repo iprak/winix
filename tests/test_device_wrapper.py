@@ -143,22 +143,22 @@ async def test_async_turn_on() -> None:
     wrapper = build_mock_wrapper()
 
     wrapper.async_ensure_on = AsyncMock()
-    wrapper.async_auto = AsyncMock()
+    wrapper.async_set_mode = AsyncMock()
 
     await wrapper.async_turn_on()
 
     assert wrapper.async_ensure_on.call_count == 1
-    assert wrapper.async_auto.call_count == 1
+    wrapper.async_set_mode.assert_called_once_with(MODE_AUTO)
 
 
-async def test_async_auto() -> None:
+async def test_async_set_mode_auto() -> None:
     """Test setting auto mode."""
 
-    # async_auto does not need the device to be turned on
+    # async_set_mode does not need the device to be turned on
     with patch(f"{AirPurifierDriver_TypeName}.auto") as auto:
         wrapper = build_mock_wrapper()
 
-        await wrapper.async_auto()
+        await wrapper.async_set_mode(MODE_AUTO)
         assert auto.call_count == 1
 
         assert wrapper.is_auto
@@ -167,7 +167,7 @@ async def test_async_auto() -> None:
         assert not wrapper.is_sleep
         assert wrapper.get_state().get(ATTR_AIRFLOW) == AIRFLOW_LOW
 
-        await wrapper.async_auto()  # Calling again should not do anything
+        await wrapper.async_set_mode(MODE_AUTO)  # Calling again should not do anything
         assert auto.call_count == 1
 
 
@@ -203,14 +203,14 @@ async def test_async_plasmawave_on_off() -> None:
         assert plasmawave_off.call_count == 1
 
 
-async def test_async_manual() -> None:
+async def test_async_set_mode_manual() -> None:
     """Test setting manual mode."""
 
-    # async_manual does not need the device to be turned on
+    # async_set_mode does not need the device to be turned on
     with patch(f"{AirPurifierDriver_TypeName}.manual") as manual:
         wrapper = build_mock_wrapper()
 
-        await wrapper.async_manual()
+        await wrapper.async_set_mode(MODE_MANUAL)
         assert manual.call_count == 1
 
         assert not wrapper.is_auto
@@ -220,8 +220,25 @@ async def test_async_manual() -> None:
         assert wrapper.get_state().get(ATTR_MODE) == MODE_MANUAL
         assert wrapper.get_state().get(ATTR_AIRFLOW) == AIRFLOW_LOW
 
-        await wrapper.async_manual()  # Calling again should not do anything
+        await wrapper.async_set_mode(MODE_MANUAL)  # Calling again should not do anything
         assert manual.call_count == 1
+
+
+async def test_async_set_mode_unsupported() -> None:
+    """Unsupported mode values should be ignored without raising."""
+
+    with (
+        patch(f"{AirPurifierDriver_TypeName}.auto") as auto,
+        patch(f"{AirPurifierDriver_TypeName}.manual") as manual,
+    ):
+        wrapper = build_mock_wrapper()
+
+        await wrapper.async_set_mode("not-a-real-mode")
+
+        assert auto.call_count == 0
+        assert manual.call_count == 0
+        assert not wrapper.is_auto
+        assert not wrapper.is_manual
 
 
 async def test_async_sleep() -> None:
@@ -246,7 +263,7 @@ async def test_async_sleep() -> None:
 
 
 async def test_async_set_speed() -> None:
-    """Test setting speed."""
+    """Test setting fan speed."""
 
     with (
         patch(f"{AirPurifierDriver_TypeName}.turn_on"),
@@ -307,8 +324,7 @@ async def test_async_set_preset_mode(
 
     wrapper.async_ensure_on = AsyncMock()
     wrapper.async_sleep = AsyncMock()
-    wrapper.async_auto = AsyncMock()
-    wrapper.async_manual = AsyncMock()
+    wrapper.async_set_mode = AsyncMock()
     wrapper.async_plasmawave_off = AsyncMock()
     wrapper.async_plasmawave_on = AsyncMock()
 
@@ -316,8 +332,11 @@ async def test_async_set_preset_mode(
     assert wrapper.async_ensure_on.call_count == 1
 
     assert wrapper.async_sleep.call_count == sleep
-    assert wrapper.async_auto.call_count == auto
-    assert wrapper.async_manual.call_count == manual
+    assert wrapper.async_set_mode.call_count == auto + manual
+    if auto:
+        wrapper.async_set_mode.assert_called_once_with(MODE_AUTO)
+    if manual:
+        wrapper.async_set_mode.assert_called_once_with(MODE_MANUAL)
     assert wrapper.async_plasmawave_off.call_count == plasmawave_off
     assert wrapper.async_plasmawave_on.call_count == plasmawave_on
 
