@@ -118,4 +118,5 @@ class Features:
 
     supports_brightness_level = False
     supports_child_lock = False
+    supports_pm25 = False
     supports_uv_sanitize = False

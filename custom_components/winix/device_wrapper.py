@@ -14,6 +14,7 @@ from .const import (
     ATTR_CHILD_LOCK,
     ATTR_MODE,
     ATTR_PLASMA,
+    ATTR_PM25,
     ATTR_POWER,
     ATTR_TARGET_HUMIDITY,
     ATTR_TIMER,
@@ -116,6 +117,7 @@ class WinixDeviceWrapper:
         """Update the supported features based on the current state."""
         self._features.supports_brightness_level = self.brightness_level is not None
         self._features.supports_child_lock = self.is_child_lock_on is not None
+        self._features.supports_pm25 = ATTR_PM25 in self._state
         self._features.supports_uv_sanitize = self.is_uv_sanitize_on is not None
 
     async def update(self) -> None:
