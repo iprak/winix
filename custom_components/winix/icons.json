@@ -7,6 +7,36 @@
 					"off": "mdi:air-purifier-off"
 				}
 			}
+		},
+		"humidifier": {
+			"dehumidifier": {
+				"default": "mdi:air-humidifier",
+				"state": {
+					"off": "mdi:air-humidifier-off"
+				}
+			}
+		},
+		"binary_sensor": {
+			"water_tank": {
+				"default": "mdi:water-outline",
+				"state": {
+					"on": "mdi:water-alert"
+				}
+			},
+			"auto_dry": {
+				"default": "mdi:auto-mode",
+				"state": {
+					"on": "mdi:autorenew"
+				}
+			}
+		},
+		"switch": {
+			"uv_sanitize": {
+				"default": "mdi:white-balance-sunny",
+				"state": {
+					"off": "mdi:weather-sunny-off"
+				}
+			}
 		}
 	}
 }

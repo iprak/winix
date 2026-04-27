@@ -37,6 +37,14 @@ SWITCH_DESCRIPTIONS: Final[tuple[WinixSwitchEntityDescription, ...]] = (
         on_fn=lambda device: device.async_child_lock_on(),
         off_fn=lambda device: device.async_child_lock_off(),
     ),
+    WinixSwitchEntityDescription(
+        key="uv_sanitize",
+        is_on=lambda device: device.is_uv_sanitize_on,
+        exists_fn=lambda device: device.features.supports_uv_sanitize,
+        name="UV Sanitize",
+        on_fn=lambda device: device.async_uv_sanitize_on(),
+        off_fn=lambda device: device.async_uv_sanitize_off(),
+    ),
 )
 
 
@@ -74,6 +82,8 @@ class WinixSwitchEntity(WinixEntity, SwitchEntity):
         super().__init__(wrapper, coordinator)
         self.entity_description = description
 
+        # Legacy format retained for existing installations; new entity types
+        # should use f"<key>_{self._mac}" without the platform/winix prefix.
         self._attr_unique_id = ENTITY_ID_FORMAT.format(
             f"{WINIX_DOMAIN}_{description.key.lower()}_{self._mac}"
         )

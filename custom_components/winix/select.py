@@ -13,7 +13,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import WINIX_DOMAIN, WinixConfigEntry
-from .const import LOGGER
+from .const import ATTR_AIRFLOW, DEHUMIDIFIER_FAN_SPEEDS, LOGGER
 from .device_wrapper import WinixDeviceWrapper
 from .driver import BrightnessLevel
 from .manager import WinixEntity, WinixManager
@@ -60,6 +60,15 @@ SELECT_DESCRIPTIONS: Final[tuple[WinixSelectEntityDescription, ...]] = (
         ),
         available_fn=lambda device: device.is_on,
     ),
+    WinixSelectEntityDescription(
+        current_option_fn=lambda device: (device.get_state() or {}).get(ATTR_AIRFLOW),
+        exists_fn=lambda device: device.is_dehumidifier,
+        icon="mdi:fan",
+        key="fan_speed",
+        name="Fan Speed",
+        options=DEHUMIDIFIER_FAN_SPEEDS,
+        select_option_fn=lambda device, value: device.async_set_speed(value),
+    ),
 )
 
 
@@ -97,6 +106,8 @@ class WinixSelectEntity(WinixEntity, SelectEntity):
         super().__init__(wrapper, coordinator)
         self.entity_description = description
 
+        # Legacy format retained for existing installations; new entity types
+        # should use f"<key>_{self._mac}" without the platform/winix prefix.
         self._attr_unique_id = ENTITY_ID_FORMAT.format(
             f"{WINIX_DOMAIN}_{description.key.lower()}_{self._mac}"
         )

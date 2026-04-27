@@ -15,5 +15,36 @@
       "invalid_user": "The username is invalid. Make sure it's the same one registered with the mobile app and that the capitalization matches.",
       "unknown": "Unexpected error"
     }
+  },
+  "entity": {
+    "binary_sensor": {
+      "water_tank": {
+        "name": "Water Tank"
+      },
+      "auto_dry": {
+        "name": "Auto Dry"
+      }
+    },
+    "humidifier": {
+      "dehumidifier": {
+        "state_attributes": {
+          "mode": {
+            "state": {
+              "auto": "Auto",
+              "manual": "Manual",
+              "clothes": "Clothes",
+              "shoes": "Shoes",
+              "quiet": "Quiet",
+              "continuous": "Continuous"
+            }
+          }
+        }
+      }
+    },
+    "number": {
+      "timer": {
+        "name": "Timer"
+      }
+    }
   }
 }

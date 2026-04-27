@@ -109,6 +109,8 @@ class WinixPurifier(WinixEntity, FanEntity):
     def __init__(self, wrapper: WinixDeviceWrapper, coordinator: WinixManager) -> None:
         """Initialize the entity."""
         super().__init__(wrapper, coordinator)
+        # Legacy format retained for existing installations; new entity types
+        # should use f"<key>_{self._mac}" without the platform/winix prefix.
         self._attr_unique_id = ENTITY_ID_FORMAT.format(f"{WINIX_DOMAIN}_{self._mac}")
 
     @property
