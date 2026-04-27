@@ -13,7 +13,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import WINIX_DOMAIN, WinixConfigEntry
-from .const import LOGGER
+from .const import ATTR_AIRFLOW, DEHUMIDIFIER_FAN_SPEEDS, LOGGER
 from .device_wrapper import WinixDeviceWrapper
 from .driver import BrightnessLevel
 from .manager import WinixEntity, WinixManager
@@ -59,6 +59,15 @@ SELECT_DESCRIPTIONS: Final[tuple[WinixSelectEntityDescription, ...]] = (
             parse_brightness_level(value)
         ),
         available_fn=lambda device: device.is_on,
+    ),
+    WinixSelectEntityDescription(
+        current_option_fn=lambda device: (device.get_state() or {}).get(ATTR_AIRFLOW),
+        exists_fn=lambda device: device.is_dehumidifier,
+        icon="mdi:fan",
+        key="fan_speed",
+        name="Fan Speed",
+        options=DEHUMIDIFIER_FAN_SPEEDS,
+        select_option_fn=lambda device, value: device.async_set_speed(value),
     ),
 )
 

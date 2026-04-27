@@ -37,6 +37,14 @@ SWITCH_DESCRIPTIONS: Final[tuple[WinixSwitchEntityDescription, ...]] = (
         on_fn=lambda device: device.async_child_lock_on(),
         off_fn=lambda device: device.async_child_lock_off(),
     ),
+    WinixSwitchEntityDescription(
+        key="uv_sanitize",
+        is_on=lambda device: device.is_uv_sanitize_on,
+        exists_fn=lambda device: device.features.supports_uv_sanitize,
+        name="UV Sanitize",
+        on_fn=lambda device: device.async_uv_sanitize_on(),
+        off_fn=lambda device: device.async_uv_sanitize_off(),
+    ),
 )
 
 
