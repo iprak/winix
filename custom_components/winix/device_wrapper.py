@@ -60,7 +60,8 @@ def _select_driver(
     product_group = (device_stub.product_group or "").casefold()
     if product_group.startswith("air"):
         return AirPurifierDriver(device_stub.id, client, identity_id)
-    elif product_group.startswith("deh"):
+
+    if product_group.startswith("deh"):
         return DehumidifierDriver(device_stub.id, client, identity_id)
 
     raise ValueError(
