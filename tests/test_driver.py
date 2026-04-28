@@ -6,7 +6,6 @@ import pytest
 
 from custom_components.winix.driver import AirPurifierDriver, DehumidifierDriver
 
-
 # ---------------------------------------------------------------------------
 # AirPurifierDriver tests
 # ---------------------------------------------------------------------------
