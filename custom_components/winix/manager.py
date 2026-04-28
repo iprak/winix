@@ -155,9 +155,9 @@ class WinixManager(DataUpdateCoordinator):
 
                 self._device_wrappers.append(wrapper)
 
-            LOGGER.info("%d purifiers found", len(self._device_wrappers))
+            LOGGER.info("%d devices found", len(self._device_wrappers))
         else:
-            LOGGER.info("No purifiers found")
+            LOGGER.info("No devices found")
 
     def get_device_wrappers(self) -> list[WinixDeviceWrapper]:
         """Return the device wrapper objects."""

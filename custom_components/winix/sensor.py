@@ -1,9 +1,9 @@
-"""Winix Air Purfier Air QValue Sensor."""
+"""Winix sensor entities (air quality, filter life)."""
 
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from homeassistant.components.sensor import (
@@ -80,7 +80,8 @@ class WinixSensorEntityDescription(SensorEntityDescription):
     """Describe Winix sensor entity."""
 
     value_fn: Callable[[dict[str, str], WinixDeviceWrapper], StateType]
-    extra_state_attributes_fn: Callable[[dict[str, str]], dict[str, Any]]
+    extra_state_attributes_fn: Callable[[dict[str, str]], dict[str, Any]] | None = None
+    exists_fn: Callable[[WinixDeviceWrapper], bool] = field(default=lambda _: True)
 
 
 SENSOR_DESCRIPTIONS: tuple[WinixSensorEntityDescription, ...] = (
@@ -92,6 +93,7 @@ SENSOR_DESCRIPTIONS: tuple[WinixSensorEntityDescription, ...] = (
         native_unit_of_measurement="qv",
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda state, wrapper: state.get(ATTR_AIR_QVALUE),
+        exists_fn=lambda device: device.is_air_purifier,
     ),
     WinixSensorEntityDescription(
         extra_state_attributes_fn=get_filter_replacement_cycle,
@@ -101,22 +103,24 @@ SENSOR_DESCRIPTIONS: tuple[WinixSensorEntityDescription, ...] = (
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=get_filter_life,
+        exists_fn=lambda device: device.is_air_purifier,
     ),
     WinixSensorEntityDescription(
-        extra_state_attributes_fn=None,
         icon="mdi:blur",
         key=SENSOR_AQI,
         name="AQI",
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda state, wrapper: state.get(ATTR_AIR_AQI),
+        exists_fn=lambda device: device.is_air_purifier,
     ),
     WinixSensorEntityDescription(
         device_class=SensorDeviceClass.PM25,
-        extra_state_attributes_fn=None,
         key=SENSOR_PM25,
         name="PM 2.5",
         native_unit_of_measurement=CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
         value_fn=lambda state, wrapper: state.get(ATTR_PM25),
+        exists_fn=lambda device: device.is_air_purifier
+        and device.features.supports_pm25,
     ),
 )
 
@@ -133,7 +137,7 @@ async def async_setup_entry(
         WinixSensor(wrapper, manager, description)
         for description in SENSOR_DESCRIPTIONS
         for wrapper in manager.get_device_wrappers()
-        if description.key != SENSOR_PM25 or wrapper.features.supports_pm25
+        if description.exists_fn(wrapper)
     ]
     async_add_entities(entities)
     LOGGER.info("Added %s sensors", len(entities))

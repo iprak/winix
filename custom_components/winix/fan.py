@@ -48,7 +48,9 @@ async def async_setup_entry(
     """Set up the Winix air purifiers."""
     manager = entry.runtime_data
     entities = [
-        WinixPurifier(wrapper, manager) for wrapper in manager.get_device_wrappers()
+        WinixPurifier(wrapper, manager)
+        for wrapper in manager.get_device_wrappers()
+        if wrapper.is_air_purifier
     ]
     async_add_entities(entities)
 
