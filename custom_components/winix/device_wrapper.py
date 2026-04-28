@@ -19,6 +19,7 @@ from .const import (
     ATTR_UV_SANITIZE,
     ATTR_WATER_TANK,
     AUTO_DRY_VALUE,
+    DEFAULT_FILTER_ALARM_DURATION_HOURS,
     MODE_AUTO,
     MODE_MANUAL,
     OFF_VALUE,
@@ -33,6 +34,7 @@ from .const import (
     NumericPresetModes,
 )
 from .driver import AirPurifierDriver, DehumidifierDriver
+from .helpers import Helpers
 from .stub import MyWinixDeviceStub
 
 
@@ -64,12 +66,12 @@ class WinixDeviceWrapper:
         self,
         client: aiohttp.ClientSession,
         device_stub: MyWinixDeviceStub,
-        filter_alarm_duration_hours: int,
         logger,
         identity_id: str,
     ) -> None:
         """Initialize the wrapper."""
 
+        self._client = client
         self._driver = _select_driver(device_stub, client, identity_id)
 
         # Start as empty object in case fan was operated before it got updated
@@ -86,17 +88,22 @@ class WinixDeviceWrapper:
         self._uv_sanitize: bool | None = None
         self._water_tank = False
         self._auto_dry = False
-        self._filter_alarm_duration = filter_alarm_duration_hours
+        # Air purifiers refresh this in async_initialize(); dehumidifiers leave the
+        # default since the API does not expose filter_hour for them.
+        self._filter_alarm_duration = DEFAULT_FILTER_ALARM_DURATION_HOURS
 
         self.device_stub = device_stub
         self._alias = device_stub.alias
         self._features = Features()
 
-        logger.debug(
-            "%s: created device with filter_alarm_duration=%d",
-            self._alias,
-            filter_alarm_duration_hours,
-        )
+        logger.debug("%s: created device", self._alias)
+
+    async def async_initialize(self, token: str, uuid: str) -> None:
+        """Fetch product-type-specific initialization data."""
+        if self.is_air_purifier:
+            self._filter_alarm_duration = await Helpers.get_filter_alarm_duration(
+                self._client, token, uuid, self.device_stub.id
+            )
 
     def update_features(self) -> None:
         """Update the supported features based on the current state."""
