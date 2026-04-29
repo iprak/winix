@@ -12,9 +12,10 @@ from custom_components.winix.const import (
     WINIX_AUTH_RESPONSE,
     WINIX_DOMAIN,
 )
-from custom_components.winix.device_wrapper import MyWinixDeviceStub, WinixDeviceWrapper
+from custom_components.winix.device_wrapper import WinixDeviceWrapper
 from custom_components.winix.fan import WinixPurifier
 from custom_components.winix.manager import WinixManager
+from custom_components.winix.stub import MyWinixDeviceStub
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 

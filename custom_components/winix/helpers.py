@@ -25,7 +25,7 @@ from .const import (
     LOGGER,
     WINIX_DOMAIN,
 )
-from .device_wrapper import MyWinixDeviceStub
+from .stub import MyWinixDeviceStub
 
 # Winix rotated their Cognito app client on 2026-04-16. The old client ID
 # (14og512b9u20b8vrdm55d8empi) is dead. Patch the pip package constants before

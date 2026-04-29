@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import dataclasses
-
 import aiohttp
 
 from .const import (
@@ -35,20 +33,7 @@ from .const import (
     NumericPresetModes,
 )
 from .driver import AirPurifierDriver, DehumidifierDriver
-
-
-@dataclasses.dataclass
-class MyWinixDeviceStub:
-    """Winix device information."""
-
-    id: str
-    mac: str
-    alias: str
-    location_code: str
-    filter_replace_date: str
-    model: str
-    sw_version: str
-    product_group: str
+from .stub import MyWinixDeviceStub
 
 
 def _select_driver(
