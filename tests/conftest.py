@@ -4,8 +4,9 @@ from unittest.mock import AsyncMock, MagicMock, Mock
 
 import pytest
 
-from custom_components.winix.device_wrapper import MyWinixDeviceStub, WinixDeviceWrapper
+from custom_components.winix.device_wrapper import WinixDeviceWrapper
 from custom_components.winix.driver import AirPurifierDriver, DehumidifierDriver
+from custom_components.winix.stub import MyWinixDeviceStub
 
 from .common import TEST_DEVICE_ID  # noqa: TID251
 

@@ -1,8 +1,6 @@
-"""The Winix Air Purifier component."""
+"""Winix device wrapper."""
 
 from __future__ import annotations
-
-import dataclasses
 
 import aiohttp
 
@@ -14,12 +12,14 @@ from .const import (
     ATTR_CHILD_LOCK,
     ATTR_MODE,
     ATTR_PLASMA,
+    ATTR_PM25,
     ATTR_POWER,
     ATTR_TARGET_HUMIDITY,
     ATTR_TIMER,
     ATTR_UV_SANITIZE,
     ATTR_WATER_TANK,
     AUTO_DRY_VALUE,
+    DEFAULT_FILTER_ALARM_DURATION_HOURS,
     MODE_AUTO,
     MODE_MANUAL,
     OFF_VALUE,
@@ -34,20 +34,8 @@ from .const import (
     NumericPresetModes,
 )
 from .driver import AirPurifierDriver, DehumidifierDriver
-
-
-@dataclasses.dataclass
-class MyWinixDeviceStub:
-    """Winix device information."""
-
-    id: str
-    mac: str
-    alias: str
-    location_code: str
-    filter_replace_date: str
-    model: str
-    sw_version: str
-    product_group: str
+from .helpers import Helpers
+from .stub import MyWinixDeviceStub
 
 
 def _select_driver(
@@ -60,7 +48,8 @@ def _select_driver(
     product_group = (device_stub.product_group or "").casefold()
     if product_group.startswith("air"):
         return AirPurifierDriver(device_stub.id, client, identity_id)
-    elif product_group.startswith("deh"):
+
+    if product_group.startswith("deh"):
         return DehumidifierDriver(device_stub.id, client, identity_id)
 
     raise ValueError(
@@ -77,12 +66,12 @@ class WinixDeviceWrapper:
         self,
         client: aiohttp.ClientSession,
         device_stub: MyWinixDeviceStub,
-        filter_alarm_duration_hours: int,
         logger,
         identity_id: str,
     ) -> None:
         """Initialize the wrapper."""
 
+        self._client = client
         self._driver = _select_driver(device_stub, client, identity_id)
 
         # Start as empty object in case fan was operated before it got updated
@@ -99,22 +88,28 @@ class WinixDeviceWrapper:
         self._uv_sanitize: bool | None = None
         self._water_tank = False
         self._auto_dry = False
-        self._filter_alarm_duration = filter_alarm_duration_hours
+        # Air purifiers refresh this in async_initialize(); dehumidifiers leave the
+        # default since the API does not expose filter_hour for them.
+        self._filter_alarm_duration = DEFAULT_FILTER_ALARM_DURATION_HOURS
 
         self.device_stub = device_stub
         self._alias = device_stub.alias
         self._features = Features()
 
-        logger.debug(
-            "%s: created device with filter_alarm_duration=%d",
-            self._alias,
-            filter_alarm_duration_hours,
-        )
+        logger.debug("%s: created device", self._alias)
+
+    async def async_initialize(self, token: str, uuid: str) -> None:
+        """Fetch product-type-specific initialization data."""
+        if self.is_air_purifier:
+            self._filter_alarm_duration = await Helpers.get_filter_alarm_duration(
+                self._client, token, uuid, self.device_stub.id
+            )
 
     def update_features(self) -> None:
         """Update the supported features based on the current state."""
         self._features.supports_brightness_level = self.brightness_level is not None
         self._features.supports_child_lock = self.is_child_lock_on is not None
+        self._features.supports_pm25 = ATTR_PM25 in self._state
         self._features.supports_uv_sanitize = self.is_uv_sanitize_on is not None
 
     async def update(self) -> None:

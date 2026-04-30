@@ -16,7 +16,6 @@ from custom_components.winix.const import (
     ATTR_TARGET_HUMIDITY,
     ATTR_TIMER,
     AUTO_DRY_VALUE,
-    DEFAULT_FILTER_ALARM_DURATION_HOURS,
     MODE_AUTO,
     MODE_CONTINUOUS,
     MODE_MANUAL,
@@ -357,13 +356,7 @@ async def test_async_set_preset_mode_invalid() -> None:
     logger.debug = Mock()
     logger.warning = Mock()
 
-    wrapper = WinixDeviceWrapper(
-        client,
-        device_stub,
-        DEFAULT_FILTER_ALARM_DURATION_HOURS,
-        logger,
-        "test_identity_id",
-    )
+    wrapper = WinixDeviceWrapper(client, device_stub, logger, "test_identity_id")
 
     with pytest.raises(ValueError):
         await wrapper.async_set_preset_mode("INVALID_PRESET")

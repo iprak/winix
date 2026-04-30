@@ -26,6 +26,7 @@ class WinixSelectEntityDescription(SelectEntityDescription):
     exists_fn: Callable[[WinixDeviceWrapper], bool]
     current_option_fn: Callable[[WinixDeviceWrapper], str]
     select_option_fn: Callable[[WinixDeviceWrapper, str], Coroutine[Any, Any, Any]]
+    available_fn: Callable[[WinixDeviceWrapper], bool] | None = None
 
 
 def format_brightness_level(value: int | None) -> str:
@@ -57,6 +58,7 @@ SELECT_DESCRIPTIONS: Final[tuple[WinixSelectEntityDescription, ...]] = (
         select_option_fn=lambda device, value: device.async_set_brightness_level(
             parse_brightness_level(value)
         ),
+        available_fn=lambda device: device.is_on,
     ),
 )
 
@@ -77,7 +79,7 @@ async def async_setup_entry(
         if description.exists_fn(wrapper)
     ]
     async_add_entities(entities)
-    LOGGER.info("Added %s selects", len(entities))
+    LOGGER.info("Added %s select entities", len(entities))
 
 
 class WinixSelectEntity(WinixEntity, SelectEntity):
@@ -106,11 +108,12 @@ class WinixSelectEntity(WinixEntity, SelectEntity):
 
     async def async_select_option(self, option: str) -> None:
         """Set the entity value."""
-        if await self.entity_description.select_option_fn(self.device_wrapper, option):
-            self.async_write_ha_state()
-            await self.coordinator.async_request_refresh()
+        await self.entity_description.select_option_fn(self.device_wrapper, option)
+        self.async_write_ha_state()
 
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        return self.device_wrapper.is_on
+        if self.entity_description.available_fn is not None:
+            return self.entity_description.available_fn(self.device_wrapper)
+        return super().available

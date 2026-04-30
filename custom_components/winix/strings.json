@@ -7,7 +7,7 @@
           "password": "[%key:common::config_flow::data::password%]"
         },
         "description": "Set up Winix integration. Login with your mobile app credentials.",
-        "title": "Winix Air Purifier"
+        "title": "Winix"
       }
     },
     "error": {

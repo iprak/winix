@@ -1,4 +1,4 @@
-"""The Winix C545 Air Purifier component."""
+"""The Winix component."""
 
 from __future__ import annotations
 
@@ -137,22 +137,27 @@ class WinixManager(DataUpdateCoordinator):
 
         if device_stubs:
             for device_stub in device_stubs:
-                filter_alarm_duration = await Helpers.get_filter_alarm_duration(
-                    self._client, token, uuid, device_stub.id
-                )
-                self._device_wrappers.append(
-                    WinixDeviceWrapper(
-                        self._client,
-                        device_stub,
-                        filter_alarm_duration,
-                        LOGGER,
-                        identity_id,
+                try:
+                    wrapper = WinixDeviceWrapper(
+                        self._client, device_stub, LOGGER, identity_id
                     )
-                )
+                except ValueError as err:
+                    LOGGER.warning("Skipping device: %s", err)
+                    continue
 
-            LOGGER.info("%d purifiers found", len(self._device_wrappers))
+                try:
+                    await wrapper.async_initialize(token, uuid)
+                except Exception as err:
+                    LOGGER.warning(
+                        "Failed to initialize device %s: %s", device_stub.alias, err
+                    )
+                    raise
+
+                self._device_wrappers.append(wrapper)
+
+            LOGGER.info("%d devices found", len(self._device_wrappers))
         else:
-            LOGGER.info("No purifiers found")
+            LOGGER.info("No devices found")
 
     def get_device_wrappers(self) -> list[WinixDeviceWrapper]:
         """Return the device wrapper objects."""

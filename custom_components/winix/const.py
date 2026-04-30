@@ -1,4 +1,4 @@
-"""Constants for the Winix C545 Air Purifier component."""
+"""Constants for the Winix component."""
 
 from enum import StrEnum, unique
 import logging
@@ -10,7 +10,7 @@ LOGGER = logging.getLogger(__package__)
 
 WINIX_DOMAIN: Final = "winix"
 
-WINIX_NAME: Final = "Winix Purifier"
+WINIX_NAME: Final = "Winix"
 WINIX_AUTH_RESPONSE: Final = "WinixAuthResponse"
 ATTR_AIRFLOW: Final = "airflow"
 ATTR_AIR_AQI: Final = "aqi"
@@ -118,4 +118,5 @@ class Features:
 
     supports_brightness_level = False
     supports_child_lock = False
+    supports_pm25 = False
     supports_uv_sanitize = False

@@ -8,13 +8,13 @@ from voluptuous.validators import Number
 
 from custom_components.winix.const import (
     DEFAULT_FILTER_ALARM_DURATION,
-    DEFAULT_FILTER_ALARM_DURATION_HOURS,
     WINIX_AUTH_RESPONSE,
     WINIX_DOMAIN,
 )
-from custom_components.winix.device_wrapper import MyWinixDeviceStub, WinixDeviceWrapper
+from custom_components.winix.device_wrapper import WinixDeviceWrapper
 from custom_components.winix.fan import WinixPurifier
 from custom_components.winix.manager import WinixManager
+from custom_components.winix.stub import MyWinixDeviceStub
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 
@@ -95,13 +95,7 @@ def build_mock_wrapper(index: Number = 0) -> WinixDeviceWrapper:
     logger.debug = Mock()
     logger.warning = Mock()
 
-    return WinixDeviceWrapper(
-        client,
-        device_stub,
-        DEFAULT_FILTER_ALARM_DURATION_HOURS,
-        logger,
-        "test_identity_id",
-    )
+    return WinixDeviceWrapper(client, device_stub, logger, "test_identity_id")
 
 
 def build_mock_dehumidifier_wrapper(index: Number = 0) -> WinixDeviceWrapper:
@@ -117,13 +111,7 @@ def build_mock_dehumidifier_wrapper(index: Number = 0) -> WinixDeviceWrapper:
     logger.debug = Mock()
     logger.warning = Mock()
 
-    return WinixDeviceWrapper(
-        client,
-        device_stub,
-        DEFAULT_FILTER_ALARM_DURATION_HOURS,
-        logger,
-        "test_identity_id",
-    )
+    return WinixDeviceWrapper(client, device_stub, logger, "test_identity_id")
 
 
 def build_fake_manager(wrapper_count: Number) -> WinixManager:
