@@ -158,6 +158,8 @@ class WinixSensor(WinixEntity, SensorEntity):
         super().__init__(wrapper, coordinator)
         self.entity_description = description
 
+        # Legacy format retained for existing installations; new entity types
+        # should use f"<key>_{self._mac}" without the platform/winix prefix.
         self._attr_unique_id = ENTITY_ID_FORMAT.format(
             f"{WINIX_DOMAIN}_{description.key.lower()}_{self._mac}"
         )
