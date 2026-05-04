@@ -1,0 +1,100 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "username": "사용자 이름",
+          "password": "비밀번호"
+        },
+        "description": "모바일 앱 계정으로 로그인하여 Winix 통합을 설정하세요.",
+        "title": "Winix"
+      }
+    },
+    "error": {
+      "invalid_auth": "비밀번호가 올바르지 않습니다.",
+      "invalid_user": "사용자 이름이 올바르지 않습니다. 모바일 앱에 등록된 것과 동일한지, 대소문자가 일치하는지 확인하세요.",
+      "unknown": "예기치 않은 오류가 발생했습니다."
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "water_tank": {
+        "name": "물통"
+      },
+      "auto_dry": {
+        "name": "자동 건조"
+      }
+    },
+    "fan": {
+      "purifier": {
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "Auto": "자동",
+              "Auto (PlasmaWave off)": "자동 (플라즈마웨이브 꺼짐)",
+              "Manual": "수동",
+              "Manual (PlasmaWave off)": "수동 (플라즈마웨이브 꺼짐)",
+              "Sleep": "수면"
+            }
+          }
+        }
+      }
+    },
+    "humidifier": {
+      "dehumidifier": {
+        "state_attributes": {
+          "mode": {
+            "state": {
+              "auto": "자동",
+              "manual": "수동",
+              "clothes": "의류",
+              "shoes": "신발",
+              "quiet": "저소음",
+              "continuous": "연속"
+            }
+          }
+        }
+      }
+    },
+    "number": {
+      "timer": {
+        "name": "타이머"
+      }
+    },
+    "select": {
+      "brightness_level": {
+        "name": "밝기"
+      },
+      "fan_speed": {
+        "name": "팬 속도",
+        "state": {
+          "low": "약",
+          "high": "강",
+          "turbo": "터보"
+        }
+      }
+    },
+    "sensor": {
+      "air_qvalue": {
+        "name": "공기 품질 지수"
+      },
+      "filter_life": {
+        "name": "필터 수명"
+      },
+      "aqi": {
+        "name": "AQI"
+      },
+      "pm2_5": {
+        "name": "PM 2.5"
+      }
+    },
+    "switch": {
+      "child_lock": {
+        "name": "어린이 보호"
+      },
+      "uv_sanitize": {
+        "name": "UV 살균"
+      }
+    }
+  }
+}

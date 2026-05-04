@@ -1,0 +1,100 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "username": "Gebruikersnaam",
+          "password": "Wachtwoord"
+        },
+        "description": "Stel de Winix-integratie in door in te loggen met uw mobiele app-gegevens.",
+        "title": "Winix"
+      }
+    },
+    "error": {
+      "invalid_auth": "Het ingevoerde wachtwoord is ongeldig.",
+      "invalid_user": "De gebruikersnaam is ongeldig. Zorg ervoor dat deze overeenkomt met de naam die is geregistreerd in de mobiele app en dat de hoofdletters kloppen.",
+      "unknown": "Onverwachte fout"
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "water_tank": {
+        "name": "Watertank"
+      },
+      "auto_dry": {
+        "name": "Automatisch drogen"
+      }
+    },
+    "fan": {
+      "purifier": {
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "Auto": "Automatisch",
+              "Auto (PlasmaWave off)": "Automatisch (PlasmaWave uit)",
+              "Manual": "Handmatig",
+              "Manual (PlasmaWave off)": "Handmatig (PlasmaWave uit)",
+              "Sleep": "Slaap"
+            }
+          }
+        }
+      }
+    },
+    "humidifier": {
+      "dehumidifier": {
+        "state_attributes": {
+          "mode": {
+            "state": {
+              "auto": "Automatisch",
+              "manual": "Handmatig",
+              "clothes": "Kleding",
+              "shoes": "Schoenen",
+              "quiet": "Stil",
+              "continuous": "Continu"
+            }
+          }
+        }
+      }
+    },
+    "number": {
+      "timer": {
+        "name": "Timer"
+      }
+    },
+    "select": {
+      "brightness_level": {
+        "name": "Helderheidsniveau"
+      },
+      "fan_speed": {
+        "name": "Ventilatorsnelheid",
+        "state": {
+          "low": "Laag",
+          "high": "Hoog",
+          "turbo": "Turbo"
+        }
+      }
+    },
+    "sensor": {
+      "air_qvalue": {
+        "name": "Luchtkwaliteitswaarde"
+      },
+      "filter_life": {
+        "name": "Filterlevensduur"
+      },
+      "aqi": {
+        "name": "AQI"
+      },
+      "pm2_5": {
+        "name": "PM 2.5"
+      }
+    },
+    "switch": {
+      "child_lock": {
+        "name": "Kinderslot"
+      },
+      "uv_sanitize": {
+        "name": "UV-reiniging"
+      }
+    }
+  }
+}

@@ -25,6 +25,21 @@
         "name": "Auto Dry"
       }
     },
+    "fan": {
+      "purifier": {
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "Auto": "Auto",
+              "Auto (PlasmaWave off)": "Auto (PlasmaWave off)",
+              "Manual": "Manual",
+              "Manual (PlasmaWave off)": "Manual (PlasmaWave off)",
+              "Sleep": "Sleep"
+            }
+          }
+        }
+      }
+    },
     "humidifier": {
       "dehumidifier": {
         "state_attributes": {
@@ -44,6 +59,41 @@
     "number": {
       "timer": {
         "name": "Timer"
+      }
+    },
+    "select": {
+      "brightness_level": {
+        "name": "Brightness Level"
+      },
+      "fan_speed": {
+        "name": "Fan Speed",
+        "state": {
+          "low": "Low",
+          "high": "High",
+          "turbo": "Turbo"
+        }
+      }
+    },
+    "sensor": {
+      "air_qvalue": {
+        "name": "Air QValue"
+      },
+      "filter_life": {
+        "name": "Filter Life"
+      },
+      "aqi": {
+        "name": "AQI"
+      },
+      "pm2_5": {
+        "name": "PM 2.5"
+      }
+    },
+    "switch": {
+      "child_lock": {
+        "name": "Child Lock"
+      },
+      "uv_sanitize": {
+        "name": "UV Sanitize"
       }
     }
   }
