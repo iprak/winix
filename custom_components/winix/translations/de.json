@@ -1,0 +1,100 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "username": "Benutzername",
+          "password": "Passwort"
+        },
+        "description": "Richten Sie die Winix-Integration ein, indem Sie sich mit Ihren mobilen App-Anmeldedaten anmelden.",
+        "title": "Winix"
+      }
+    },
+    "error": {
+      "invalid_auth": "Das eingegebene Passwort ist ungültig.",
+      "invalid_user": "Der Benutzername ist ungültig. Stellen Sie sicher, dass er mit dem in der App registrierten übereinstimmt und die Groß-/Kleinschreibung korrekt ist.",
+      "unknown": "Unerwarteter Fehler"
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "water_tank": {
+        "name": "Wassertank"
+      },
+      "auto_dry": {
+        "name": "Automatisch trocknen"
+      }
+    },
+    "fan": {
+      "purifier": {
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "Auto": "Automatisch",
+              "Auto (PlasmaWave off)": "Automatisch (PlasmaWave aus)",
+              "Manual": "Manuell",
+              "Manual (PlasmaWave off)": "Manuell (PlasmaWave aus)",
+              "Sleep": "Schlaf"
+            }
+          }
+        }
+      }
+    },
+    "humidifier": {
+      "dehumidifier": {
+        "state_attributes": {
+          "mode": {
+            "state": {
+              "auto": "Automatisch",
+              "manual": "Manuell",
+              "clothes": "Kleidung",
+              "shoes": "Schuhe",
+              "quiet": "Leise",
+              "continuous": "Dauerbetrieb"
+            }
+          }
+        }
+      }
+    },
+    "number": {
+      "timer": {
+        "name": "Timer"
+      }
+    },
+    "select": {
+      "brightness_level": {
+        "name": "Helligkeit"
+      },
+      "fan_speed": {
+        "name": "Lüftergeschwindigkeit",
+        "state": {
+          "low": "Niedrig",
+          "high": "Hoch",
+          "turbo": "Turbo"
+        }
+      }
+    },
+    "sensor": {
+      "air_qvalue": {
+        "name": "Luftqualitätswert"
+      },
+      "filter_life": {
+        "name": "Filterlebensdauer"
+      },
+      "aqi": {
+        "name": "AQI"
+      },
+      "pm2_5": {
+        "name": "PM 2.5"
+      }
+    },
+    "switch": {
+      "child_lock": {
+        "name": "Kindersicherung"
+      },
+      "uv_sanitize": {
+        "name": "UV-Desinfektion"
+      }
+    }
+  }
+}

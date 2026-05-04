@@ -1,0 +1,100 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "username": "ユーザー名",
+          "password": "パスワード"
+        },
+        "description": "モバイルアプリの認証情報でログインして、Winixインテグレーションを設定します。",
+        "title": "Winix"
+      }
+    },
+    "error": {
+      "invalid_auth": "入力したパスワードが無効です。",
+      "invalid_user": "ユーザー名が無効です。モバイルアプリに登録されているものと同じで、大文字・小文字が一致していることを確認してください。",
+      "unknown": "予期しないエラーが発生しました。"
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "water_tank": {
+        "name": "水タンク"
+      },
+      "auto_dry": {
+        "name": "自動乾燥"
+      }
+    },
+    "fan": {
+      "purifier": {
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "Auto": "自動",
+              "Auto (PlasmaWave off)": "自動（プラズマウェーブオフ）",
+              "Manual": "手動",
+              "Manual (PlasmaWave off)": "手動（プラズマウェーブオフ）",
+              "Sleep": "スリープ"
+            }
+          }
+        }
+      }
+    },
+    "humidifier": {
+      "dehumidifier": {
+        "state_attributes": {
+          "mode": {
+            "state": {
+              "auto": "自動",
+              "manual": "手動",
+              "clothes": "衣類",
+              "shoes": "靴",
+              "quiet": "静音",
+              "continuous": "連続"
+            }
+          }
+        }
+      }
+    },
+    "number": {
+      "timer": {
+        "name": "タイマー"
+      }
+    },
+    "select": {
+      "brightness_level": {
+        "name": "明るさ"
+      },
+      "fan_speed": {
+        "name": "ファン速度",
+        "state": {
+          "low": "弱",
+          "high": "強",
+          "turbo": "ターボ"
+        }
+      }
+    },
+    "sensor": {
+      "air_qvalue": {
+        "name": "空気品質値"
+      },
+      "filter_life": {
+        "name": "フィルター寿命"
+      },
+      "aqi": {
+        "name": "AQI"
+      },
+      "pm2_5": {
+        "name": "PM 2.5"
+      }
+    },
+    "switch": {
+      "child_lock": {
+        "name": "チャイルドロック"
+      },
+      "uv_sanitize": {
+        "name": "UV除菌"
+      }
+    }
+  }
+}
