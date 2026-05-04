@@ -53,7 +53,7 @@ SELECT_DESCRIPTIONS: Final[tuple[WinixSelectEntityDescription, ...]] = (
         exists_fn=lambda device: device.features.supports_brightness_level,
         icon="mdi:brightness-6",
         key="brightness_level",
-        name="Brightness Level",
+        translation_key="brightness_level",
         options=BRIGHTNESS_OPTIONS,
         select_option_fn=lambda device, value: device.async_set_brightness_level(
             parse_brightness_level(value)
@@ -65,7 +65,7 @@ SELECT_DESCRIPTIONS: Final[tuple[WinixSelectEntityDescription, ...]] = (
         exists_fn=lambda device: device.is_dehumidifier,
         icon="mdi:fan",
         key="fan_speed",
-        name="Fan Speed",
+        translation_key="fan_speed",
         options=DEHUMIDIFIER_FAN_SPEEDS,
         select_option_fn=lambda device, value: device.async_set_speed(value),
     ),
