@@ -7,10 +7,12 @@ from dataclasses import dataclass
 from typing import Any
 
 from homeassistant.components.number import (
+    NumberDeviceClass,
     NumberEntity,
     NumberEntityDescription,
     NumberMode,
 )
+from homeassistant.const import UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -33,12 +35,13 @@ NUMBER_DESCRIPTIONS: tuple[WinixNumberEntityDescription, ...] = (
     WinixNumberEntityDescription(
         key="timer",
         translation_key="timer",
+        device_class=NumberDeviceClass.DURATION,
         icon="mdi:timer-outline",
         native_min_value=0,
         native_max_value=24,
         native_step=1,
         mode=NumberMode.BOX,
-        native_unit_of_measurement="h",
+        native_unit_of_measurement=UnitOfTime.HOURS,
         exists_fn=lambda device: device.is_dehumidifier,
         value_fn=lambda device: (device.get_state() or {}).get(ATTR_TIMER),
         set_value_fn=lambda device, value: device.async_set_timer(round(value)),

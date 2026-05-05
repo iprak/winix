@@ -8,14 +8,6 @@
 				}
 			}
 		},
-		"humidifier": {
-			"dehumidifier": {
-				"default": "mdi:air-humidifier",
-				"state": {
-					"off": "mdi:air-humidifier-off"
-				}
-			}
-		},
 		"binary_sensor": {
 			"water_tank": {
 				"default": "mdi:water-outline",
