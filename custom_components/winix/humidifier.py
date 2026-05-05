@@ -6,6 +6,7 @@ from typing import Any
 
 from homeassistant.components.humidifier import (
     HumidifierAction,
+    HumidifierDeviceClass,
     HumidifierEntity,
     HumidifierEntityFeature,
 )
@@ -48,6 +49,7 @@ class WinixDehumidifier(WinixEntity, HumidifierEntity):
 
     # https://developers.home-assistant.io/docs/core/entity/humidifier/
     _attr_supported_features = HumidifierEntityFeature.MODES
+    _attr_device_class = HumidifierDeviceClass.DEHUMIDIFIER
 
     _attr_min_humidity = DEHUMIDIFIER_MIN_HUMIDITY
     _attr_max_humidity = DEHUMIDIFIER_MAX_HUMIDITY
