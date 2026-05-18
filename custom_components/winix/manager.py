@@ -120,20 +120,13 @@ class WinixManager(DataUpdateCoordinator):
         id_tok = id_token or self._auth_response.id_token
         uuid = WinixAccount(token).get_uuid()
 
-        try:
-            device_stubs = await Helpers.get_device_stubs(self._client, token, uuid)
-        except Exception as err:
-            LOGGER.error("Failed to get device stubs: %s", err, exc_info=True)
-            raise
+        # Don't log the failure exceptions here, they are logged in the caller. Just raise them up.
+        device_stubs = await Helpers.get_device_stubs(self._client, token, uuid)
 
         # boto3 call must run in an executor thread (synchronous I/O).
-        try:
-            identity_id = await self.hass.async_add_executor_job(
-                Helpers.get_identity_id_sync, id_tok
-            )
-        except Exception as err:
-            LOGGER.error("Failed to get identity_id: %s", err, exc_info=True)
-            raise
+        identity_id = await self.hass.async_add_executor_job(
+            Helpers.get_identity_id_sync, id_tok
+        )
 
         if device_stubs:
             for device_stub in device_stubs:
