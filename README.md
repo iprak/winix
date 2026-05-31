@@ -7,8 +7,7 @@
 
 A custom component to interact with Winix air purifiers and dehumidifiers.
 
-Air purifiers: confirmed on [C545](https://www.winixamerica.com/product/certified-refurbished-c545-air-purifier/) and [C610](https://www.winixamerica.com/product/c610/), and reported to work on [AM90](https://www.winixamerica.com/product/am90/), [HR1000](https://www.amazon.com/Winix-HR1000-5-Stage-Enabled-Cleaner/dp/B01FWS0HSY), [C909](https://www.costco.com/winix-c909-4-stage-air-purifier-with-wi-fi-%2526-plasmawave-technology.product.100842491.html), [T800](https://winixeurope.eu/air-purifiers/winix-t800-wifi/), [T810](https://www.winixamerica.com/product/t810/), [5510](http://winixamerica.com/product/5510/), [5520](http://winixamerica.com/product/5520/), [9800](https://www.winixamerica.com/product/9800/) — functionality may vary by model.
-
+Air purifiers: confirmed on [C545](https://www.winixamerica.com/product/certified-refurbished-c545-air-purifier/) and [C610](https://www.winixamerica.com/product/c610/), and reported to work on [AM90](https://www.winixamerica.com/product/am90/), [HR1000](https://www.amazon.com/Winix-HR1000-5-Stage-Enabled-Cleaner/dp/B01FWS0HSY), [C909](https://www.costco.com/winix-c909-4-stage-air-purifier-with-wi-fi-%2526-plasmawave-technology.product.100842491.html), [T800](https://winixeurope.eu/air-purifiers/winix-t800-wifi/), [T810](https://www.winixamerica.com/product/t810/), [5510](http://winixamerica.com/product/5510/), [5520](http://winixamerica.com/product/5520/), [9800](https://www.winixamerica.com/product/9800/), [T500](https://www.winixamerica.com/product/t500/) — functionality may vary by model. 
 Dehumidifiers: confirmed on [DXWE210](https://www.winix.com/product/1689) (Korean page). Other models in the `DXW*21*` family are likely compatible.
 
 ## Installation
