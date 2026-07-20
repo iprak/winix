@@ -92,15 +92,15 @@ class WinixManager(DataUpdateCoordinator):
         except WinixTransientError as err:
             if not self._retry_on_error:
                 self._retry_on_error = True
-                LOGGER.info(
-                    "Transient error during update, will retry in %ds: %s",
-                    RETRY_INTERVAL_SECONDS,
-                    err,
-                )
-                raise UpdateFailed(retry_after=RETRY_INTERVAL_SECONDS) from err
+                raise UpdateFailed(
+                    f"Transient error during update ({err}), will retry in {RETRY_INTERVAL_SECONDS} seconds",
+                    retry_after=RETRY_INTERVAL_SECONDS,
+                ) from err
+
             self._retry_on_error = False
-            LOGGER.info("Retry also failed, resuming normal poll interval: %s", err)
-            raise UpdateFailed from err
+            raise UpdateFailed(
+                f"Retry failed ({err}), resuming normal polling"
+            ) from err
 
     def update_features(self) -> None:
         """Update the supported features based on the current state."""
