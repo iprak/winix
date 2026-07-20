@@ -1,7 +1,5 @@
 """Winix Air Purifier fan entity."""
 
-from __future__ import annotations
-
 import asyncio
 from collections.abc import Mapping
 from typing import Any
