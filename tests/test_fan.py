@@ -1,9 +1,13 @@
 """Test Winixdevice component."""
 
+from datetime import timedelta
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_fire_time_changed,
+)
 
 from custom_components.winix.const import (
     AIRFLOW_HIGH,
@@ -19,10 +23,15 @@ from custom_components.winix.const import (
     SERVICE_PLASMAWAVE_ON,
     WINIX_DOMAIN,
 )
-from custom_components.winix.fan import WinixPurifier, async_setup_entry
+from custom_components.winix.fan import (
+    FAN_ON_OFF_REFRESH_DELAY,
+    WinixPurifier,
+    async_setup_entry,
+)
 from homeassistant.components.fan import FanEntityFeature
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 
 from .common import build_fake_manager, build_purifier  # noqa: TID251
 
@@ -240,6 +249,24 @@ async def test_async_set_percentage_non_zero(
     assert mock_device_wrapper.async_set_speed.call_count == 1
 
 
+async def test_async_turn_off(hass: HomeAssistant, mock_device_wrapper) -> None:
+    """Test turning off."""
+
+    device = build_purifier(hass, mock_device_wrapper)
+    device.async_set_percentage = AsyncMock()
+
+    await device.async_turn_off()
+    assert device.async_set_percentage.call_count == 0
+    assert mock_device_wrapper.async_set_preset_mode.call_count == 0
+    assert mock_device_wrapper.async_turn_off.call_count == 1
+
+    future = dt_util.utcnow() + timedelta(seconds=FAN_ON_OFF_REFRESH_DELAY)
+    async_fire_time_changed(hass, future)
+    await hass.async_block_till_done()
+
+    assert device.coordinator.async_request_refresh.call_count == 1
+
+
 async def test_async_turn_on(hass: HomeAssistant, mock_device_wrapper) -> None:
     """Test turning on."""
 
@@ -250,6 +277,12 @@ async def test_async_turn_on(hass: HomeAssistant, mock_device_wrapper) -> None:
     assert device.async_set_percentage.call_count == 0
     assert mock_device_wrapper.async_set_preset_mode.call_count == 0
     assert mock_device_wrapper.async_turn_on.call_count == 1
+
+    future = dt_util.utcnow() + timedelta(seconds=FAN_ON_OFF_REFRESH_DELAY)
+    async_fire_time_changed(hass, future)
+    await hass.async_block_till_done()
+
+    assert device.coordinator.async_request_refresh.call_count == 1
 
 
 async def test_async_turn_on_percentage(
