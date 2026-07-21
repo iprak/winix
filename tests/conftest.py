@@ -82,6 +82,7 @@ def mock_device_wrapper() -> WinixDeviceWrapper:
     device_wrapper.async_plasmawave_on = AsyncMock()
     device_wrapper.async_set_preset_mode = AsyncMock()
     device_wrapper.async_set_speed = AsyncMock()
+    device_wrapper.async_turn_off = AsyncMock()
     device_wrapper.async_turn_on = AsyncMock()
 
     return device_wrapper
@@ -97,7 +98,9 @@ def mock_airpurifier_driver() -> AirPurifierDriver:
 
 
 @pytest.fixture
-def mock_airpurifier_driver_with_payload(request: pytest.FixtureRequest) -> AirPurifierDriver:
+def mock_airpurifier_driver_with_payload(
+    request: pytest.FixtureRequest,
+) -> AirPurifierDriver:
     """Return a mocked AirPurifierDriver instance."""
 
     json_value = {"body": {"data": [{"attributes": request.param}]}}
@@ -124,7 +127,9 @@ def mock_dehumidifier_driver() -> DehumidifierDriver:
 
 
 @pytest.fixture
-def mock_dehumidifier_driver_with_payload(request: pytest.FixtureRequest) -> DehumidifierDriver:
+def mock_dehumidifier_driver_with_payload(
+    request: pytest.FixtureRequest,
+) -> DehumidifierDriver:
     """Return a mocked DehumidifierDriver instance with preset payload."""
 
     json_value = {"body": {"data": [{"attributes": request.param}]}}

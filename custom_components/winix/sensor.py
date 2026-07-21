@@ -1,7 +1,5 @@
 """Winix sensor entities (air quality, filter life)."""
 
-from __future__ import annotations
-
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from typing import Any
@@ -119,8 +117,9 @@ SENSOR_DESCRIPTIONS: tuple[WinixSensorEntityDescription, ...] = (
         translation_key="pm2_5",
         native_unit_of_measurement=CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
         value_fn=lambda state, wrapper: state.get(ATTR_PM25),
-        exists_fn=lambda device: device.is_air_purifier
-        and device.features.supports_pm25,
+        exists_fn=lambda device: (
+            device.is_air_purifier and device.features.supports_pm25
+        ),
     ),
 )
 

@@ -1,7 +1,5 @@
 """The WinixDriver component."""
 
-from __future__ import annotations
-
 from enum import Enum, unique
 
 import aiohttp
@@ -222,7 +220,11 @@ class AirPurifierDriver(WinixDriver):
         },
         ATTR_CHILD_LOCK: {OFF_VALUE: "0", ON_VALUE: "1"},
         ATTR_PLASMA: {OFF_VALUE: "0", ON_VALUE: "1"},
-        ATTR_AIR_QUALITY: {AIR_QUALITY_GOOD: "01", AIR_QUALITY_FAIR: "02", AIR_QUALITY_POOR: "03"},
+        ATTR_AIR_QUALITY: {
+            AIR_QUALITY_GOOD: "01",
+            AIR_QUALITY_FAIR: "02",
+            AIR_QUALITY_POOR: "03",
+        },
     }
 
     async def turn_off(self) -> None:

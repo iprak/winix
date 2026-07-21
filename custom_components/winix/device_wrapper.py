@@ -1,7 +1,5 @@
 """Winix device wrapper."""
 
-from __future__ import annotations
-
 import aiohttp
 
 from .const import (

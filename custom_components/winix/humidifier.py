@@ -1,7 +1,5 @@
 """Winix Dehumidifier entity."""
 
-from __future__ import annotations
-
 from typing import Any
 
 from homeassistant.components.humidifier import (
@@ -126,8 +124,12 @@ class WinixDehumidifier(WinixEntity, HumidifierEntity):
 
     async def async_set_humidity(self, humidity: int) -> None:
         """Set target humidity, rounding to nearest 5 % step and clamping to valid range."""
-        humidity = round(humidity / DEHUMIDIFIER_HUMIDITY_STEP) * DEHUMIDIFIER_HUMIDITY_STEP
-        humidity = max(DEHUMIDIFIER_MIN_HUMIDITY, min(DEHUMIDIFIER_MAX_HUMIDITY, humidity))
+        humidity = (
+            round(humidity / DEHUMIDIFIER_HUMIDITY_STEP) * DEHUMIDIFIER_HUMIDITY_STEP
+        )
+        humidity = max(
+            DEHUMIDIFIER_MIN_HUMIDITY, min(DEHUMIDIFIER_MAX_HUMIDITY, humidity)
+        )
         await self.device_wrapper.async_set_humidity(humidity)
         self.async_write_ha_state()
 
