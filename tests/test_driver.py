@@ -26,6 +26,7 @@ from custom_components.winix.driver import AirPurifierDriver, DehumidifierDriver
         ("high", "airflow", "high"),
         ("turbo", "airflow", "turbo"),
         ("sleep", "airflow", "sleep"),
+        ("super", "airflow", "super"),
     ],
 )
 async def test_turn_off(mock_rpc_attr, mock_airpurifier_driver, method, category, value) -> None:
@@ -46,6 +47,7 @@ async def test_turn_off(mock_rpc_attr, mock_airpurifier_driver, method, category
         ({"A02": "1"}, {"power": "on"}),
         ({"S08": "79"}, {"air_qvalue": 79}),  # air_qvalue
         ({"S04": "12"}, {"pm2_5": 12}),  # pm2_5
+        ({"A04": "08"}, {"airflow": "super"}),
     ],
     indirect=["mock_airpurifier_driver_with_payload"],
 )

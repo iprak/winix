@@ -7,7 +7,7 @@
 
 A custom component to interact with Winix air purifiers and dehumidifiers.
 
-Air purifiers: confirmed on [C545](https://www.winixamerica.com/product/certified-refurbished-c545-air-purifier/) and [C610](https://www.winixamerica.com/product/c610/), and reported to work on [AM90](https://www.winixamerica.com/product/am90/), [HR1000](https://www.amazon.com/Winix-HR1000-5-Stage-Enabled-Cleaner/dp/B01FWS0HSY), [C909](https://www.costco.com/winix-c909-4-stage-air-purifier-with-wi-fi-%2526-plasmawave-technology.product.100842491.html), [T800](https://winixeurope.eu/air-purifiers/winix-t800-wifi/), [T810](https://www.winixamerica.com/product/t810/), [5510](http://winixamerica.com/product/5510/), [5520](http://winixamerica.com/product/5520/), [9800](https://www.winixamerica.com/product/9800/), [T500](https://www.winixamerica.com/product/t500/) — functionality may vary by model. 
+Air purifiers: confirmed on [C545](https://www.winixamerica.com/product/certified-refurbished-c545-air-purifier/), [C610](https://www.winixamerica.com/product/c610/), and [Tower Prime APRM833-JWK](https://www.winix.com/product/1211); reported to work on [AM90](https://www.winixamerica.com/product/am90/), [HR1000](https://www.amazon.com/Winix-HR1000-5-Stage-Enabled-Cleaner/dp/B01FWS0HSY), [C909](https://www.costco.com/winix-c909-4-stage-air-purifier-with-wi-fi-%2526-plasmawave-technology.product.100842491.html), [T800](https://winixeurope.eu/air-purifiers/winix-t800-wifi/), [T810](https://www.winixamerica.com/product/t810/), [5510](http://winixamerica.com/product/5510/), [5520](http://winixamerica.com/product/5520/), [9800](https://www.winixamerica.com/product/9800/), [T500](https://www.winixamerica.com/product/t500/)…
 Dehumidifiers: confirmed on [DXWE210](https://www.winix.com/product/1689) (Korean page). Other models in the `DXW*21*` family are likely compatible.
 
 ## Installation
@@ -31,6 +31,7 @@ This can be installed by copying all the files from `custom_components/winix/` t
   - Poor (Red) = 3
 - The `Filter Life` sensor represents the left filter life and is based on an initial life of 9 months.
 - The `PM 2.5` sensor is exposed only on devices that report particulate readings (e.g., T800).
+- Tower Prime APRM833-JWK exposes its Super Clean mode as the highest fan-speed percentage.
 
 - The fan entity supports speed and preset modes
 - The `Child Lock` switch toggles the device's child lock, exposed only on devices that report support for the feature.

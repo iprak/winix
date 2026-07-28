@@ -21,6 +21,8 @@ from custom_components.winix.const import (
     MODE_MANUAL,
     OFF_VALUE,
     ON_VALUE,
+    ORDERED_NAMED_FAN_SPEEDS,
+    ORDERED_NAMED_TOWER_PRIME_FAN_SPEEDS,
     PRESET_MODE_AUTO,
     PRESET_MODE_AUTO_PLASMA_OFF,
     PRESET_MODE_MANUAL,
@@ -99,6 +101,21 @@ async def test_wrapper_update(
         assert wrapper.is_on == is_on
         assert wrapper.is_plasma_on == is_plasma_on
         assert wrapper.is_sleep == is_sleep
+
+
+@pytest.mark.parametrize(
+    ("model", "expected"),
+    [
+        ("C545", ORDERED_NAMED_FAN_SPEEDS),
+        ("TOWER PRIME", ORDERED_NAMED_TOWER_PRIME_FAN_SPEEDS),
+    ],
+)
+def test_model_fan_speeds(model, expected) -> None:
+    """Expose Super Clean only for Tower Prime."""
+    wrapper = build_mock_wrapper()
+    wrapper.device_stub.model = model
+
+    assert wrapper.fan_speeds == expected
 
 
 async def test_async_ensure_on() -> None:

@@ -1,7 +1,7 @@
 """Constants for the Winix component."""
 
-from enum import StrEnum, unique
 import logging
+from enum import StrEnum, unique
 from typing import Final
 
 __min_ha_version__ = "2024.8"
@@ -68,12 +68,19 @@ AIRFLOW_MEDIUM: Final = "medium"
 AIRFLOW_HIGH: Final = "high"
 AIRFLOW_TURBO: Final = "turbo"
 AIRFLOW_SLEEP: Final = "sleep"
+AIRFLOW_SUPER: Final = "super"
 
 ORDERED_NAMED_FAN_SPEEDS: Final = [
     AIRFLOW_LOW,
     AIRFLOW_MEDIUM,
     AIRFLOW_HIGH,
     AIRFLOW_TURBO,
+]
+
+TOWER_PRIME_MODEL: Final = "TOWER PRIME"
+ORDERED_NAMED_TOWER_PRIME_FAN_SPEEDS: Final = [
+    *ORDERED_NAMED_FAN_SPEEDS,
+    AIRFLOW_SUPER,
 ]
 
 DEHUMIDIFIER_FAN_SPEEDS: Final = [

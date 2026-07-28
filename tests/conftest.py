@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, Mock
 
 import pytest
 
+from custom_components.winix.const import ORDERED_NAMED_FAN_SPEEDS
 from custom_components.winix.device_wrapper import WinixDeviceWrapper
 from custom_components.winix.driver import AirPurifierDriver, DehumidifierDriver
 from custom_components.winix.stub import MyWinixDeviceStub
@@ -77,6 +78,7 @@ def mock_device_wrapper() -> WinixDeviceWrapper:
     device_wrapper = MagicMock()
     device_wrapper.device_stub.mac = "f190d35456d0"
     device_wrapper.device_stub.alias = "Purifier1"
+    device_wrapper.fan_speeds = ORDERED_NAMED_FAN_SPEEDS
 
     device_wrapper.async_plasmawave_off = AsyncMock()
     device_wrapper.async_plasmawave_on = AsyncMock()

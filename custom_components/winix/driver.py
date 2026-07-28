@@ -3,7 +3,6 @@
 from enum import Enum, unique
 
 import aiohttp
-
 from homeassistant.exceptions import HomeAssistantError
 
 from .const import (
@@ -14,6 +13,7 @@ from .const import (
     AIRFLOW_LOW,
     AIRFLOW_MEDIUM,
     AIRFLOW_SLEEP,
+    AIRFLOW_SUPER,
     AIRFLOW_TURBO,
     ATTR_AIR_AQI,
     ATTR_AIR_QUALITY,
@@ -217,6 +217,7 @@ class AirPurifierDriver(WinixDriver):
             AIRFLOW_HIGH: "03",
             AIRFLOW_TURBO: "05",
             AIRFLOW_SLEEP: "06",
+            AIRFLOW_SUPER: "08",
         },
         ATTR_CHILD_LOCK: {OFF_VALUE: "0", ON_VALUE: "1"},
         ATTR_PLASMA: {OFF_VALUE: "0", ON_VALUE: "1"},
@@ -282,6 +283,10 @@ class AirPurifierDriver(WinixDriver):
     async def turbo(self) -> None:
         """Set speed turbo."""
         await self.control(ATTR_AIRFLOW, AIRFLOW_TURBO)
+
+    async def super(self) -> None:
+        """Set speed to Super Clean."""
+        await self.control(ATTR_AIRFLOW, AIRFLOW_SUPER)
 
     async def sleep(self) -> None:
         """Set device in sleep mode."""
