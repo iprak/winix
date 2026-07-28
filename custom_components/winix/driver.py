@@ -9,6 +9,7 @@ from .const import (
     AIR_QUALITY_FAIR,
     AIR_QUALITY_GOOD,
     AIR_QUALITY_POOR,
+    AIR_QUALITY_VERY_POOR,
     AIRFLOW_HIGH,
     AIRFLOW_LOW,
     AIRFLOW_MEDIUM,
@@ -225,6 +226,7 @@ class AirPurifierDriver(WinixDriver):
             AIR_QUALITY_GOOD: "01",
             AIR_QUALITY_FAIR: "02",
             AIR_QUALITY_POOR: "03",
+            AIR_QUALITY_VERY_POOR: "04",
         },
     }
 

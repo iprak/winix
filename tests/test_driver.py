@@ -48,6 +48,7 @@ async def test_turn_off(mock_rpc_attr, mock_airpurifier_driver, method, category
         ({"S08": "79"}, {"air_qvalue": 79}),  # air_qvalue
         ({"S04": "12"}, {"pm2_5": 12}),  # pm2_5
         ({"A04": "08"}, {"airflow": "super"}),
+        ({"S07": "04"}, {"air_quality": "very_poor"}),
     ],
     indirect=["mock_airpurifier_driver_with_payload"],
 )

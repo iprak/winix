@@ -49,6 +49,7 @@ AUTO_DRY_VALUE: Final = "auto-dry"
 AIR_QUALITY_GOOD: Final = "good"
 AIR_QUALITY_FAIR: Final = "fair"
 AIR_QUALITY_POOR: Final = "poor"
+AIR_QUALITY_VERY_POOR: Final = "very_poor"
 
 # The service name is the partial name of the method in WinixPurifier
 SERVICE_PLASMAWAVE_ON: Final = "plasmawave_on"
