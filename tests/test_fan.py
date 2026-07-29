@@ -4,10 +4,6 @@ from datetime import timedelta
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
-from homeassistant.components.fan import FanEntityFeature
-from homeassistant.const import ATTR_ENTITY_ID
-from homeassistant.core import HomeAssistant
-from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
     async_fire_time_changed,
@@ -34,6 +30,10 @@ from custom_components.winix.fan import (
     WinixPurifier,
     async_setup_entry,
 )
+from homeassistant.components.fan import FanEntityFeature
+from homeassistant.const import ATTR_ENTITY_ID
+from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 
 from .common import build_fake_manager, build_purifier  # noqa: TID251
 

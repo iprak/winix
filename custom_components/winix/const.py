@@ -1,7 +1,7 @@
 """Constants for the Winix component."""
 
-import logging
 from enum import StrEnum, unique
+import logging
 from typing import Final
 
 __min_ha_version__ = "2024.8"

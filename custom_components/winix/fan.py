@@ -5,11 +5,12 @@ from collections.abc import Mapping
 from datetime import datetime
 from typing import Any
 
-import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
+
 from homeassistant.components.fan import ENTITY_ID_FORMAT, FanEntity, FanEntityFeature
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import HassJob, HomeAssistant
+import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_call_later
 from homeassistant.util.percentage import (

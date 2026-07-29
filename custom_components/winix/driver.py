@@ -3,6 +3,7 @@
 from enum import Enum, unique
 
 import aiohttp
+
 from homeassistant.exceptions import HomeAssistantError
 
 from .const import (
