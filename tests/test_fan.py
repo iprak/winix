@@ -12,8 +12,10 @@ from pytest_homeassistant_custom_component.common import (
 from custom_components.winix.const import (
     AIRFLOW_HIGH,
     AIRFLOW_LOW,
+    AIRFLOW_SUPER,
     ATTR_AIRFLOW,
     ORDERED_NAMED_FAN_SPEEDS,
+    ORDERED_NAMED_TOWER_PRIME_FAN_SPEEDS,
     PRESET_MODE_AUTO,
     PRESET_MODE_AUTO_PLASMA_OFF,
     PRESET_MODE_MANUAL,
@@ -112,6 +114,7 @@ def test_construction(hass: HomeAssistant) -> None:
     """Test device construction."""
     device_wrapper = Mock()
     device_wrapper.get_state = Mock(return_value={})
+    device_wrapper.fan_speeds = ORDERED_NAMED_FAN_SPEEDS
 
     device = WinixPurifier(device_wrapper, Mock())
     assert device.unique_id is not None
@@ -182,6 +185,7 @@ def test_device_percentage(state, is_sleep, is_auto, expected) -> None:
     device_wrapper = Mock()
     type(device_wrapper).is_sleep = is_sleep
     type(device_wrapper).is_auto = is_auto
+    device_wrapper.fan_speeds = ORDERED_NAMED_FAN_SPEEDS
     device_wrapper.get_state = Mock(return_value=state)
     device = WinixPurifier(device_wrapper, Mock())
     assert device.percentage is expected
@@ -247,6 +251,18 @@ async def test_async_set_percentage_non_zero(
     await device.async_set_percentage(20)
     assert device.async_turn_off.call_count == 0
     assert mock_device_wrapper.async_set_speed.call_count == 1
+
+
+async def test_async_set_percentage_tower_prime(
+    hass: HomeAssistant, mock_device_wrapper
+) -> None:
+    """Map Tower Prime's maximum percentage to Super Clean."""
+    mock_device_wrapper.fan_speeds = ORDERED_NAMED_TOWER_PRIME_FAN_SPEEDS
+    device = build_purifier(hass, mock_device_wrapper)
+
+    await device.async_set_percentage(100)
+
+    mock_device_wrapper.async_set_speed.assert_called_once_with(AIRFLOW_SUPER)
 
 
 async def test_async_turn_off(hass: HomeAssistant, mock_device_wrapper) -> None:

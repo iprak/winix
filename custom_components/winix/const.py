@@ -49,6 +49,7 @@ AUTO_DRY_VALUE: Final = "auto-dry"
 AIR_QUALITY_GOOD: Final = "good"
 AIR_QUALITY_FAIR: Final = "fair"
 AIR_QUALITY_POOR: Final = "poor"
+AIR_QUALITY_VERY_POOR: Final = "very_poor"
 
 # The service name is the partial name of the method in WinixPurifier
 SERVICE_PLASMAWAVE_ON: Final = "plasmawave_on"
@@ -68,12 +69,19 @@ AIRFLOW_MEDIUM: Final = "medium"
 AIRFLOW_HIGH: Final = "high"
 AIRFLOW_TURBO: Final = "turbo"
 AIRFLOW_SLEEP: Final = "sleep"
+AIRFLOW_SUPER: Final = "super"
 
 ORDERED_NAMED_FAN_SPEEDS: Final = [
     AIRFLOW_LOW,
     AIRFLOW_MEDIUM,
     AIRFLOW_HIGH,
     AIRFLOW_TURBO,
+]
+
+TOWER_PRIME_MODEL: Final = "TOWER PRIME"
+ORDERED_NAMED_TOWER_PRIME_FAN_SPEEDS: Final = [
+    *ORDERED_NAMED_FAN_SPEEDS,
+    AIRFLOW_SUPER,
 ]
 
 DEHUMIDIFIER_FAN_SPEEDS: Final = [

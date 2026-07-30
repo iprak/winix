@@ -22,12 +22,15 @@ from .const import (
     MODE_MANUAL,
     OFF_VALUE,
     ON_VALUE,
+    ORDERED_NAMED_FAN_SPEEDS,
+    ORDERED_NAMED_TOWER_PRIME_FAN_SPEEDS,
     PRESET_MODE_AUTO,
     PRESET_MODE_AUTO_PLASMA_OFF,
     PRESET_MODE_MANUAL,
     PRESET_MODE_MANUAL_PLASMA_OFF,
     PRESET_MODE_SLEEP,
     PRESET_MODES,
+    TOWER_PRIME_MODEL,
     Features,
     NumericPresetModes,
 )
@@ -182,6 +185,13 @@ class WinixDeviceWrapper:
     def features(self) -> Features:
         """Return device features."""
         return self._features
+
+    @property
+    def fan_speeds(self) -> list[str]:
+        """Return fan speeds supported by this purifier model."""
+        if (self.device_stub.model or "").casefold() == TOWER_PRIME_MODEL.casefold():
+            return ORDERED_NAMED_TOWER_PRIME_FAN_SPEEDS
+        return ORDERED_NAMED_FAN_SPEEDS
 
     @property
     def is_air_purifier(self) -> bool:

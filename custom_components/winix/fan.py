@@ -27,7 +27,6 @@ from .const import (
     ATTR_POWER,
     FAN_SERVICES,
     LOGGER,
-    ORDERED_NAMED_FAN_SPEEDS,
     PRESET_MODE_AUTO,
     PRESET_MODE_AUTO_PLASMA_OFF,
     PRESET_MODE_MANUAL,
@@ -168,9 +167,8 @@ class WinixPurifier(WinixEntity, FanEntity):
         if state.get(ATTR_AIRFLOW) is None:
             return None
 
-        return ordered_list_item_to_percentage(
-            ORDERED_NAMED_FAN_SPEEDS, state.get(ATTR_AIRFLOW)
-        )
+        fan_speeds = self.device_wrapper.fan_speeds
+        return ordered_list_item_to_percentage(fan_speeds, state.get(ATTR_AIRFLOW))
 
     @property
     def preset_mode(self) -> str | None:
@@ -203,12 +201,12 @@ class WinixPurifier(WinixEntity, FanEntity):
     @property
     def speed_list(self) -> list:
         """Get the list of available speeds."""
-        return ORDERED_NAMED_FAN_SPEEDS
+        return self.device_wrapper.fan_speeds
 
     @property
     def speed_count(self) -> int:
         """Return the number of speeds the fan supports."""
-        return len(ORDERED_NAMED_FAN_SPEEDS)
+        return len(self.device_wrapper.fan_speeds)
 
     async def async_set_percentage(self, percentage: int) -> None:
         """Set the speed percentage of the fan."""
@@ -216,7 +214,9 @@ class WinixPurifier(WinixEntity, FanEntity):
             await self.async_turn_off()
         else:
             await self.device_wrapper.async_set_speed(
-                percentage_to_ordered_list_item(ORDERED_NAMED_FAN_SPEEDS, percentage)
+                percentage_to_ordered_list_item(
+                    self.device_wrapper.fan_speeds, percentage
+                )
             )
 
         self.async_write_ha_state()
