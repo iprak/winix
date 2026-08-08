@@ -1,10 +1,13 @@
 """Test WinixDriver component."""
 
-from unittest.mock import patch
+from unittest.mock import AsyncMock, Mock, patch
 
+import aiohttp
 import pytest
 
+from custom_components.winix.const import ATTR_POWER, OFF_VALUE
 from custom_components.winix.driver import AirPurifierDriver, DehumidifierDriver
+from homeassistant.exceptions import HomeAssistantError
 
 # ---------------------------------------------------------------------------
 # AirPurifierDriver tests
@@ -29,7 +32,9 @@ from custom_components.winix.driver import AirPurifierDriver, DehumidifierDriver
         ("super", "airflow", "super"),
     ],
 )
-async def test_turn_off(mock_rpc_attr, mock_airpurifier_driver, method, category, value) -> None:
+async def test_turn_off(
+    mock_rpc_attr, mock_airpurifier_driver, method, category, value
+) -> None:
     """Test various driver methods."""
 
     await getattr(mock_airpurifier_driver, method)()
@@ -38,6 +43,92 @@ async def test_turn_off(mock_rpc_attr, mock_airpurifier_driver, method, category
         AirPurifierDriver.category_keys[category],
         AirPurifierDriver.state_keys[category][value],
     )
+
+
+async def test_control_success(mock_airpurifier_driver) -> None:
+    """Test _rpc_attr sends the correct request and reads the response."""
+
+    response = Mock()
+    response.raise_for_status = Mock()
+    response.text = AsyncMock(return_value="OK")
+
+    mock_airpurifier_driver._client.get = AsyncMock(return_value=response)  # noqa: SLF001
+
+    await mock_airpurifier_driver.control(ATTR_POWER, OFF_VALUE)
+
+    expected_url = AirPurifierDriver.CTRL_URL.format(
+        deviceid="device_1",
+        identityid="test_identity_id",
+        attribute="A02",
+        value="0",
+    )
+    mock_airpurifier_driver._client.get.assert_awaited_once_with(expected_url)  # noqa: SLF001
+    response.text.assert_awaited_once()
+
+
+@pytest.mark.parametrize(
+    "status",
+    [
+        500,
+        503,
+    ],
+)
+async def test_control_retries_on_server_error(mock_airpurifier_driver, status) -> None:
+    """Test _rpc_attr retries once for 500/503 server errors."""
+
+    first_response = Mock()
+    first_response.raise_for_status.side_effect = aiohttp.ClientResponseError(
+        request_info=Mock(), history=(), status=status, message="Server error"
+    )
+
+    second_response = Mock()
+    second_response.raise_for_status = Mock()
+    second_response.text = AsyncMock(return_value="OK")
+
+    mock_airpurifier_driver._client.get = AsyncMock(  # noqa: SLF001
+        side_effect=[first_response, second_response]
+    )
+
+    with patch("custom_components.winix.driver.asyncio.sleep", AsyncMock()) as sleep:
+        await mock_airpurifier_driver.control(ATTR_POWER, OFF_VALUE)
+
+    assert mock_airpurifier_driver._client.get.call_count == 2  # noqa: SLF001
+    sleep.assert_awaited_once()
+
+
+async def test_control_raises_on_non_retryable_http_error(
+    mock_airpurifier_driver,
+) -> None:
+    """Test _rpc_attr raises HomeAssistantError for non-retryable HTTP errors."""
+
+    response = Mock()
+    response.raise_for_status.side_effect = aiohttp.ClientResponseError(
+        request_info=Mock(), history=(), status=404, message="Not found"
+    )
+    mock_airpurifier_driver._client.get = AsyncMock(return_value=response)  # noqa: SLF001
+
+    with pytest.raises(HomeAssistantError, match="Failed to download data: HTTP 404"):
+        await mock_airpurifier_driver.control(ATTR_POWER, OFF_VALUE)
+
+
+async def test_control_raises_on_client_error(mock_airpurifier_driver) -> None:
+    """Test _rpc_attr raises HomeAssistantError on aiohttp client errors."""
+
+    mock_airpurifier_driver._client.get = AsyncMock(  # noqa: SLF001
+        side_effect=aiohttp.ClientError("Boom")
+    )
+
+    with pytest.raises(HomeAssistantError, match="Error communicating with Winix"):
+        await mock_airpurifier_driver.control(ATTR_POWER, OFF_VALUE)
+
+
+async def test_control_raises_on_timeout(mock_airpurifier_driver) -> None:
+    """Test _rpc_attr raises HomeAssistantError on timeout."""
+
+    mock_airpurifier_driver._client.get = AsyncMock(side_effect=TimeoutError())  # noqa: SLF001
+
+    with pytest.raises(HomeAssistantError, match="Timeout communicating with Winix"):
+        await mock_airpurifier_driver.control(ATTR_POWER, OFF_VALUE)
 
 
 @pytest.mark.parametrize(
@@ -136,7 +227,9 @@ async def test_dehumidifier_rpc(
     ],
     indirect=["mock_dehumidifier_driver_with_payload"],
 )
-async def test_dehumidifier_get_state(mock_dehumidifier_driver_with_payload, expected) -> None:
+async def test_dehumidifier_get_state(
+    mock_dehumidifier_driver_with_payload, expected
+) -> None:
     """Test get_state for DehumidifierDriver."""
 
     state = await mock_dehumidifier_driver_with_payload.get_state()

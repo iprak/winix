@@ -1,5 +1,6 @@
 """The WinixDriver component."""
 
+import asyncio
 from enum import Enum, unique
 
 import aiohttp
@@ -48,6 +49,8 @@ from .const import (
 
 # Modified from https://github.com/hfern/winix to support async operations
 
+RETRY_DELAY = 1  # seconds
+
 
 class WinixTransientError(HomeAssistantError):
     """Raised for transient network errors that may resolve on retry."""
@@ -82,29 +85,44 @@ class WinixDriver:
         self._identity_id = identity_id
 
     async def _rpc_attr(self, attr: str, value: str) -> None:
-        """Make a raw API call with the given attribute code and value."""
+        """Make a raw API call with the given attribute code and value.
+
+        Attempt a retry after a delay if the first attempt fails with a 500 or 503 error.
+        """
+
         LOGGER.debug("_rpc_attr attribute=%s, value=%s", attr, value)
 
-        try:
-            response = await self._client.get(
-                self.CTRL_URL.format(
-                    deviceid=self.device_id,
-                    identityid=self._identity_id,
-                    attribute=attr,
-                    value=value,
+        for _ in range(2):
+            try:
+                response = await self._client.get(
+                    self.CTRL_URL.format(
+                        deviceid=self.device_id,
+                        identityid=self._identity_id,
+                        attribute=attr,
+                        value=value,
+                    )
                 )
-            )
-            response.raise_for_status()
-            raw_resp = await response.text()
-            LOGGER.debug("_rpc_attr response=%s", raw_resp)
-        except aiohttp.ClientResponseError as err:
-            raise HomeAssistantError(
-                f"Failed to download data: HTTP {err.status}"
-            ) from err
-        except aiohttp.ClientError as err:
-            raise HomeAssistantError(f"Error communicating with Winix: {err}") from err
-        except TimeoutError as err:
-            raise HomeAssistantError("Timeout communicating with Winix") from err
+                response.raise_for_status()
+                raw_resp = await response.text()
+                LOGGER.debug("_rpc_attr response=%s", raw_resp)
+            except aiohttp.ClientResponseError as err:
+                # These responses are transient and may resolve on retry
+                if err.status in [500, 503]:
+                    await asyncio.sleep(RETRY_DELAY)
+                    continue
+
+                raise HomeAssistantError(
+                    f"Failed to download data: HTTP {err.status}"
+                ) from err
+
+            except aiohttp.ClientError as err:
+                raise HomeAssistantError(
+                    f"Error communicating with Winix: {err}"
+                ) from err
+            except TimeoutError as err:
+                raise HomeAssistantError("Timeout communicating with Winix") from err
+            else:
+                break
 
     async def control(self, category: str, state_key: str) -> None:
         """Control the device using semantic category/state names."""
