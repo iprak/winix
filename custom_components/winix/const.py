@@ -215,3 +215,20 @@ DEFAUT_MODEL_FILTER_MAX_LIFE = {
     "nk105": 8640,
     "t1": 8640,
 }
+
+
+ATTR_POWER_CONSUMPTION: Final = "power_consumption"
+SENSOR_POWER_CONSUMPTION: Final = "power_consumption"
+
+ATTR_AC_POWER: Final = "ac_power"
+ATTR_AC_MODE: Final = "ac_mode"
+ATTR_AC_TARGET_TEMPERATURE: Final = "ac_target_temperature"
+ATTR_AC_CURRENT_TEMPERATURE: Final = "ac_current_temperature"
+ATTR_AC_FAN_SPEED: Final = "ac_fan_speed"
+ATTR_AC_SWING: Final = "ac_swing"
+ATTR_AC_TURBO: Final = "ac_turbo"
+
+AC_MODE_AUTO: Final = "auto"
+AC_MODE_COOL: Final = "cool"
+AC_MODE_FAN_ONLY: Final = "fan_only"
+AC_MODE_DRY: Final = "dry"
