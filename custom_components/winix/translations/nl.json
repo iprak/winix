@@ -89,6 +89,9 @@
       },
       "max_filter_life": {
         "name": "Maximale levensduur"
+      },
+      "power_consumption": {
+        "name": "Stroomverbruik"
       }
     },
     "switch": {
@@ -97,6 +100,23 @@
       },
       "uv_sanitize": {
         "name": "UV-reiniging"
+      }
+    },
+    "climate": {
+      "air_conditioner": {
+        "state_attributes": {
+          "fan_mode": {
+            "state": {
+              "turbo": "Turbo"
+            }
+          },
+          "swing_mode": {
+            "state": {
+              "off": "Uit",
+              "on": "Aan"
+            }
+          }
+        }
       }
     }
   }
