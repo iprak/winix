@@ -46,6 +46,7 @@ def _mock_ac_wrapper() -> Mock:
     wrapper.ac_swing_on = False
     wrapper.ac_turbo_on = False
     wrapper.ac_power_consumption = None
+    wrapper.ac_is_drying = False
     wrapper.async_ac_turn_on = AsyncMock()
     wrapper.async_ac_turn_off = AsyncMock()
     wrapper.async_ac_set_mode = AsyncMock()
@@ -232,7 +233,21 @@ def test_extra_state_attributes_exposes_power_consumption() -> None:
     wrapper.ac_power_consumption = 512
 
     device = WinixAirConditioner(wrapper, Mock())
-    assert device.extra_state_attributes == {"power_consumption_w": 512}
+    assert device.extra_state_attributes == {
+        "power_consumption_w": 512,
+        "is_drying": False,
+    }
+
+
+def test_extra_state_attributes_exposes_is_drying() -> None:
+    """is_drying attribute lets automations/other integrations tell the anti-mold
+    transition apart from a genuine off, since a plain 'on' command is ignored by
+    the physical unit while in this state."""
+    wrapper = _mock_ac_wrapper()
+    wrapper.ac_is_drying = True
+
+    device = WinixAirConditioner(wrapper, Mock())
+    assert device.extra_state_attributes["is_drying"] is True
 
 
 # ---------------------------------------------------------------------------

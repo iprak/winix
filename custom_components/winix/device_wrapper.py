@@ -3,6 +3,7 @@
 import aiohttp
 
 from .const import (
+    AC_POWER_DRYING,
     ATTR_AC_CURRENT_TEMPERATURE,
     ATTR_AC_FAN_SPEED,
     ATTR_AC_MODE,
@@ -225,6 +226,15 @@ class WinixDeviceWrapper:
     def ac_power_on(self) -> bool:
         """Return True if the air conditioner is powered on."""
         return self._state.get(ATTR_AC_POWER) == ON_VALUE
+
+    @property
+    def ac_is_drying(self) -> bool:
+        """Return True if the AC is in its anti-mold auto-dry transition (C02=2).
+
+        A plain power-on command is ignored by the physical unit while in
+        this state - callers must send off then on.
+        """
+        return self._state.get(ATTR_AC_POWER) == AC_POWER_DRYING
 
     @property
     def ac_mode(self) -> str | None:

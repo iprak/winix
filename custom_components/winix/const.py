@@ -232,3 +232,9 @@ AC_MODE_AUTO: Final = "auto"
 AC_MODE_COOL: Final = "cool"
 AC_MODE_FAN_ONLY: Final = "fan_only"
 AC_MODE_DRY: Final = "dry"
+
+# C02=2: the unit's own anti-mold auto-dry transition after being turned
+# off (observed ~33 min). Distinct from OFF_VALUE/ON_VALUE so callers can
+# tell it apart from a genuine off, since sending a plain 'on' while in
+# this state is ignored by the physical unit (confirmed by testing).
+AC_POWER_DRYING: Final = "drying"

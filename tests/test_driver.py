@@ -302,6 +302,7 @@ async def test_air_conditioner_set_fan_speed_clears_turbo(
     [
         ({"C02": "0"}, {"ac_power": "off"}),
         ({"C02": "1"}, {"ac_power": "on"}),
+        ({"C02": "2"}, {"ac_power": "drying"}),
         ({"C03": "01"}, {"ac_mode": "auto"}),
         ({"C03": "02"}, {"ac_mode": "cool"}),
         ({"C03": "03"}, {"ac_mode": "fan_only"}),

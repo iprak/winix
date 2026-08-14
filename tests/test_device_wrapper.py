@@ -535,6 +535,36 @@ def test_ac_properties_default_when_state_empty() -> None:
     assert wrapper.ac_swing_on is False
     assert wrapper.ac_turbo_on is False
     assert wrapper.ac_power_consumption is None
+    assert wrapper.ac_is_drying is False
+
+
+@pytest.mark.parametrize(
+    ("power_value", "expected_power_on", "expected_drying"),
+    [
+        (None, False, False),
+        (OFF_VALUE, False, False),
+        (ON_VALUE, True, False),
+        ("drying", False, True),
+    ],
+)
+async def test_ac_is_drying(power_value, expected_power_on, expected_drying) -> None:
+    """ac_is_drying is distinct from ac_power_on - drying is neither on nor a plain off.
+
+    A plain 'on' command is ignored by the physical unit while drying
+    (C02=2, the anti-mold cycle after being turned off), so callers need
+    to be able to tell it apart from a genuine off.
+    """
+    with patch(
+        f"{AirConditionerDriver_TypeName}.get_state",
+        AsyncMock(
+            return_value={"ac_power": power_value} if power_value is not None else {}
+        ),
+    ):
+        wrapper = build_mock_air_conditioner_wrapper()
+        await wrapper.update()
+
+        assert wrapper.ac_power_on is expected_power_on
+        assert wrapper.ac_is_drying is expected_drying
 
 
 async def test_async_ac_turn_on() -> None:

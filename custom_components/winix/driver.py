@@ -12,6 +12,7 @@ from .const import (
     AC_MODE_COOL,
     AC_MODE_DRY,
     AC_MODE_FAN_ONLY,
+    AC_POWER_DRYING,
     AIR_QUALITY_FAIR,
     AIR_QUALITY_GOOD,
     AIR_QUALITY_POOR,
@@ -234,7 +235,7 @@ class AirConditionerDriver(WinixDriver):
     }
 
     state_keys: dict[str, dict[str, str]] = {
-        ATTR_AC_POWER: {OFF_VALUE: "0", ON_VALUE: "1"},
+        ATTR_AC_POWER: {OFF_VALUE: "0", ON_VALUE: "1", AC_POWER_DRYING: "2"},
         ATTR_AC_MODE: {
             AC_MODE_AUTO: "01",
             AC_MODE_COOL: "02",

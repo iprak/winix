@@ -119,7 +119,10 @@ class WinixAirConditioner(WinixEntity, ClimateEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return additional state attributes."""
-        return {"power_consumption_w": self.device_wrapper.ac_power_consumption}
+        return {
+            "power_consumption_w": self.device_wrapper.ac_power_consumption,
+            "is_drying": self.device_wrapper.ac_is_drying,
+        }
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set new HVAC mode."""
