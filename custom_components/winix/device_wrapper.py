@@ -3,6 +3,14 @@
 import aiohttp
 
 from .const import (
+    ATTR_AC_CURRENT_TEMPERATURE,
+    ATTR_AC_FAN_SPEED,
+    ATTR_AC_MODE,
+    ATTR_AC_POWER,
+    ATTR_AC_SWING,
+    ATTR_AC_TARGET_TEMPERATURE,
+    ATTR_AC_TURBO,
+    ATTR_POWER_CONSUMPTION,
     AIRFLOW_LOW,
     AIRFLOW_SLEEP,
     ATTR_AIRFLOW,
@@ -34,7 +42,7 @@ from .const import (
     Features,
     NumericPresetModes,
 )
-from .driver import AirPurifierDriver, DehumidifierDriver
+from .driver import AirConditionerDriver, AirPurifierDriver, DehumidifierDriver
 from .stub import MyWinixDeviceStub
 
 
@@ -42,7 +50,7 @@ def _select_driver(
     device_stub: MyWinixDeviceStub,
     client: aiohttp.ClientSession,
     identity_id: str,
-) -> AirPurifierDriver | DehumidifierDriver:
+) -> AirPurifierDriver | DehumidifierDriver | AirConditionerDriver:
     """Return the driver that matches the device's product group."""
 
     product_group = (device_stub.product_group or "").casefold()
@@ -51,6 +59,9 @@ def _select_driver(
 
     if product_group.startswith("deh"):
         return DehumidifierDriver(device_stub.id, client, identity_id)
+
+    if product_group.startswith("acn"):
+        return AirConditionerDriver(device_stub.id, client, identity_id)
 
     raise ValueError(
         f"Unsupported product_group '{device_stub.product_group}' for device {device_stub.alias}"
@@ -199,6 +210,87 @@ class WinixDeviceWrapper:
         if (self.device_stub.model or "").casefold() == TOWER_PRIME_MODEL.casefold():
             return ORDERED_NAMED_TOWER_PRIME_FAN_SPEEDS
         return ORDERED_NAMED_FAN_SPEEDS
+
+    @property
+    def is_air_conditioner(self) -> bool:
+        """Return True if this device is an air conditioner."""
+        return isinstance(self._driver, AirConditionerDriver)
+
+    @property
+    def ac_power_consumption(self) -> int | None:
+        """Return the current power consumption in watts."""
+        return self._state.get(ATTR_POWER_CONSUMPTION)
+
+    @property
+    def ac_power_on(self) -> bool:
+        """Return True if the air conditioner is powered on."""
+        return self._state.get(ATTR_AC_POWER) == ON_VALUE
+
+    @property
+    def ac_mode(self) -> str | None:
+        """Return the current operating mode."""
+        return self._state.get(ATTR_AC_MODE)
+
+    @property
+    def ac_target_temperature(self) -> int | None:
+        """Return the target temperature in Celsius."""
+        return self._state.get(ATTR_AC_TARGET_TEMPERATURE)
+
+    @property
+    def ac_current_temperature(self) -> int | None:
+        """Return the current room temperature in Celsius."""
+        return self._state.get(ATTR_AC_CURRENT_TEMPERATURE)
+
+    @property
+    def ac_fan_speed(self) -> int | None:
+        """Return the current fan speed, 1-5."""
+        return self._state.get(ATTR_AC_FAN_SPEED)
+
+    @property
+    def ac_swing_on(self) -> bool:
+        """Return True if left-right swing is on."""
+        return self._state.get(ATTR_AC_SWING) == ON_VALUE
+
+    @property
+    def ac_turbo_on(self) -> bool:
+        """Return True if turbo is on."""
+        return self._state.get(ATTR_AC_TURBO) == ON_VALUE
+
+    async def async_ac_turn_on(self) -> None:
+        """Turn the air conditioner on."""
+        self._state[ATTR_AC_POWER] = ON_VALUE
+        await self._driver.turn_on()
+
+    async def async_ac_turn_off(self) -> None:
+        """Turn the air conditioner off."""
+        self._state[ATTR_AC_POWER] = OFF_VALUE
+        await self._driver.turn_off()
+
+    async def async_ac_set_mode(self, mode: str) -> None:
+        """Set the operating mode."""
+        self._state[ATTR_AC_MODE] = mode
+        await self._driver.set_mode(mode)
+
+    async def async_ac_set_target_temperature(self, temperature: int) -> None:
+        """Set the target temperature in Celsius."""
+        self._state[ATTR_AC_TARGET_TEMPERATURE] = temperature
+        await self._driver.set_target_temperature(temperature)
+
+    async def async_ac_set_fan_speed(self, speed: int) -> None:
+        """Set the fan speed, 1-5. Also clears turbo (mirrors driver behavior)."""
+        self._state[ATTR_AC_FAN_SPEED] = speed
+        self._state[ATTR_AC_TURBO] = OFF_VALUE
+        await self._driver.set_fan_speed(speed)
+
+    async def async_ac_set_swing(self, on: bool) -> None:
+        """Turn left-right swing on or off."""
+        self._state[ATTR_AC_SWING] = ON_VALUE if on else OFF_VALUE
+        await self._driver.set_swing(on)
+
+    async def async_ac_set_turbo(self, on: bool) -> None:
+        """Turn turbo on or off."""
+        self._state[ATTR_AC_TURBO] = ON_VALUE if on else OFF_VALUE
+        await self._driver.set_turbo(on)
 
     @property
     def is_air_purifier(self) -> bool:
