@@ -23,6 +23,7 @@ async def device_stub() -> MyWinixDeviceStub:
         location_code="deviceLocCode",
         filter_replace_date="filterReplaceDate",
         model="modelName",
+        model_id="modelId",
         sw_version="mcuVer",
         product_group="Air01",
     )

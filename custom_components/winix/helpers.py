@@ -444,6 +444,7 @@ class Helpers:
                 location_code=item.get("deviceLocCode"),
                 filter_replace_date=item.get("filterReplaceDate"),
                 model=item.get("modelName"),
+                model_id=item.get("modelId"),
                 sw_version=item.get("mcuVer"),
                 product_group=item.get("productGroup"),
             )

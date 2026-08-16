@@ -41,6 +41,7 @@ class WinixEntity(CoordinatorEntity):
             name=f"Winix {device_stub.alias}",
             manufacturer="Winix",
             model=device_stub.model,
+            model_id=device_stub.model_id,
             sw_version=device_stub.sw_version,
         )
 
