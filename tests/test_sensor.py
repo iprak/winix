@@ -10,7 +10,7 @@ from custom_components.winix.const import (
 )
 from custom_components.winix.sensor import get_filter_life_percentage
 from homeassistant.config_entries import ConfigEntryState
-from homeassistant.const import CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+from homeassistant.const import UnitOfDensity
 from homeassistant.core import HomeAssistant
 
 from .common import init_integration  # noqa: TID251
@@ -84,7 +84,7 @@ async def test_sensors(
     assert int(entity_state.state) == int(expected_pm25)
     assert (
         entity_state.attributes.get("unit_of_measurement")
-        == CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+        == UnitOfDensity.MICROGRAMS_PER_CUBIC_METER
     )
 
 
