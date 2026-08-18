@@ -6,11 +6,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
 from voluptuous.validators import Number
 
-from custom_components.winix.const import (
-    DEFAULT_FILTER_ALARM_DURATION,
-    WINIX_AUTH_RESPONSE,
-    WINIX_DOMAIN,
-)
+from custom_components.winix.const import WINIX_AUTH_RESPONSE, WINIX_DOMAIN
 from custom_components.winix.device_wrapper import WinixDeviceWrapper
 from custom_components.winix.fan import WinixPurifier
 from custom_components.winix.manager import WinixManager
@@ -56,14 +52,7 @@ async def init_integration(
         f"https://us.api.winix-iot.com/common/event/sttus/devices/{TEST_DEVICE_ID}",
         json=test_device_json,
     )
-    aioclient_mock.post(
-        "https://us.mobile.winix-iot.com/getFilterAlarmInfo",
-        json={
-            "resultCode": "200",
-            "resultMessage": "SUCCESS",
-            "filterUsageAlarm": DEFAULT_FILTER_ALARM_DURATION,
-        },
-    )
+    model_group_info_list = {}
 
     with (
         patch(
@@ -74,6 +63,10 @@ async def init_integration(
         patch(
             "custom_components.winix.manager.Helpers.get_identity_id_sync",
             return_value="test_identity_id",
+        ),
+        patch(
+            "custom_components.winix.Helpers.get_models_filter_max_life",
+            return_value=model_group_info_list,
         ),
     ):
         await hass.config_entries.async_setup(entry.entry_id)

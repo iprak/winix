@@ -22,7 +22,6 @@ from .const import (
     ATTR_AIR_QUALITY,
     ATTR_AIR_QVALUE,
     ATTR_FILTER_HOUR,
-    ATTR_FILTER_REPLACEMENT_CYCLE,
     ATTR_PM25,
     LOGGER,
     SENSOR_AIR_QVALUE,
@@ -42,35 +41,25 @@ def get_air_quality_attr(
     return {ATTR_AIR_QUALITY: state.get(ATTR_AIR_QUALITY)}
 
 
-def get_filter_replacement_cycle(
-    state: dict[str, str], wrapper: WinixDeviceWrapper
-) -> dict[str, Any]:
-    """Get filter replacement cycle duration."""
-
-    duration = wrapper.filter_alarm_duration  # in hours
-
-    if duration:
-        duration = f"{int(duration / (24 * 30))} months"
-
-    return {ATTR_FILTER_REPLACEMENT_CYCLE: duration}
-
-
 def get_filter_life(state: dict[str, str], wrapper: WinixDeviceWrapper) -> int | None:
     """Get filter life percentage."""
 
     return get_filter_life_percentage(
-        state.get(ATTR_FILTER_HOUR), wrapper.filter_alarm_duration
+        state.get(ATTR_FILTER_HOUR), wrapper.filter_max_life
     )
 
 
-def get_filter_life_percentage(hours: str | None, total: int) -> int | None:
+def get_filter_life_percentage(hours: str | None, max_life_hours: int) -> int | None:
     """Get filter life percentage."""
 
     if hours is None:
         return None
 
-    hours: int = int(hours)
-    return int((total - hours) * 100 / total)
+    hours = int(hours)
+    if max_life_hours < hours:
+        return None
+
+    return round((max_life_hours - hours) * 100 / max_life_hours)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -94,7 +83,6 @@ SENSOR_DESCRIPTIONS: tuple[WinixSensorEntityDescription, ...] = (
         exists_fn=lambda device: device.is_air_purifier,
     ),
     WinixSensorEntityDescription(
-        extra_state_attributes_fn=get_filter_replacement_cycle,
         icon="mdi:air-filter",
         key=SENSOR_FILTER_LIFE,
         translation_key="filter_life",

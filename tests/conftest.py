@@ -30,7 +30,7 @@ async def device_stub() -> MyWinixDeviceStub:
 
 
 @pytest.fixture
-async def device_data() -> any:
+def device_data() -> any:
     """Get mocked device data."""
 
     filter_life_hours = "1257"

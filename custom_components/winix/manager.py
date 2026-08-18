@@ -71,6 +71,7 @@ class WinixManager(DataUpdateCoordinator):
         self._auth_response = auth_response
         self._client = client
         self._retry_on_error = False
+        self._models_max_filter_life: dict[str, int] = None
 
         super().__init__(
             hass,
@@ -128,6 +129,12 @@ class WinixManager(DataUpdateCoordinator):
         )
 
         if device_stubs:
+            # Get model list once and cache it for all devices.
+            if not self._models_max_filter_life:
+                self._models_max_filter_life = await Helpers.get_models_filter_max_life(
+                    self._client, token, uuid
+                )
+
             for device_stub in device_stubs:
                 try:
                     wrapper = WinixDeviceWrapper(
@@ -138,7 +145,9 @@ class WinixManager(DataUpdateCoordinator):
                     continue
 
                 try:
-                    await wrapper.async_initialize(token, uuid)
+                    await wrapper.async_initialize(
+                        token, uuid, self._models_max_filter_life
+                    )
                 except Exception as err:
                     LOGGER.warning(
                         "Failed to initialize device %s: %s", device_stub.alias, err

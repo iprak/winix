@@ -17,7 +17,7 @@ from .const import (
     ATTR_UV_SANITIZE,
     ATTR_WATER_TANK,
     AUTO_DRY_VALUE,
-    DEFAULT_FILTER_ALARM_DURATION_HOURS,
+    DEFAULT_FILTER_MAX_LIFE_HOURS,
     MODE_AUTO,
     MODE_MANUAL,
     OFF_VALUE,
@@ -35,7 +35,6 @@ from .const import (
     NumericPresetModes,
 )
 from .driver import AirPurifierDriver, DehumidifierDriver
-from .helpers import Helpers
 from .stub import MyWinixDeviceStub
 
 
@@ -91,20 +90,28 @@ class WinixDeviceWrapper:
         self._auto_dry = False
         # Air purifiers refresh this in async_initialize(); dehumidifiers leave the
         # default since the API does not expose filter_hour for them.
-        self._filter_alarm_duration = DEFAULT_FILTER_ALARM_DURATION_HOURS
+
+        self.filter_max_life = DEFAULT_FILTER_MAX_LIFE_HOURS
 
         self.device_stub = device_stub
         self._alias = device_stub.alias
         self._features = Features()
 
-        logger.debug("%s: created device", self._alias)
-
-    async def async_initialize(self, token: str, uuid: str) -> None:
+    async def async_initialize(
+        self, token: str, uuid: str, models_max_filter_life: dict[str, int]
+    ) -> None:
         """Fetch product-type-specific initialization data."""
         if self.is_air_purifier:
-            self._filter_alarm_duration = await Helpers.get_filter_alarm_duration(
-                self._client, token, uuid, self.device_stub.id
+            self.filter_max_life = models_max_filter_life.get(
+                self.device_stub.model_id.casefold(), DEFAULT_FILTER_MAX_LIFE_HOURS
             )
+            self._logger.debug(
+                "%s: initialized air purifier device with filter_max_life=%d hours",
+                self._alias,
+                self.filter_max_life,
+            )
+        else:
+            self._logger.debug("%s: initialized device", self._alias)
 
     def update_features(self) -> None:
         """Update the supported features based on the current state."""
@@ -232,11 +239,6 @@ class WinixDeviceWrapper:
     def is_sleep(self) -> bool:
         """Return if the purifier is in Sleep mode."""
         return self._sleep
-
-    @property
-    def filter_alarm_duration(self) -> int:
-        """Filter change duration reminder in hours."""
-        return self._filter_alarm_duration
 
     async def async_ensure_on(self) -> None:
         """Ensure the device is powered on."""
