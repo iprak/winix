@@ -3,14 +3,9 @@
 import pytest
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
 
-from custom_components.winix.const import (
-    ATTR_AIR_QUALITY,
-    DEFAULT_FILTER_ALARM_DURATION_HOURS,
-    WINIX_DOMAIN,
-)
-from custom_components.winix.sensor import get_filter_life_percentage
+from custom_components.winix.const import ATTR_AIR_QUALITY, WINIX_DOMAIN
 from homeassistant.config_entries import ConfigEntryState
-from homeassistant.const import CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+from homeassistant.const import UnitOfDensity
 from homeassistant.core import HomeAssistant
 
 from .common import init_integration  # noqa: TID251
@@ -65,14 +60,10 @@ async def test_sensors(
 
     await init_integration(hass, device_stub, device_data, aioclient_mock)
 
-    filter_life_hours = "1257"
     aqi = "01"
 
     entity_state = hass.states.get("sensor.winix_devicealias_filter_life")
     assert entity_state is not None
-    assert int(entity_state.state) == get_filter_life_percentage(
-        filter_life_hours, DEFAULT_FILTER_ALARM_DURATION_HOURS
-    )
 
     entity_state = hass.states.get("sensor.winix_devicealias_aqi")
     assert entity_state is not None
@@ -84,8 +75,35 @@ async def test_sensors(
     assert int(entity_state.state) == int(expected_pm25)
     assert (
         entity_state.attributes.get("unit_of_measurement")
-        == CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+        == UnitOfDensity.MICROGRAMS_PER_CUBIC_METER
     )
+
+    entity_state = hass.states.get("sensor.winix_devicealias_max_filter_life")
+    assert entity_state is not None
+    assert entity_state.state == "6480"
+
+
+@pytest.mark.usefixtures("enable_custom_integrations")
+@pytest.mark.parametrize(
+    ("data_filter_life", "expected"),
+    [("6481", "unknown"), ("6480", "0"), ("1257", "81")],
+)
+async def test_filter_life_sensor(
+    hass: HomeAssistant,
+    device_stub,
+    device_data,
+    aioclient_mock: AiohttpClientMocker,
+    data_filter_life,
+    expected,
+) -> None:
+    """Test the sensors."""
+
+    device_data["body"]["data"][0]["attributes"]["A21"] = data_filter_life
+    await init_integration(hass, device_stub, device_data, aioclient_mock)
+
+    entity_state = hass.states.get("sensor.winix_devicealias_filter_life")
+    assert entity_state is not None
+    assert entity_state.state == expected
 
 
 @pytest.mark.usefixtures("enable_custom_integrations")

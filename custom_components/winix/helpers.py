@@ -18,7 +18,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 
 from .const import (
-    DEFAULT_FILTER_ALARM_DURATION,
+    DEFAULT_FILTER_MAX_LIFE_HOURS,
     DEFAULT_POST_TIMEOUT,
     LOGGER,
     WINIX_DOMAIN,
@@ -338,51 +338,6 @@ class Helpers:
             raise WinixException(response_json)
 
     @staticmethod
-    async def get_filter_alarm_duration(
-        client: aiohttp.ClientSession,
-        access_token: str,
-        uuid: str,
-        device_id: str,
-    ) -> int:
-        """Get filter change duration reminder in hours.
-
-        Raises WinixException.
-        """
-
-        resp = await client.post(
-            "https://us.mobile.winix-iot.com/getFilterAlarmInfo",
-            json={
-                "accessToken": access_token,
-                "uuid": uuid,
-                "deviceId": device_id,
-            },
-            timeout=DEFAULT_POST_TIMEOUT,
-        )
-
-        if resp.status != HTTPStatus.OK:
-            raise WinixException(
-                {
-                    "message": "Failed to get filterAlarmInfo.",
-                }
-            )
-
-        response_json = (
-            await resp.json()
-        )  # Note: filterAlarmInfo returns unencrypted JSON
-
-        # Sample json
-        # {'resultCode': '200', 'resultMessage': 'SUCCESS', 'filterUsageAlarm': 9}
-        LOGGER.debug("getFilterAlarmInfo: %s", response_json)
-
-        # Fall back to 9 months if filter alram has been turned off in mobile app in which case we receive this:
-        # {'resultCode': '200', 'resultMessage': 'SUCCESS', 'filterUsageAlarm': 0}
-        value = int(response_json["filterUsageAlarm"])
-
-        if value == 0:
-            value = DEFAULT_FILTER_ALARM_DURATION
-        return value * 30 * 24
-
-    @staticmethod
     async def get_device_stubs(
         client: aiohttp.ClientSession, access_token: str, uuid: str
     ) -> list[MyWinixDeviceStub]:
@@ -444,11 +399,51 @@ class Helpers:
                 location_code=item.get("deviceLocCode"),
                 filter_replace_date=item.get("filterReplaceDate"),
                 model=item.get("modelName"),
+                model_id=item.get("modelId"),
                 sw_version=item.get("mcuVer"),
                 product_group=item.get("productGroup"),
             )
             for item in response_json["deviceInfoList"]
         ]
+
+    @staticmethod
+    async def get_models_filter_max_life(
+        client: aiohttp.ClientSession, access_token: str, uuid: str
+    ) -> dict[str, int]:
+        """Get filter max life for all the models."""
+
+        resp = await client.post(
+            "https://us.mobile.winix-iot.com/getAllModelGroupInfoList",
+            headers=HEADERS,
+            data=Helpers.encrypt({"accessToken": access_token, "uuid": uuid}),
+            timeout=DEFAULT_POST_TIMEOUT,
+        )
+
+        binary_data = await resp.read()
+        response_json_text = Helpers.decrypt(binary_data)
+        response_json = Helpers.json_loads(response_json_text)
+
+        # The end point getAllModelGroupInfoList returns a lot of data, but we only need the filterMaxLife for each unique modelId.
+        # The response is structured as a list of model groups, each containing a list of models, each containing a list of
+        # filters. We will extract the filterMaxLife for each model and return it as a dictionary.
+
+        result = {}
+        info_list = response_json.get("modelGroupInfoList", [])
+
+        for model_group in info_list:
+            for model in model_group.get("modelInfoList", []):
+                model_id = model.get("modelId").casefold()
+                filter_max_life = DEFAULT_FILTER_MAX_LIFE_HOURS
+
+                filter_info_list = model.get("filterInfoList")
+                if isinstance(filter_info_list, list) and filter_info_list:
+                    filter_max_life = filter_info_list[0].get(
+                        "filterMaxLife", DEFAULT_FILTER_MAX_LIFE_HOURS
+                    )
+
+                result[model_id] = filter_max_life
+
+        return result
 
 
 class WinixException(HomeAssistantError):

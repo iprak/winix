@@ -38,6 +38,7 @@ SENSOR_AIR_QVALUE: Final = "air_qvalue"
 SENSOR_PM25: Final = "pm2_5"
 SENSOR_AQI: Final = "aqi"
 SENSOR_FILTER_LIFE: Final = "filter_life"
+SENSOR_MAX_FILTER_LIFE: Final = "max_filter_life"
 
 BINARY_SENSOR_WATER_TANK: Final = "water_tank"
 BINARY_SENSOR_AUTO_DRY: Final = "auto_dry"
@@ -50,6 +51,7 @@ AIR_QUALITY_GOOD: Final = "good"
 AIR_QUALITY_FAIR: Final = "fair"
 AIR_QUALITY_POOR: Final = "poor"
 AIR_QUALITY_VERY_POOR: Final = "very_poor"
+ATTR_OPERATING_HOURS: Final = "operating_hours"
 
 # The service name is the partial name of the method in WinixPurifier
 SERVICE_PLASMAWAVE_ON: Final = "plasmawave_on"
@@ -94,8 +96,8 @@ DEHUMIDIFIER_MIN_HUMIDITY: Final = 35
 DEHUMIDIFIER_MAX_HUMIDITY: Final = 70
 DEHUMIDIFIER_HUMIDITY_STEP: Final = 5
 
-DEFAULT_FILTER_ALARM_DURATION: Final = 9  # 9 months
-DEFAULT_FILTER_ALARM_DURATION_HOURS: Final = DEFAULT_FILTER_ALARM_DURATION * 24 * 30
+DEFAULT_FILTER_MAX_LIFE_HOURS: Final = 9 * 24 * 30  # 9 months
+
 DEFAULT_POST_TIMEOUT: Final = 5
 
 # mode can contain the special preset value of manual.

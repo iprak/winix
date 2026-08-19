@@ -242,7 +242,9 @@ async def test_async_set_mode_manual() -> None:
         assert wrapper.get_state().get(ATTR_MODE) == MODE_MANUAL
         assert wrapper.get_state().get(ATTR_AIRFLOW) == AIRFLOW_LOW
 
-        await wrapper.async_set_mode(MODE_MANUAL)  # Calling again should not do anything
+        await wrapper.async_set_mode(
+            MODE_MANUAL
+        )  # Calling again should not do anything
         assert manual.call_count == 1
 
 
@@ -481,9 +483,7 @@ async def test_async_set_timer() -> None:
         (AUTO_DRY_VALUE, False, True),
     ],
 )
-async def test_dehumidifier_auto_dry_flag(
-    power_value, is_on, is_auto_dry
-) -> None:
+async def test_dehumidifier_auto_dry_flag(power_value, is_on, is_auto_dry) -> None:
     """Auto-dry power state is exposed as a dedicated flag."""
 
     mock_state = {ATTR_POWER: power_value} if power_value is not None else {}
