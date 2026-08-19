@@ -22,6 +22,7 @@ from .const import (
     ATTR_AIR_QUALITY,
     ATTR_AIR_QVALUE,
     ATTR_FILTER_HOUR,
+    ATTR_OPERATING_HOURS,
     ATTR_PM25,
     LOGGER,
     SENSOR_AIR_QVALUE,
@@ -63,6 +64,14 @@ def get_filter_life_percentage(hours: str | None, max_life_hours: int) -> int | 
     return round((max_life_hours - hours) * 100 / max_life_hours)
 
 
+def get_operating_time_attr(
+    state: dict[str, str], wrapper: WinixDeviceWrapper
+) -> int | None:
+    """Get operating hours."""
+
+    return {ATTR_OPERATING_HOURS: state.get(ATTR_FILTER_HOUR)}
+
+
 @dataclass(frozen=True, kw_only=True)
 class WinixSensorEntityDescription(SensorEntityDescription):
     """Describe Winix sensor entity."""
@@ -91,6 +100,7 @@ SENSOR_DESCRIPTIONS: tuple[WinixSensorEntityDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=get_filter_life,
         exists_fn=lambda device: device.is_air_purifier,
+        extra_state_attributes_fn=get_operating_time_attr,
     ),
     WinixSensorEntityDescription(
         device_class=SensorDeviceClass.DURATION,
