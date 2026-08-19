@@ -16,12 +16,12 @@ This can be installed by copying all the files from `custom_components/winix/` t
 
 ### Air Purifier
 
-- C545 will generate 4 entities.
-- C610 will generate 6 entities.
+#### Sensors
 
-<img width="200" alt="image" src="https://github.com/user-attachments/assets/4ce73077-ae01-4c7f-9aa4-2c0cf769fbf3" />
-
-<img width="200" alt="image" src="https://github.com/user-attachments/assets/152b668e-256b-4798-a080-0cf6d05b998b" />
+| Model | Example sensors |
+| ----- | ------- |
+| C545  | <img height="400" alt="image" src="https://github.com/user-attachments/assets/441943fa-9835-4405-8668-78fc15f4003a" /> |
+| C610  | <img height="400" alt="image" src="https://github.com/user-attachments/assets/da1a13a6-ba3e-4fb1-bde7-6c12ed53d607" /> |
 
 
 - The `Air QValue` sensor reports the qValue reported by Winix purifier. This value is related to air quality although I am not exactly sure what it represents.
