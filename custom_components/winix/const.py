@@ -38,6 +38,7 @@ SENSOR_AIR_QVALUE: Final = "air_qvalue"
 SENSOR_PM25: Final = "pm2_5"
 SENSOR_AQI: Final = "aqi"
 SENSOR_FILTER_LIFE: Final = "filter_life"
+SENSOR_MAX_FILTER_LIFE: Final = "max_filter_life"
 
 BINARY_SENSOR_WATER_TANK: Final = "water_tank"
 BINARY_SENSOR_AUTO_DRY: Final = "auto_dry"

@@ -86,6 +86,9 @@
       },
       "pm2_5": {
         "name": "PM 2.5"
+      },
+      "max_filter_life": {
+        "name": "최대 수명"
       }
     },
     "switch": {

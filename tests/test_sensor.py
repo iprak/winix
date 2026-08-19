@@ -78,6 +78,10 @@ async def test_sensors(
         == UnitOfDensity.MICROGRAMS_PER_CUBIC_METER
     )
 
+    entity_state = hass.states.get("sensor.winix_devicealias_max_filter_life")
+    assert entity_state is not None
+    assert entity_state.state == "6480"
+
 
 @pytest.mark.usefixtures("enable_custom_integrations")
 @pytest.mark.parametrize(

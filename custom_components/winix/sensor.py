@@ -11,7 +11,7 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.const import PERCENTAGE, UnitOfDensity
+from homeassistant.const import PERCENTAGE, EntityCategory, UnitOfDensity, UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
@@ -27,6 +27,7 @@ from .const import (
     SENSOR_AIR_QVALUE,
     SENSOR_AQI,
     SENSOR_FILTER_LIFE,
+    SENSOR_MAX_FILTER_LIFE,
     SENSOR_PM25,
 )
 from .device_wrapper import WinixDeviceWrapper
@@ -89,6 +90,15 @@ SENSOR_DESCRIPTIONS: tuple[WinixSensorEntityDescription, ...] = (
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=get_filter_life,
+        exists_fn=lambda device: device.is_air_purifier,
+    ),
+    WinixSensorEntityDescription(
+        device_class=SensorDeviceClass.DURATION,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        native_unit_of_measurement=UnitOfTime.HOURS,
+        key=SENSOR_MAX_FILTER_LIFE,
+        translation_key="max_filter_life",
+        value_fn=lambda state, wrapper: wrapper.filter_max_life,
         exists_fn=lambda device: device.is_air_purifier,
     ),
     WinixSensorEntityDescription(
