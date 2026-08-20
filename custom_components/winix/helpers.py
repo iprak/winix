@@ -20,6 +20,7 @@ from homeassistant.exceptions import HomeAssistantError
 from .const import (
     DEFAULT_FILTER_MAX_LIFE_HOURS,
     DEFAULT_POST_TIMEOUT,
+    DEFAUT_MODEL_FILTER_MAX_LIFE,
     LOGGER,
     WINIX_DOMAIN,
 )
@@ -412,38 +413,55 @@ class Helpers:
     ) -> dict[str, int]:
         """Get filter max life for all the models."""
 
-        resp = await client.post(
-            "https://us.mobile.winix-iot.com/getAllModelGroupInfoList",
-            headers=HEADERS,
-            data=Helpers.encrypt({"accessToken": access_token, "uuid": uuid}),
-            timeout=DEFAULT_POST_TIMEOUT,
-        )
+        # Do not raise any failures since it will stop the integration from loading. Instead, log the error and return a default set of values.
 
-        binary_data = await resp.read()
-        response_json_text = Helpers.decrypt(binary_data)
-        response_json = Helpers.json_loads(response_json_text)
+        try:
+            resp = await client.post(
+                "https://us.mobile.winix-iot.com/getAllModelGroupInfoList",
+                headers=HEADERS,
+                data=Helpers.encrypt({"accessToken": access_token, "uuid": uuid}),
+                timeout=DEFAULT_POST_TIMEOUT,
+            )
 
-        # The end point getAllModelGroupInfoList returns a lot of data, but we only need the filterMaxLife for each unique modelId.
-        # The response is structured as a list of model groups, each containing a list of models, each containing a list of
-        # filters. We will extract the filterMaxLife for each model and return it as a dictionary.
+            if resp.status != HTTPStatus.OK:
+                LOGGER.info(
+                    "Failed to get model filter max life, using defaults (status: %d)",
+                    resp.status,
+                )
+                result = DEFAUT_MODEL_FILTER_MAX_LIFE
+            else:
+                binary_data = await resp.read()
+                response_json_text = Helpers.decrypt(binary_data)
+                response_json = Helpers.json_loads(response_json_text)
 
-        result = {}
-        info_list = response_json.get("modelGroupInfoList", [])
+                # The end point getAllModelGroupInfoList returns a lot of data, but we only need the filterMaxLife for each unique modelId.
+                # The response is structured as a list of model groups, each containing a list of models, each containing a list of
+                # filters. We will extract the filterMaxLife for each model and return it as a dictionary.
 
-        for model_group in info_list:
-            for model in model_group.get("modelInfoList", []):
-                model_id = model.get("modelId").casefold()
-                filter_max_life = DEFAULT_FILTER_MAX_LIFE_HOURS
+                result = {}
+                info_list = response_json.get("modelGroupInfoList", [])
 
-                filter_info_list = model.get("filterInfoList")
-                if isinstance(filter_info_list, list) and filter_info_list:
-                    filter_max_life = filter_info_list[0].get(
-                        "filterMaxLife", DEFAULT_FILTER_MAX_LIFE_HOURS
-                    )
+                for model_group in info_list:
+                    for model in model_group.get("modelInfoList", []):
+                        model_id = model.get("modelId").casefold()
+                        filter_max_life = DEFAULT_FILTER_MAX_LIFE_HOURS
 
-                result[model_id] = filter_max_life
+                        filter_info_list = model.get("filterInfoList")
+                        if isinstance(filter_info_list, list) and filter_info_list:
+                            filter_max_life = filter_info_list[0].get(
+                                "filterMaxLife", DEFAULT_FILTER_MAX_LIFE_HOURS
+                            )
 
-        return result
+                        result[model_id] = filter_max_life
+
+        except Exception as e:  # noqa: BLE001
+            LOGGER.info(
+                "Failed to get model filter max life, using defaults (error: %s)", e
+            )
+
+            return DEFAUT_MODEL_FILTER_MAX_LIFE
+        else:
+            return result
 
 
 class WinixException(HomeAssistantError):
