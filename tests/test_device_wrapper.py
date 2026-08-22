@@ -5,6 +5,10 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 
 from custom_components.winix.const import (
+    AC_MODE_AUTO,
+    AC_MODE_COOL,
+    AC_MODE_DEHUMIDIFICATION,
+    AC_MODE_FAN_ONLY,
     AIRFLOW_HIGH,
     AIRFLOW_LOW,
     AIRFLOW_SLEEP,
@@ -32,10 +36,15 @@ from custom_components.winix.const import (
 )
 from custom_components.winix.device_wrapper import WinixDeviceWrapper
 
-from .common import build_mock_dehumidifier_wrapper, build_mock_wrapper  # noqa: TID251
+from .common import (  # noqa: TID251
+    build_mock_air_conditioner_wrapper,
+    build_mock_dehumidifier_wrapper,
+    build_mock_wrapper,
+)
 
 AirPurifierDriver_TypeName = "custom_components.winix.driver.AirPurifierDriver"
 DehumidifierDriver_TypeName = "custom_components.winix.driver.DehumidifierDriver"
+AirConditionerDriver_TypeName = "custom_components.winix.driver.AirConditionerDriver"
 
 
 @pytest.mark.parametrize(
@@ -496,3 +505,160 @@ async def test_dehumidifier_auto_dry_flag(power_value, is_on, is_auto_dry) -> No
 
         assert wrapper.is_on is is_on
         assert wrapper.is_auto_dry is is_auto_dry
+
+
+# ---------------------------------------------------------------------------
+# AirConditionerDriver routing / device_wrapper tests
+# ---------------------------------------------------------------------------
+
+
+def test_is_air_conditioner() -> None:
+    """Wrapper built from an Acn01 device stub selects AirConditionerDriver."""
+
+    wrapper = build_mock_air_conditioner_wrapper()
+
+    assert wrapper.is_air_conditioner is True
+    assert wrapper.is_air_purifier is False
+    assert wrapper.is_dehumidifier is False
+
+
+def test_ac_properties_default_when_state_empty() -> None:
+    """AC properties return falsy/None defaults before any state has been fetched."""
+
+    wrapper = build_mock_air_conditioner_wrapper()
+
+    assert wrapper.ac_power_on is False
+    assert wrapper.ac_mode is None
+    assert wrapper.ac_target_temperature is None
+    assert wrapper.ac_current_temperature is None
+    assert wrapper.ac_fan_speed is None
+    assert wrapper.ac_swing_on is False
+    assert wrapper.ac_turbo_on is False
+    assert wrapper.ac_is_drying is False
+
+
+@pytest.mark.parametrize(
+    ("power_value", "expected_power_on", "expected_drying"),
+    [
+        (None, False, False),
+        (OFF_VALUE, False, False),
+        (ON_VALUE, True, False),
+        ("drying", False, True),
+    ],
+)
+async def test_ac_is_drying(power_value, expected_power_on, expected_drying) -> None:
+    """ac_is_drying is distinct from ac_power_on - drying is neither on nor a plain off.
+
+    A plain 'on' command is ignored by the physical unit while drying
+    (C02=2, the anti-mold cycle after being turned off), so callers need
+    to be able to tell it apart from a genuine off.
+    """
+    with patch(
+        f"{AirConditionerDriver_TypeName}.get_state",
+        AsyncMock(
+            return_value={"ac_power": power_value} if power_value is not None else {}
+        ),
+    ):
+        wrapper = build_mock_air_conditioner_wrapper()
+        await wrapper.update()
+
+        assert wrapper.ac_power_on is expected_power_on
+        assert wrapper.ac_is_drying is expected_drying
+
+
+async def test_async_ac_turn_on() -> None:
+    """Turning on writes optimistic state and delegates to the driver."""
+
+    with patch(f"{AirConditionerDriver_TypeName}.turn_on") as turn_on:
+        wrapper = build_mock_air_conditioner_wrapper()
+
+        await wrapper.async_ac_turn_on()
+
+        turn_on.assert_called_once()
+        assert wrapper.ac_power_on is True
+
+
+async def test_async_ac_turn_off() -> None:
+    """Turning off writes optimistic state and delegates to the driver."""
+
+    with patch(f"{AirConditionerDriver_TypeName}.turn_off") as turn_off:
+        wrapper = build_mock_air_conditioner_wrapper()
+
+        await wrapper.async_ac_turn_off()
+
+        turn_off.assert_called_once()
+        assert wrapper.ac_power_on is False
+
+
+@pytest.mark.parametrize(
+    "mode",
+    [AC_MODE_AUTO, AC_MODE_COOL, AC_MODE_FAN_ONLY, AC_MODE_DEHUMIDIFICATION],
+)
+async def test_async_ac_set_mode(mode) -> None:
+    """Setting the mode writes optimistic state and delegates to the driver."""
+
+    with patch(f"{AirConditionerDriver_TypeName}.set_mode") as set_mode:
+        wrapper = build_mock_air_conditioner_wrapper()
+
+        await wrapper.async_ac_set_mode(mode)
+
+        set_mode.assert_called_once_with(mode)
+        assert wrapper.ac_mode == mode
+
+
+async def test_async_ac_set_target_temperature() -> None:
+    """Setting the target temperature writes optimistic state and delegates to the driver."""
+
+    with patch(
+        f"{AirConditionerDriver_TypeName}.set_target_temperature"
+    ) as set_target_temperature:
+        wrapper = build_mock_air_conditioner_wrapper()
+
+        await wrapper.async_ac_set_target_temperature(24)
+
+        set_target_temperature.assert_called_once_with(24)
+        assert wrapper.ac_target_temperature == 24
+
+
+async def test_async_ac_set_fan_speed_turns_off_turbo() -> None:
+    """Setting fan speed also turns off mutually exclusive turbo mode."""
+
+    with (
+        patch(f"{AirConditionerDriver_TypeName}.set_fan_speed") as set_fan_speed,
+        patch(f"{AirConditionerDriver_TypeName}.set_turbo") as set_turbo,
+    ):
+        wrapper = build_mock_air_conditioner_wrapper()
+        wrapper._state["ac_turbo"] = ON_VALUE  # noqa: SLF001
+
+        await wrapper.async_ac_set_fan_speed(3)
+
+        set_fan_speed.assert_called_once_with(3)
+        set_turbo.assert_called_once_with(False)
+        assert wrapper.ac_fan_speed == 3
+        assert wrapper.ac_turbo_on is False
+
+
+@pytest.mark.parametrize(("on", "expected"), [(True, True), (False, False)])
+async def test_async_ac_set_swing(on, expected) -> None:
+    """Setting swing writes optimistic state and delegates to the driver."""
+
+    with patch(f"{AirConditionerDriver_TypeName}.set_swing") as set_swing:
+        wrapper = build_mock_air_conditioner_wrapper()
+
+        await wrapper.async_ac_set_swing(on)
+
+        set_swing.assert_called_once_with(on)
+        assert wrapper.ac_swing_on is expected
+
+
+@pytest.mark.parametrize(("on", "expected"), [(True, True), (False, False)])
+async def test_async_ac_set_turbo(on, expected) -> None:
+    """Setting turbo writes optimistic state and delegates to the driver."""
+
+    with patch(f"{AirConditionerDriver_TypeName}.set_turbo") as set_turbo:
+        wrapper = build_mock_air_conditioner_wrapper()
+
+        await wrapper.async_ac_set_turbo(on)
+
+        set_turbo.assert_called_once_with(on)
+        assert wrapper.ac_turbo_on is expected

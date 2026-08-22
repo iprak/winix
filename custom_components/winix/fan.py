@@ -2,17 +2,15 @@
 
 import asyncio
 from collections.abc import Mapping
-from datetime import datetime
 from typing import Any
 
 import voluptuous as vol
 
 from homeassistant.components.fan import ENTITY_ID_FORMAT, FanEntity, FanEntityFeature
 from homeassistant.const import ATTR_ENTITY_ID
-from homeassistant.core import HassJob, HomeAssistant
+from homeassistant.core import HomeAssistant
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.event import async_call_later
 from homeassistant.util.percentage import (
     ordered_list_item_to_percentage,
     percentage_to_ordered_list_item,
@@ -37,8 +35,6 @@ from .const import (
 )
 from .device_wrapper import WinixDeviceWrapper
 from .manager import WinixEntity, WinixManager
-
-FAN_ON_OFF_REFRESH_DELAY = 4
 
 
 async def async_setup_entry(
@@ -237,30 +233,12 @@ class WinixPurifier(WinixEntity, FanEntity):
         else:
             await self.device_wrapper.async_turn_on()
 
-        self.async_write_ha_state()
-        async_call_later(
-            self.hass,
-            FAN_ON_OFF_REFRESH_DELAY,
-            HassJob(self._async_refresh, cancel_on_shutdown=True),
-        )
+        self._async_write_state_and_schedule_refresh()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the purifier."""
         await self.device_wrapper.async_turn_off()
-        self.async_write_ha_state()
-        async_call_later(
-            self.hass,
-            FAN_ON_OFF_REFRESH_DELAY,
-            HassJob(self._async_refresh, cancel_on_shutdown=True),
-        )
-
-    async def _async_refresh(self, _: datetime) -> None:
-        """Refresh the purifier state."""
-        await self.coordinator.async_request_refresh()
-
-        # Use coordinator to notify other entities e.g. brightness selection
-        if self.device_wrapper.features.supports_brightness_level:
-            self.coordinator.async_update_listeners()
+        self._async_write_state_and_schedule_refresh()
 
     async def async_plasmawave_on(self) -> None:
         """Turn on plasma wave."""

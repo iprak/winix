@@ -11,7 +11,13 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.const import PERCENTAGE, EntityCategory, UnitOfDensity, UnitOfTime
+from homeassistant.const import (
+    PERCENTAGE,
+    EntityCategory,
+    UnitOfDensity,
+    UnitOfPower,
+    UnitOfTime,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
@@ -19,6 +25,8 @@ from homeassistant.helpers.typing import StateType
 from . import WINIX_DOMAIN, WinixConfigEntry
 from .const import (
     ATTR_AIR_AQI,
+    ATTR_POWER_CONSUMPTION,
+    SENSOR_POWER_CONSUMPTION,
     ATTR_AIR_QUALITY,
     ATTR_AIR_QVALUE,
     ATTR_FILTER_HOUR,
@@ -128,6 +136,15 @@ SENSOR_DESCRIPTIONS: tuple[WinixSensorEntityDescription, ...] = (
         exists_fn=lambda device: (
             device.is_air_purifier and device.features.supports_pm25
         ),
+    ),
+    WinixSensorEntityDescription(
+        device_class=SensorDeviceClass.POWER,
+        key=SENSOR_POWER_CONSUMPTION,
+        translation_key="power_consumption",
+        native_unit_of_measurement=UnitOfPower.WATT,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda state, wrapper: state.get(ATTR_POWER_CONSUMPTION),
+        exists_fn=lambda device: device.is_air_conditioner,
     ),
 )
 

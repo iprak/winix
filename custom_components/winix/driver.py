@@ -8,6 +8,11 @@ import aiohttp
 from homeassistant.exceptions import HomeAssistantError
 
 from .const import (
+    AC_MODE_AUTO,
+    AC_MODE_COOL,
+    AC_MODE_DEHUMIDIFICATION,
+    AC_MODE_FAN_ONLY,
+    AC_POWER_DRYING,
     AIR_QUALITY_FAIR,
     AIR_QUALITY_GOOD,
     AIR_QUALITY_POOR,
@@ -18,6 +23,13 @@ from .const import (
     AIRFLOW_SLEEP,
     AIRFLOW_SUPER,
     AIRFLOW_TURBO,
+    ATTR_AC_CURRENT_TEMPERATURE,
+    ATTR_AC_FAN_SPEED,
+    ATTR_AC_MODE,
+    ATTR_AC_POWER,
+    ATTR_AC_SWING,
+    ATTR_AC_TARGET_TEMPERATURE,
+    ATTR_AC_TURBO,
     ATTR_AIR_AQI,
     ATTR_AIR_QUALITY,
     ATTR_AIR_QVALUE,
@@ -31,6 +43,7 @@ from .const import (
     ATTR_PLASMA,
     ATTR_PM25,
     ATTR_POWER,
+    ATTR_POWER_CONSUMPTION,
     ATTR_TARGET_HUMIDITY,
     ATTR_TIMER,
     ATTR_UV_SANITIZE,
@@ -205,6 +218,67 @@ class WinixDriver:
                             continue
 
         return output
+
+
+class AirConditionerDriver(WinixDriver):
+    """Winix Air Conditioner driver (deviceGroup "Acn01", modelId "AC100")."""
+
+    category_keys = {
+        ATTR_POWER_CONSUMPTION: "S06",
+        ATTR_AC_CURRENT_TEMPERATURE: "S01",
+        ATTR_AC_POWER: "C02",
+        ATTR_AC_MODE: "C03",
+        ATTR_AC_FAN_SPEED: "C04",
+        ATTR_AC_TURBO: "C05",
+        ATTR_AC_TARGET_TEMPERATURE: "C07",
+        ATTR_AC_SWING: "C10",
+    }
+
+    state_keys: dict[str, dict[str, str]] = {
+        ATTR_AC_POWER: {OFF_VALUE: "0", ON_VALUE: "1", AC_POWER_DRYING: "2"},
+        ATTR_AC_MODE: {
+            AC_MODE_AUTO: "01",
+            AC_MODE_COOL: "02",
+            AC_MODE_FAN_ONLY: "03",
+            AC_MODE_DEHUMIDIFICATION: "04",
+        },
+        ATTR_AC_SWING: {OFF_VALUE: "0", ON_VALUE: "1"},
+        ATTR_AC_TURBO: {OFF_VALUE: "0", ON_VALUE: "1"},
+    }
+
+    async def turn_on(self) -> None:
+        """Turn the device on."""
+        await self.control(ATTR_AC_POWER, ON_VALUE)
+
+    async def turn_off(self) -> None:
+        """Turn the device off."""
+        await self.control(ATTR_AC_POWER, OFF_VALUE)
+
+    async def set_mode(self, mode: str) -> None:
+        """Set the operating mode."""
+        await self.control(ATTR_AC_MODE, mode)
+
+    async def set_swing(self, on: bool) -> None:
+        """Turn left-right swing on or off."""
+        await self.control(ATTR_AC_SWING, ON_VALUE if on else OFF_VALUE)
+
+    async def set_target_temperature(self, temperature: int) -> None:
+        """Set the target temperature in Celsius."""
+        await self._rpc_attr(
+            self.category_keys[ATTR_AC_TARGET_TEMPERATURE], str(int(temperature))
+        )
+
+    async def set_fan_speed(self, speed: int) -> None:
+        """Set fan speed 1-5."""
+        await self._rpc_attr(self.category_keys[ATTR_AC_FAN_SPEED], f"{int(speed):02d}")
+
+    async def set_turbo(self, on: bool) -> None:
+        """Turn turbo on or off.
+
+        C05 is the only attribute that needs to be written; the device itself
+        cascades fan speed (C04) and target temperature (C07) accordingly.
+        """
+        await self.control(ATTR_AC_TURBO, ON_VALUE if on else OFF_VALUE)
 
 
 class AirPurifierDriver(WinixDriver):
