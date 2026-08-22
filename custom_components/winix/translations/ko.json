@@ -109,12 +109,6 @@
             "state": {
               "turbo": "터보"
             }
-          },
-          "swing_mode": {
-            "state": {
-              "off": "끄기",
-              "on": "켜기"
-            }
           }
         }
       }

@@ -231,7 +231,7 @@ ATTR_AC_TURBO: Final = "ac_turbo"
 AC_MODE_AUTO: Final = "auto"
 AC_MODE_COOL: Final = "cool"
 AC_MODE_FAN_ONLY: Final = "fan_only"
-AC_MODE_DRY: Final = "dry"
+AC_MODE_DEHUMIDIFICATION: Final = "dehumidification"
 
 # C02=2: the unit's own anti-mold auto-dry transition after being turned
 # off (observed ~33 min). Distinct from OFF_VALUE/ON_VALUE so callers can

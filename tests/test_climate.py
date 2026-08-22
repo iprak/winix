@@ -14,6 +14,7 @@ from custom_components.winix.climate import (
     async_setup_entry,
 )
 from custom_components.winix.const import WINIX_DOMAIN
+from custom_components.winix.manager import STATE_REFRESH_DELAY
 from homeassistant.components.climate import ClimateEntityFeature, HVACMode
 from homeassistant.core import HomeAssistant
 
@@ -45,7 +46,6 @@ def _mock_ac_wrapper() -> Mock:
     wrapper.ac_fan_speed = None
     wrapper.ac_swing_on = False
     wrapper.ac_turbo_on = False
-    wrapper.ac_power_consumption = None
     wrapper.ac_is_drying = False
     wrapper.async_ac_turn_on = AsyncMock()
     wrapper.async_ac_turn_off = AsyncMock()
@@ -101,7 +101,7 @@ def test_construction(hass: HomeAssistant) -> None:
 
     device = WinixAirConditioner(wrapper, Mock())
 
-    assert device.unique_id is not None
+    assert device.unique_id == "climate.winix_aabbccddeeff"
     assert device.min_temp == 18
     assert device.max_temp == 30
     assert set(device.hvac_modes) == {
@@ -144,7 +144,7 @@ def test_hvac_modes_do_not_include_heat() -> None:
         (True, "auto", HVACMode.AUTO),
         (True, "cool", HVACMode.COOL),
         (True, "fan_only", HVACMode.FAN_ONLY),
-        (True, "dry", HVACMode.DRY),
+        (True, "dehumidification", HVACMode.DRY),
         (True, "unknown-mode", HVACMode.OFF),  # unrecognized mode falls back to OFF
     ],
 )
@@ -227,18 +227,6 @@ def test_swing_mode(swing_on, expected) -> None:
     assert device.swing_mode == expected
 
 
-def test_extra_state_attributes_exposes_power_consumption() -> None:
-    """power_consumption_w attribute is exposed for convenience."""
-    wrapper = _mock_ac_wrapper()
-    wrapper.ac_power_consumption = 512
-
-    device = WinixAirConditioner(wrapper, Mock())
-    assert device.extra_state_attributes == {
-        "power_consumption_w": 512,
-        "is_drying": False,
-    }
-
-
 def test_extra_state_attributes_exposes_is_drying() -> None:
     """is_drying attribute lets automations/other integrations tell the anti-mold
     transition apart from a genuine off, since a plain 'on' command is ignored by
@@ -247,7 +235,7 @@ def test_extra_state_attributes_exposes_is_drying() -> None:
     wrapper.ac_is_drying = True
 
     device = WinixAirConditioner(wrapper, Mock())
-    assert device.extra_state_attributes["is_drying"] is True
+    assert device.extra_state_attributes == {"is_drying": True}
 
 
 # ---------------------------------------------------------------------------
@@ -298,7 +286,7 @@ async def test_async_set_hvac_mode_skips_turn_on_when_already_on(
         await device.async_set_hvac_mode(HVACMode.DRY)
 
     wrapper.async_ac_turn_on.assert_not_called()
-    wrapper.async_ac_set_mode.assert_called_once_with("dry")
+    wrapper.async_ac_set_mode.assert_called_once_with("dehumidification")
 
 
 async def test_async_set_hvac_mode_unsupported_is_ignored(hass: HomeAssistant) -> None:
@@ -452,13 +440,11 @@ async def test_write_state_schedules_delayed_refresh(hass: HomeAssistant) -> Non
 
     with (
         patch.object(device, "async_write_ha_state") as write_state,
-        patch(
-            "custom_components.winix.climate.async_call_later"
-        ) as call_later,
+        patch("custom_components.winix.manager.async_call_later") as call_later,
     ):
         device._async_write_state_and_schedule_refresh()  # noqa: SLF001
 
     write_state.assert_called_once()
     call_later.assert_called_once()
     # Second positional arg is the delay in seconds.
-    assert call_later.call_args[0][1] == 4
+    assert call_later.call_args[0][1] == STATE_REFRESH_DELAY

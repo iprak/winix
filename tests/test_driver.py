@@ -254,7 +254,12 @@ async def test_dehumidifier_get_state(
         ("set_mode", ["auto"], "ac_mode", "auto"),
         ("set_mode", ["cool"], "ac_mode", "cool"),
         ("set_mode", ["fan_only"], "ac_mode", "fan_only"),
-        ("set_mode", ["dry"], "ac_mode", "dry"),
+        (
+            "set_mode",
+            ["dehumidification"],
+            "ac_mode",
+            "dehumidification",
+        ),
         ("set_swing", [True], "ac_swing", "on"),
         ("set_swing", [False], "ac_swing", "off"),
         ("set_turbo", [True], "ac_turbo", "on"),
@@ -286,15 +291,13 @@ async def test_air_conditioner_set_target_temperature(
 
 
 @patch("custom_components.winix.driver.WinixDriver._rpc_attr")
-async def test_air_conditioner_set_fan_speed_clears_turbo(
+async def test_air_conditioner_set_fan_speed(
     mock_rpc_attr, mock_air_conditioner_driver
 ) -> None:
-    """Test set_fan_speed writes C04 and also clears turbo (C05)."""
+    """Test set_fan_speed writes C04."""
 
     await mock_air_conditioner_driver.set_fan_speed(3)
-    assert mock_rpc_attr.call_count == 2
-    assert mock_rpc_attr.call_args_list[0][0] == ("C04", "03")
-    assert mock_rpc_attr.call_args_list[1][0] == ("C05", "0")
+    mock_rpc_attr.assert_awaited_once_with("C04", "03")
 
 
 @pytest.mark.parametrize(
@@ -306,7 +309,7 @@ async def test_air_conditioner_set_fan_speed_clears_turbo(
         ({"C03": "01"}, {"ac_mode": "auto"}),
         ({"C03": "02"}, {"ac_mode": "cool"}),
         ({"C03": "03"}, {"ac_mode": "fan_only"}),
-        ({"C03": "04"}, {"ac_mode": "dry"}),
+        ({"C03": "04"}, {"ac_mode": "dehumidification"}),
         ({"C04": "03"}, {"ac_fan_speed": 3}),
         ({"C05": "1"}, {"ac_turbo": "on"}),
         ({"C07": "24"}, {"ac_target_temperature": 24}),

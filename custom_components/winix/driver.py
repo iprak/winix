@@ -10,7 +10,7 @@ from homeassistant.exceptions import HomeAssistantError
 from .const import (
     AC_MODE_AUTO,
     AC_MODE_COOL,
-    AC_MODE_DRY,
+    AC_MODE_DEHUMIDIFICATION,
     AC_MODE_FAN_ONLY,
     AC_POWER_DRYING,
     AIR_QUALITY_FAIR,
@@ -240,7 +240,7 @@ class AirConditionerDriver(WinixDriver):
             AC_MODE_AUTO: "01",
             AC_MODE_COOL: "02",
             AC_MODE_FAN_ONLY: "03",
-            AC_MODE_DRY: "04",
+            AC_MODE_DEHUMIDIFICATION: "04",
         },
         ATTR_AC_SWING: {OFF_VALUE: "0", ON_VALUE: "1"},
         ATTR_AC_TURBO: {OFF_VALUE: "0", ON_VALUE: "1"},
@@ -269,11 +269,8 @@ class AirConditionerDriver(WinixDriver):
         )
 
     async def set_fan_speed(self, speed: int) -> None:
-        """Set fan speed 1-5. Also clears turbo, since the two are mutually exclusive."""
-        await self._rpc_attr(
-            self.category_keys[ATTR_AC_FAN_SPEED], f"{int(speed):02d}"
-        )
-        await self.control(ATTR_AC_TURBO, OFF_VALUE)
+        """Set fan speed 1-5."""
+        await self._rpc_attr(self.category_keys[ATTR_AC_FAN_SPEED], f"{int(speed):02d}")
 
     async def set_turbo(self, on: bool) -> None:
         """Turn turbo on or off.

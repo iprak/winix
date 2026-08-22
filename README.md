@@ -71,17 +71,15 @@ If the purifiers support this feature, then you will see a selection list under 
 
 ### Air Conditioner
 
-- Confirmed on the [AC100](https://www.winix.com/product/list/006) window/portable air conditioner (`productGroup: "Acn01"`). This model is sold under Winix Korea (`winix.com`) and does not appear to be listed on `winixamerica.com` or `winixeurope.eu` — as far as I can tell it is a Korea/Asia-market product, so availability elsewhere is unconfirmed.
-- The raw attribute mapping (`C02`–`C10`) was reverse-engineered against a single physical unit the same way the rest of this integration's protocol was originally derived — there is no official Winix API documentation for any device family. It has **not** been verified against other Acn01 units or firmware revisions, so mapping differences on other units can't be ruled out.
+- Supports the [AC100](https://www.winix.com/product/list/006) window/portable air conditioner (`productGroup: "Acn01"`).
 - The `climate` entity is the primary control for the air conditioner.
   - Powers the device on/off.
   - Sets the operating mode: `Auto`, `Cool`, `Fan only`, or `Dry`. (The device has no heating capability, so `Heat` is intentionally not exposed.)
   - Sets the target temperature, 18–30 °C in 1 °C steps.
   - Reports the current room temperature from the device's sensor.
-- The fan mode supports speeds `1`–`5` plus `turbo`. Turbo is a single on/off attribute — the device cascades the reported fan speed and target temperature on its own once turbo is toggled.
+- The fan mode supports speeds `1`–`5` plus `turbo`.
 - Swing mode toggles left-right oscillation.
-- Real-time power consumption is exposed as a separate `sensor` entity (device_class `power`), and duplicated on the climate entity's `power_consumption_w` attribute for convenience.
-- Like the fan platform's on/off handling (see `FAN_ON_OFF_REFRESH_DELAY`), climate commands write the optimistic state immediately and then request a coordinator refresh after a short delay, since reading the state back immediately after a control call can return stale data.
+- Real-time power consumption is exposed as a separate `sensor` entity (device_class `power`).
 
 ### Note
 

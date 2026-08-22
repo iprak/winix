@@ -7,7 +7,7 @@ import pytest
 from custom_components.winix.const import (
     AC_MODE_AUTO,
     AC_MODE_COOL,
-    AC_MODE_DRY,
+    AC_MODE_DEHUMIDIFICATION,
     AC_MODE_FAN_ONLY,
     AIRFLOW_HIGH,
     AIRFLOW_LOW,
@@ -534,7 +534,6 @@ def test_ac_properties_default_when_state_empty() -> None:
     assert wrapper.ac_fan_speed is None
     assert wrapper.ac_swing_on is False
     assert wrapper.ac_turbo_on is False
-    assert wrapper.ac_power_consumption is None
     assert wrapper.ac_is_drying is False
 
 
@@ -592,7 +591,8 @@ async def test_async_ac_turn_off() -> None:
 
 
 @pytest.mark.parametrize(
-    "mode", [AC_MODE_AUTO, AC_MODE_COOL, AC_MODE_FAN_ONLY, AC_MODE_DRY]
+    "mode",
+    [AC_MODE_AUTO, AC_MODE_COOL, AC_MODE_FAN_ONLY, AC_MODE_DEHUMIDIFICATION],
 )
 async def test_async_ac_set_mode(mode) -> None:
     """Setting the mode writes optimistic state and delegates to the driver."""
@@ -620,16 +620,20 @@ async def test_async_ac_set_target_temperature() -> None:
         assert wrapper.ac_target_temperature == 24
 
 
-async def test_async_ac_set_fan_speed_clears_turbo_state() -> None:
-    """Setting fan speed writes optimistic state and also clears the local turbo flag."""
+async def test_async_ac_set_fan_speed_turns_off_turbo() -> None:
+    """Setting fan speed also turns off mutually exclusive turbo mode."""
 
-    with patch(f"{AirConditionerDriver_TypeName}.set_fan_speed") as set_fan_speed:
+    with (
+        patch(f"{AirConditionerDriver_TypeName}.set_fan_speed") as set_fan_speed,
+        patch(f"{AirConditionerDriver_TypeName}.set_turbo") as set_turbo,
+    ):
         wrapper = build_mock_air_conditioner_wrapper()
         wrapper._state["ac_turbo"] = ON_VALUE  # noqa: SLF001
 
         await wrapper.async_ac_set_fan_speed(3)
 
         set_fan_speed.assert_called_once_with(3)
+        set_turbo.assert_called_once_with(False)
         assert wrapper.ac_fan_speed == 3
         assert wrapper.ac_turbo_on is False
 
@@ -658,16 +662,3 @@ async def test_async_ac_set_turbo(on, expected) -> None:
 
         set_turbo.assert_called_once_with(on)
         assert wrapper.ac_turbo_on is expected
-
-
-async def test_ac_power_consumption_from_state() -> None:
-    """Power consumption is read straight from the coordinator-fetched state."""
-
-    with patch(
-        f"{AirConditionerDriver_TypeName}.get_state",
-        AsyncMock(return_value={"power_consumption": 512}),
-    ):
-        wrapper = build_mock_air_conditioner_wrapper()
-        await wrapper.update()
-
-        assert wrapper.ac_power_consumption == 512

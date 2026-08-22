@@ -25,11 +25,8 @@ from custom_components.winix.const import (
     SERVICE_PLASMAWAVE_ON,
     WINIX_DOMAIN,
 )
-from custom_components.winix.fan import (
-    FAN_ON_OFF_REFRESH_DELAY,
-    WinixPurifier,
-    async_setup_entry,
-)
+from custom_components.winix.fan import WinixPurifier, async_setup_entry
+from custom_components.winix.manager import STATE_REFRESH_DELAY
 from homeassistant.components.fan import FanEntityFeature
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import HomeAssistant
@@ -276,7 +273,7 @@ async def test_async_turn_off(hass: HomeAssistant, mock_device_wrapper) -> None:
     assert mock_device_wrapper.async_set_preset_mode.call_count == 0
     assert mock_device_wrapper.async_turn_off.call_count == 1
 
-    future = dt_util.utcnow() + timedelta(seconds=FAN_ON_OFF_REFRESH_DELAY)
+    future = dt_util.utcnow() + timedelta(seconds=STATE_REFRESH_DELAY)
     async_fire_time_changed(hass, future)
     await hass.async_block_till_done()
 
@@ -294,7 +291,7 @@ async def test_async_turn_on(hass: HomeAssistant, mock_device_wrapper) -> None:
     assert mock_device_wrapper.async_set_preset_mode.call_count == 0
     assert mock_device_wrapper.async_turn_on.call_count == 1
 
-    future = dt_util.utcnow() + timedelta(seconds=FAN_ON_OFF_REFRESH_DELAY)
+    future = dt_util.utcnow() + timedelta(seconds=STATE_REFRESH_DELAY)
     async_fire_time_changed(hass, future)
     await hass.async_block_till_done()
 

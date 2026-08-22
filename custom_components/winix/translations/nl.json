@@ -109,12 +109,6 @@
             "state": {
               "turbo": "Turbo"
             }
-          },
-          "swing_mode": {
-            "state": {
-              "off": "Uit",
-              "on": "Aan"
-            }
           }
         }
       }

@@ -11,7 +11,6 @@ from .const import (
     ATTR_AC_SWING,
     ATTR_AC_TARGET_TEMPERATURE,
     ATTR_AC_TURBO,
-    ATTR_POWER_CONSUMPTION,
     AIRFLOW_LOW,
     AIRFLOW_SLEEP,
     ATTR_AIRFLOW,
@@ -218,11 +217,6 @@ class WinixDeviceWrapper:
         return isinstance(self._driver, AirConditionerDriver)
 
     @property
-    def ac_power_consumption(self) -> int | None:
-        """Return the current power consumption in watts."""
-        return self._state.get(ATTR_POWER_CONSUMPTION)
-
-    @property
     def ac_power_on(self) -> bool:
         """Return True if the air conditioner is powered on."""
         return self._state.get(ATTR_AC_POWER) == ON_VALUE
@@ -287,10 +281,10 @@ class WinixDeviceWrapper:
         await self._driver.set_target_temperature(temperature)
 
     async def async_ac_set_fan_speed(self, speed: int) -> None:
-        """Set the fan speed, 1-5. Also clears turbo (mirrors driver behavior)."""
+        """Set the fan speed, 1-5, and turn off mutually exclusive turbo mode."""
         self._state[ATTR_AC_FAN_SPEED] = speed
-        self._state[ATTR_AC_TURBO] = OFF_VALUE
         await self._driver.set_fan_speed(speed)
+        await self.async_ac_set_turbo(False)
 
     async def async_ac_set_swing(self, on: bool) -> None:
         """Turn left-right swing on or off."""

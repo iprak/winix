@@ -1,23 +1,26 @@
 """Winix Air Conditioner climate entity (deviceGroup "Acn01", modelId "AC100")."""
 
-from __future__ import annotations
-
-from datetime import datetime
 from typing import Any
 
 from homeassistant.components.climate import (
     ATTR_TEMPERATURE,
+    ENTITY_ID_FORMAT,
     ClimateEntity,
     ClimateEntityFeature,
     HVACMode,
 )
 from homeassistant.const import PRECISION_WHOLE, UnitOfTemperature
-from homeassistant.core import HassJob, HomeAssistant
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.event import async_call_later
 
-from . import WinixConfigEntry
-from .const import AC_MODE_AUTO, AC_MODE_COOL, AC_MODE_DRY, AC_MODE_FAN_ONLY, LOGGER
+from . import WINIX_DOMAIN, WinixConfigEntry
+from .const import (
+    AC_MODE_AUTO,
+    AC_MODE_COOL,
+    AC_MODE_DEHUMIDIFICATION,
+    AC_MODE_FAN_ONLY,
+    LOGGER,
+)
 from .manager import WinixEntity, WinixManager
 
 FAN_SPEEDS = ["1", "2", "3", "4", "5"]
@@ -25,16 +28,11 @@ FAN_MODE_TURBO = "turbo"
 SWING_OFF = "off"
 SWING_ON = "on"
 
-# Winix's cloud API can return stale data if the state is refreshed too
-# soon after a control call (see the fan platform's FAN_ON_OFF_REFRESH_DELAY
-# for the same issue reported against air purifiers).
-AC_REFRESH_DELAY = 4
-
 _HVAC_MODE_TO_AC_MODE = {
     HVACMode.AUTO: AC_MODE_AUTO,
     HVACMode.COOL: AC_MODE_COOL,
     HVACMode.FAN_ONLY: AC_MODE_FAN_ONLY,
-    HVACMode.DRY: AC_MODE_DRY,
+    HVACMode.DRY: AC_MODE_DEHUMIDIFICATION,
 }
 _AC_MODE_TO_HVAC_MODE = {v: k for k, v in _HVAC_MODE_TO_AC_MODE.items()}
 
@@ -84,7 +82,7 @@ class WinixAirConditioner(WinixEntity, ClimateEntity):
     def __init__(self, wrapper, coordinator: WinixManager) -> None:
         """Initialize the climate entity."""
         super().__init__(wrapper, coordinator)
-        self._attr_unique_id = f"winix_{self._mac}_climate"
+        self._attr_unique_id = ENTITY_ID_FORMAT.format(f"{WINIX_DOMAIN}_{self._mac}")
 
     @property
     def hvac_mode(self) -> HVACMode:
@@ -119,10 +117,7 @@ class WinixAirConditioner(WinixEntity, ClimateEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return additional state attributes."""
-        return {
-            "power_consumption_w": self.device_wrapper.ac_power_consumption,
-            "is_drying": self.device_wrapper.ac_is_drying,
-        }
+        return {"is_drying": self.device_wrapper.ac_is_drying}
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set new HVAC mode."""
@@ -177,21 +172,3 @@ class WinixAirConditioner(WinixEntity, ClimateEntity):
         """Set new swing mode."""
         await self.device_wrapper.async_ac_set_swing(swing_mode == SWING_ON)
         self._async_write_state_and_schedule_refresh()
-
-    def _async_write_state_and_schedule_refresh(self) -> None:
-        """Reflect the optimistic wrapper state immediately, then confirm with the server.
-
-        Mirrors the fan platform's on/off handling: the immediate write keeps the
-        UI responsive, and the delayed coordinator refresh avoids reading back
-        stale data (see FAN_ON_OFF_REFRESH_DELAY / issue #177).
-        """
-        self.async_write_ha_state()
-        async_call_later(
-            self.hass,
-            AC_REFRESH_DELAY,
-            HassJob(self._async_refresh, cancel_on_shutdown=True),
-        )
-
-    async def _async_refresh(self, _: datetime) -> None:
-        """Refresh the air conditioner state from the coordinator."""
-        await self.coordinator.async_request_refresh()
