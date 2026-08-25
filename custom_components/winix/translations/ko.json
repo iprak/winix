@@ -89,9 +89,6 @@
       },
       "max_filter_life": {
         "name": "최대 수명"
-      },
-      "power_consumption": {
-        "name": "소비전력"
       }
     },
     "switch": {
@@ -100,17 +97,6 @@
       },
       "uv_sanitize": {
         "name": "UV 살균"
-      }
-    },
-    "climate": {
-      "air_conditioner": {
-        "state_attributes": {
-          "fan_mode": {
-            "state": {
-              "turbo": "터보"
-            }
-          }
-        }
       }
     }
   }

@@ -1,13 +1,12 @@
 """The Winix component."""
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from winix import WinixAccount, auth
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HassJob, HomeAssistant
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
@@ -20,7 +19,6 @@ from .driver import WinixTransientError
 from .helpers import Helpers
 
 RETRY_INTERVAL_SECONDS = 15
-STATE_REFRESH_DELAY = 4
 
 
 class WinixEntity(CoordinatorEntity):
@@ -52,23 +50,6 @@ class WinixEntity(CoordinatorEntity):
         """Return True if entity is available."""
         state = self.device_wrapper.get_state()
         return state is not None
-
-    def _async_write_state_and_schedule_refresh(self) -> None:
-        """Write optimistic state and schedule a delayed coordinator refresh."""
-        self.async_write_ha_state()
-        async_call_later(
-            self.hass,
-            STATE_REFRESH_DELAY,
-            HassJob(self._async_refresh, cancel_on_shutdown=True),
-        )
-
-    async def _async_refresh(self, _: datetime) -> None:
-        """Refresh device state from the coordinator."""
-        await self.coordinator.async_request_refresh()
-
-        # Notify related entities such as the brightness selection.
-        if self.device_wrapper.features.supports_brightness_level:
-            self.coordinator.async_update_listeners()
 
 
 class WinixManager(DataUpdateCoordinator):
