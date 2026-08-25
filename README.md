@@ -5,7 +5,7 @@
 
 ## Summary
 
-A custom component to interact with Winix air purifiers and dehumidifiers.
+A custom component to interact with Winix air purifiers, dehumidifiers, and air conditioners.
 
 Air purifiers: confirmed on [C545](https://www.winixamerica.com/product/certified-refurbished-c545-air-purifier/), [C610](https://www.winixamerica.com/product/c610/), and [Tower Prime APRM833-JWK](https://www.winix.com/product/1211); reported to work on [AM90](https://www.winixamerica.com/product/am90/), [HR1000](https://www.amazon.com/Winix-HR1000-5-Stage-Enabled-Cleaner/dp/B01FWS0HSY), [C909](https://www.costco.com/winix-c909-4-stage-air-purifier-with-wi-fi-%2526-plasmawave-technology.product.100842491.html), [T800](https://winixeurope.eu/air-purifiers/winix-t800-wifi/), [T810](https://www.winixamerica.com/product/t810/), [5510](http://winixamerica.com/product/5510/), [5520](http://winixamerica.com/product/5520/), [9800](https://www.winixamerica.com/product/9800/), [T500](https://www.winixamerica.com/product/t500/)…
 Dehumidifiers: confirmed on [DXWE210](https://www.winix.com/product/1689) (Korean page). Other models in the `DXW*21*` family are likely compatible.
@@ -68,6 +68,18 @@ If the purifiers support this feature, then you will see a selection list under 
 - The `Timer` number entity sets an off-timer between 0 and 24 hours.
 - The `Child Lock` switch toggles the device's child lock, exposed only on devices that report support for the feature.
 - The `UV Sanitize` switch toggles UV sanitization, exposed only on devices that report support for the feature.
+
+### Air Conditioner
+
+- Supports the [AC100](https://www.winix.com/product/list/006) window/portable air conditioner (`productGroup: "Acn01"`).
+- The `climate` entity is the primary control for the air conditioner.
+  - Powers the device on/off.
+  - Sets the operating mode: `Auto`, `Cool`, `Fan only`, or `Dry`. (The device has no heating capability, so `Heat` is intentionally not exposed.)
+  - Sets the target temperature, 18–30 °C in 1 °C steps.
+  - Reports the current room temperature from the device's sensor.
+- The fan mode supports speeds `1`–`5` plus `turbo`.
+- Swing mode toggles left-right oscillation.
+- Real-time power consumption is exposed as a separate `sensor` entity (device_class `power`).
 
 ### Note
 

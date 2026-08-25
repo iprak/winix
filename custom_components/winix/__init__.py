@@ -39,6 +39,7 @@ type WinixConfigEntry = ConfigEntry[WinixManager]
 
 SUPPORTED_PLATFORMS = [
     Platform.BINARY_SENSOR,
+    Platform.CLIMATE,
     Platform.FAN,
     Platform.HUMIDIFIER,
     Platform.NUMBER,

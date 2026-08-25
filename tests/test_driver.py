@@ -6,7 +6,11 @@ import aiohttp
 import pytest
 
 from custom_components.winix.const import ATTR_POWER, OFF_VALUE
-from custom_components.winix.driver import AirPurifierDriver, DehumidifierDriver
+from custom_components.winix.driver import (
+    AirConditionerDriver,
+    AirPurifierDriver,
+    DehumidifierDriver,
+)
 from homeassistant.exceptions import HomeAssistantError
 
 # ---------------------------------------------------------------------------
@@ -233,4 +237,96 @@ async def test_dehumidifier_get_state(
     """Test get_state for DehumidifierDriver."""
 
     state = await mock_dehumidifier_driver_with_payload.get_state()
+    assert state == expected
+
+
+# ---------------------------------------------------------------------------
+# AirConditionerDriver tests
+# ---------------------------------------------------------------------------
+
+
+@patch("custom_components.winix.driver.WinixDriver._rpc_attr")
+@pytest.mark.parametrize(
+    ("method", "args", "category", "value"),
+    [
+        ("turn_on", [], "ac_power", "on"),
+        ("turn_off", [], "ac_power", "off"),
+        ("set_mode", ["auto"], "ac_mode", "auto"),
+        ("set_mode", ["cool"], "ac_mode", "cool"),
+        ("set_mode", ["fan_only"], "ac_mode", "fan_only"),
+        (
+            "set_mode",
+            ["dehumidification"],
+            "ac_mode",
+            "dehumidification",
+        ),
+        ("set_swing", [True], "ac_swing", "on"),
+        ("set_swing", [False], "ac_swing", "off"),
+        ("set_turbo", [True], "ac_turbo", "on"),
+        ("set_turbo", [False], "ac_turbo", "off"),
+    ],
+)
+async def test_air_conditioner_control(
+    mock_rpc_attr, mock_air_conditioner_driver, method, args, category, value
+) -> None:
+    """Test AirConditionerDriver control methods that go through control()."""
+
+    await getattr(mock_air_conditioner_driver, method)(*args)
+    assert mock_rpc_attr.call_count == 1
+    assert mock_rpc_attr.call_args[0] == (
+        AirConditionerDriver.category_keys[category],
+        AirConditionerDriver.state_keys[category][value],
+    )
+
+
+@patch("custom_components.winix.driver.WinixDriver._rpc_attr")
+async def test_air_conditioner_set_target_temperature(
+    mock_rpc_attr, mock_air_conditioner_driver
+) -> None:
+    """Test set_target_temperature writes C07 directly."""
+
+    await mock_air_conditioner_driver.set_target_temperature(24)
+    assert mock_rpc_attr.call_count == 1
+    assert mock_rpc_attr.call_args[0] == ("C07", "24")
+
+
+@patch("custom_components.winix.driver.WinixDriver._rpc_attr")
+async def test_air_conditioner_set_fan_speed(
+    mock_rpc_attr, mock_air_conditioner_driver
+) -> None:
+    """Test set_fan_speed writes C04."""
+
+    await mock_air_conditioner_driver.set_fan_speed(3)
+    mock_rpc_attr.assert_awaited_once_with("C04", "03")
+
+
+@pytest.mark.parametrize(
+    ("mock_air_conditioner_driver_with_payload", "expected"),
+    [
+        ({"C02": "0"}, {"ac_power": "off"}),
+        ({"C02": "1"}, {"ac_power": "on"}),
+        ({"C02": "2"}, {"ac_power": "drying"}),
+        ({"C03": "01"}, {"ac_mode": "auto"}),
+        ({"C03": "02"}, {"ac_mode": "cool"}),
+        ({"C03": "03"}, {"ac_mode": "fan_only"}),
+        ({"C03": "04"}, {"ac_mode": "dehumidification"}),
+        ({"C04": "03"}, {"ac_fan_speed": 3}),
+        ({"C05": "1"}, {"ac_turbo": "on"}),
+        ({"C07": "24"}, {"ac_target_temperature": 24}),
+        ({"C10": "1"}, {"ac_swing": "on"}),
+        ({"S01": "26"}, {"ac_current_temperature": 26}),
+        ({"S06": "512"}, {"power_consumption": 512}),
+        # Unmapped attributes (S05 - compressor load, not exposed) are ignored.
+        # S06 is also absent entirely from the real payload when the unit is
+        # powered off, which get_state() handles the same way via .get().
+        ({"C02": "0", "S05": "0"}, {"ac_power": "off"}),
+    ],
+    indirect=["mock_air_conditioner_driver_with_payload"],
+)
+async def test_air_conditioner_get_state(
+    mock_air_conditioner_driver_with_payload, expected
+) -> None:
+    """Test get_state for AirConditionerDriver."""
+
+    state = await mock_air_conditioner_driver_with_payload.get_state()
     assert state == expected

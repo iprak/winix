@@ -89,6 +89,9 @@
       },
       "max_filter_life": {
         "name": "Maximale levensduur"
+      },
+      "power_consumption": {
+        "name": "Stromverbrauch"
       }
     },
     "switch": {
@@ -97,6 +100,17 @@
       },
       "uv_sanitize": {
         "name": "UV-Desinfektion"
+      }
+    },
+    "climate": {
+      "air_conditioner": {
+        "state_attributes": {
+          "fan_mode": {
+            "state": {
+              "turbo": "Turbo"
+            }
+          }
+        }
       }
     }
   }
