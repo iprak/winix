@@ -228,9 +228,12 @@ def test_swing_mode(swing_on, expected) -> None:
 
 
 def test_extra_state_attributes_exposes_is_drying() -> None:
-    """is_drying attribute lets automations/other integrations tell the anti-mold
+    """Test is_drying attribute.
+
+    is_drying attribute lets automations/other integrations tell the anti-mold
     transition apart from a genuine off, since a plain 'on' command is ignored by
-    the physical unit while in this state."""
+    the physical unit while in this state.
+    """
     wrapper = _mock_ac_wrapper()
     wrapper.ac_is_drying = True
 

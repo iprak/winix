@@ -25,19 +25,19 @@ from homeassistant.helpers.typing import StateType
 from . import WINIX_DOMAIN, WinixConfigEntry
 from .const import (
     ATTR_AIR_AQI,
-    ATTR_POWER_CONSUMPTION,
-    SENSOR_POWER_CONSUMPTION,
     ATTR_AIR_QUALITY,
     ATTR_AIR_QVALUE,
     ATTR_FILTER_HOUR,
     ATTR_OPERATING_HOURS,
     ATTR_PM25,
+    ATTR_POWER_CONSUMPTION,
     LOGGER,
     SENSOR_AIR_QVALUE,
     SENSOR_AQI,
     SENSOR_FILTER_LIFE,
     SENSOR_MAX_FILTER_LIFE,
     SENSOR_PM25,
+    SENSOR_POWER_CONSUMPTION,
 )
 from .device_wrapper import WinixDeviceWrapper
 from .manager import WinixEntity, WinixManager

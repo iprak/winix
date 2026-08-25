@@ -4,6 +4,8 @@ import aiohttp
 
 from .const import (
     AC_POWER_DRYING,
+    AIRFLOW_LOW,
+    AIRFLOW_SLEEP,
     ATTR_AC_CURRENT_TEMPERATURE,
     ATTR_AC_FAN_SPEED,
     ATTR_AC_MODE,
@@ -11,8 +13,6 @@ from .const import (
     ATTR_AC_SWING,
     ATTR_AC_TARGET_TEMPERATURE,
     ATTR_AC_TURBO,
-    AIRFLOW_LOW,
-    AIRFLOW_SLEEP,
     ATTR_AIRFLOW,
     ATTR_BRIGHTNESS_LEVEL,
     ATTR_CHILD_LOCK,
