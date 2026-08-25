@@ -107,6 +107,22 @@ def build_mock_dehumidifier_wrapper(index: Number = 0) -> WinixDeviceWrapper:
     return WinixDeviceWrapper(client, device_stub, logger, "test_identity_id")
 
 
+def build_mock_air_conditioner_wrapper(index: Number = 0) -> WinixDeviceWrapper:
+    """Return a mocked WinixDeviceWrapper instance configured as an air conditioner."""
+    client = Mock()
+
+    device_stub = Mock()
+    device_stub.mac = f"f190d35456d{index}"
+    device_stub.alias = f"AirConditioner{index}"
+    device_stub.product_group = "Acn01"
+
+    logger = Mock()
+    logger.debug = Mock()
+    logger.warning = Mock()
+
+    return WinixDeviceWrapper(client, device_stub, logger, "test_identity_id")
+
+
 def build_fake_manager(wrapper_count: Number) -> WinixManager:
     """Return a mocked WinixManager instance."""
     wrappers = []

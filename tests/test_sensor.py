@@ -1,9 +1,12 @@
 """Test Winix sensors."""
 
+from unittest.mock import Mock
+
 import pytest
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
 
 from custom_components.winix.const import ATTR_AIR_QUALITY, WINIX_DOMAIN
+from custom_components.winix.sensor import SENSOR_DESCRIPTIONS
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import UnitOfDensity
 from homeassistant.core import HomeAssistant
@@ -141,3 +144,34 @@ async def test_sensor_pm25_missing(
 
     entity_state = hass.states.get(PM25_SENSOR_ID)
     assert entity_state is None
+
+
+# ---------------------------------------------------------------------------
+# Power consumption (air conditioner only)
+# ---------------------------------------------------------------------------
+
+
+def _get_description(key: str):
+    """Return the WinixSensorEntityDescription for the given key."""
+    return next(d for d in SENSOR_DESCRIPTIONS if d.key == key)
+
+
+def test_power_consumption_exists_only_for_air_conditioner() -> None:
+    """The power_consumption sensor is scoped to air conditioners only."""
+
+    description = _get_description("power_consumption")
+
+    ac_device = Mock(is_air_conditioner=True)
+    purifier_device = Mock(is_air_conditioner=False)
+
+    assert description.exists_fn(ac_device) is True
+    assert description.exists_fn(purifier_device) is False
+
+
+def test_power_consumption_value_fn() -> None:
+    """value_fn reads the power_consumption key from state."""
+
+    description = _get_description("power_consumption")
+
+    assert description.value_fn({"power_consumption": 512}, Mock()) == 512
+    assert description.value_fn({}, Mock()) is None

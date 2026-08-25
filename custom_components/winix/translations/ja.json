@@ -89,6 +89,9 @@
       },
       "max_filter_life": {
         "name": "Max Filter Life"
+      },
+      "power_consumption": {
+        "name": "消費電力"
       }
     },
     "switch": {
@@ -97,6 +100,17 @@
       },
       "uv_sanitize": {
         "name": "UV除菌"
+      }
+    },
+    "climate": {
+      "air_conditioner": {
+        "state_attributes": {
+          "fan_mode": {
+            "state": {
+              "turbo": "ターボ"
+            }
+          }
+        }
       }
     }
   }
