@@ -75,20 +75,89 @@
       }
     },
     "sensor": {
-      "air_qvalue": {
-        "name": "空気品質値"
+      "pm1_0_level": {
+        "name": "PM1.0レベル",
+        "state": {
+          "1": "良好",
+          "2": "普通",
+          "3": "悪い",
+          "4": "非常に悪い"
+        }
+      },
+      "pm1_0": {
+        "name": "PM1.0"
+      },
+      "pm2_5_level": {
+        "name": "PM2.5レベル",
+        "state": {
+          "1": "良好",
+          "2": "普通",
+          "3": "悪い",
+          "4": "非常に悪い"
+        }
+      },
+      "pm2_5": {
+        "name": "PM2.5"
+      },
+      "pm10_level": {
+        "name": "PM10レベル",
+        "state": {
+          "1": "良好",
+          "2": "普通",
+          "3": "悪い",
+          "4": "非常に悪い"
+        }
+      },
+      "pm10": {
+        "name": "PM10"
+      },
+      "gas_sensor_level": {
+        "name": "ガスセンサーレベル",
+        "state": {
+          "1": "良好",
+          "2": "普通",
+          "3": "悪い",
+          "4": "非常に悪い"
+        }
+      },
+      "gas_sensor": {
+        "name": "ガスセンサー"
+      },
+      "ambient_brightness": {
+        "name": "周囲の明るさ"
+      },
+      "rpm": {
+        "name": "RPM"
+      },
+      "co2": {
+        "name": "CO2"
+      },
+      "air_purification_index": {
+        "name": "空気清浄指数"
+      },
+      "indoor_temperature": {
+        "name": "室内温度"
+      },
+      "outdoor_temperature": {
+        "name": "室外温度"
+      },
+      "indoor_fan_speed": {
+        "name": "室内ファン速度"
+      },
+      "outdoor_fan_speed": {
+        "name": "室外ファン速度"
+      },
+      "current_compressor_speed": {
+        "name": "現在のコンプレッサー速度"
       },
       "filter_life": {
         "name": "フィルター寿命"
       },
-      "aqi": {
-        "name": "AQI"
-      },
-      "pm2_5": {
-        "name": "PM 2.5"
+      "bright": {
+        "name": "明るさ"
       },
       "max_filter_life": {
-        "name": "Max Filter Life"
+        "name": "最大フィルター寿命"
       },
       "power_consumption": {
         "name": "消費電力"

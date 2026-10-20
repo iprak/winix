@@ -75,17 +75,86 @@
       }
     },
     "sensor": {
-      "air_qvalue": {
-        "name": "Luftqualitätswert"
+      "pm1_0_level": {
+        "name": "PM1.0-Wert",
+        "state": {
+          "1": "Gut",
+          "2": "Mäßig",
+          "3": "Schlecht",
+          "4": "Sehr schlecht"
+        }
+      },
+      "pm1_0": {
+        "name": "PM1.0"
+      },
+      "pm2_5_level": {
+        "name": "PM2.5-Wert",
+        "state": {
+          "1": "Gut",
+          "2": "Mäßig",
+          "3": "Schlecht",
+          "4": "Sehr schlecht"
+        }
+      },
+      "pm2_5": {
+        "name": "PM2.5"
+      },
+      "pm10_level": {
+        "name": "PM10-Wert",
+        "state": {
+          "1": "Gut",
+          "2": "Mäßig",
+          "3": "Schlecht",
+          "4": "Sehr schlecht"
+        }
+      },
+      "pm10": {
+        "name": "PM10"
+      },
+      "gas_sensor_level": {
+        "name": "Gassensorwert",
+        "state": {
+          "1": "Gut",
+          "2": "Mäßig",
+          "3": "Schlecht",
+          "4": "Sehr schlecht"
+        }
+      },
+      "gas_sensor": {
+        "name": "Gassensor"
+      },
+      "ambient_brightness": {
+        "name": "Umgebungshelligkeit"
+      },
+      "rpm": {
+        "name": "U/min"
+      },
+      "co2": {
+        "name": "CO2"
+      },
+      "air_purification_index": {
+        "name": "Luftreinigungsindex"
+      },
+      "indoor_temperature": {
+        "name": "Innentemperatur"
+      },
+      "outdoor_temperature": {
+        "name": "Außentemperatur"
+      },
+      "indoor_fan_speed": {
+        "name": "Innere Lüftergeschwindigkeit"
+      },
+      "outdoor_fan_speed": {
+        "name": "Äußere Lüftergeschwindigkeit"
+      },
+      "current_compressor_speed": {
+        "name": "Aktuelle Kompressordrehzahl"
       },
       "filter_life": {
         "name": "Filterlebensdauer"
       },
-      "aqi": {
-        "name": "AQI"
-      },
-      "pm2_5": {
-        "name": "PM 2.5"
+      "bright": {
+        "name": "Helligkeit"
       },
       "max_filter_life": {
         "name": "Maximale levensduur"

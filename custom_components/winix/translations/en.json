@@ -75,23 +75,92 @@
       }
     },
     "sensor": {
-      "air_qvalue": {
-        "name": "Air QValue"
+      "pm1_0_level": {
+        "name": "PM1.0 Level",
+        "state": {
+          "1": "Good",
+          "2": "Fair",
+          "3": "Poor",
+          "4": "Very Poor"
+        }
+      },
+      "pm1_0": {
+        "name": "PM1.0"
+      },
+      "pm2_5_level": {
+        "name": "PM2.5 Level",
+        "state": {
+          "1": "Good",
+          "2": "Fair",
+          "3": "Poor",
+          "4": "Very Poor"
+        }
+      },
+      "pm2_5": {
+        "name": "PM2.5"
+      },
+      "pm10_level": {
+        "name": "PM10 Level",
+        "state": {
+          "1": "Good",
+          "2": "Fair",
+          "3": "Poor",
+          "4": "Very Poor"
+        }
+      },
+      "pm10": {
+        "name": "PM10"
+      },
+      "gas_sensor_level": {
+        "name": "Gas Sensor Level",
+        "state": {
+          "1": "Good",
+          "2": "Fair",
+          "3": "Poor",
+          "4": "Very Poor"
+        }
+      },
+      "gas_sensor": {
+        "name": "Gas Sensor"
+      },
+      "ambient_brightness": {
+        "name": "Ambient brightness"
+      },
+      "rpm": {
+        "name": "RPM"
+      },
+      "co2": {
+        "name": "CO2"
+      },
+      "air_purification_index": {
+        "name": "Air Purification Index"
+      },
+      "indoor_temperature": {
+        "name": "Indoor Temperature"
+      },
+      "outdoor_temperature": {
+        "name": "Outdoor Temperature"
+      },
+      "indoor_fan_speed": {
+        "name": "Indoor Fan Speed"
+      },
+      "outdoor_fan_speed": {
+        "name": "Outdoor Fan Speed"
+      },
+      "current_compressor_speed": {
+        "name": "Current Compressor Speed"
+      },
+      "power_consumption": {
+        "name": "Power Consumption"
       },
       "filter_life": {
         "name": "Filter Life"
       },
-      "aqi": {
-        "name": "AQI"
-      },
-      "pm2_5": {
-        "name": "PM 2.5"
+      "bright": {
+        "name": "Bright"
       },
       "max_filter_life": {
         "name": "Max Filter Life"
-      },
-      "power_consumption": {
-        "name": "Power Consumption"
       }
     },
     "switch": {

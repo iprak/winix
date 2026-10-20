@@ -1,14 +1,13 @@
 """Test Winix sensors."""
 
-from unittest.mock import Mock
+from types import SimpleNamespace
 
 import pytest
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
 
-from custom_components.winix.const import ATTR_AIR_QUALITY, WINIX_DOMAIN
-from custom_components.winix.sensor import SENSOR_DESCRIPTIONS
+from custom_components.winix import model
+from custom_components.winix.const import WINIX_DOMAIN
 from homeassistant.config_entries import ConfigEntryState
-from homeassistant.const import UnitOfDensity
 from homeassistant.core import HomeAssistant
 
 from .common import init_integration  # noqa: TID251
@@ -32,27 +31,6 @@ async def test_setup_integration(
 
 
 @pytest.mark.usefixtures("enable_custom_integrations")
-async def test_sensor_air_qvalue(
-    hass: HomeAssistant,
-    device_stub,
-    device_data,
-    aioclient_mock: AiohttpClientMocker,
-) -> None:
-    """Test qvalue sensor."""
-
-    air_qvalue = "71"
-    device_data["body"]["data"][0]["attributes"]["S08"] = air_qvalue
-
-    await init_integration(hass, device_stub, device_data, aioclient_mock)
-
-    entity_state = hass.states.get("sensor.winix_devicealias_air_qvalue")
-    assert entity_state is not None
-    assert int(entity_state.state) == int(air_qvalue)
-    assert entity_state.attributes.get("unit_of_measurement") == "qv"
-    assert entity_state.attributes.get(ATTR_AIR_QUALITY) == "good"
-
-
-@pytest.mark.usefixtures("enable_custom_integrations")
 async def test_sensors(
     hass: HomeAssistant,
     device_stub,
@@ -63,27 +41,60 @@ async def test_sensors(
 
     await init_integration(hass, device_stub, device_data, aioclient_mock)
 
-    aqi = "01"
-
     entity_state = hass.states.get("sensor.winix_devicealias_filter_life")
     assert entity_state is not None
 
     entity_state = hass.states.get("sensor.winix_devicealias_aqi")
-    assert entity_state is not None
-    assert int(entity_state.state) == int(aqi)
+    assert entity_state is None  # aqi sensor has been removed
 
-    expected_pm25 = "12"
-    entity_state = hass.states.get(PM25_SENSOR_ID)
+    entity_state = hass.states.get("sensor.winix_devicealias_gas_sensor_level")
     assert entity_state is not None
-    assert int(entity_state.state) == int(expected_pm25)
-    assert (
-        entity_state.attributes.get("unit_of_measurement")
-        == UnitOfDensity.MICROGRAMS_PER_CUBIC_METER
-    )
+    assert int(entity_state.state) == 1  # From S07 in device_data
+
+    entity_state = hass.states.get("sensor.winix_devicealias_gas_sensor")
+    assert entity_state is not None
+    assert int(entity_state.state) == 74  # From S08 in device_data
 
     entity_state = hass.states.get("sensor.winix_devicealias_max_filter_life")
     assert entity_state is not None
     assert entity_state.state == "6480"
+
+
+@pytest.mark.usefixtures("enable_custom_integrations")
+async def test_all_model_sensors(
+    hass: HomeAssistant,
+    device_stub,
+    device_data,
+    aioclient_mock: AiohttpClientMocker,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test that every model sensor can be set up."""
+
+    all_sensors = SimpleNamespace(value=tuple(model.ModelSensor))
+    monkeypatch.setattr(
+        model.ModelSensorProfile, "ALL_SENSORS", all_sensors, raising=False
+    )
+    monkeypatch.setattr(
+        model,
+        "MODEL_INFO_DATA",
+        (
+            *model.MODEL_INFO_DATA,
+            ("test_model_id", "Test Model", model.ModelSensorProfile.ALL_SENSORS),
+        ),
+    )
+    device_stub.model_id = "test_model_id"
+    device_data["body"]["data"][0]["modelId"] = "test_model_id"
+
+    entry = await init_integration(hass, device_stub, device_data, aioclient_mock)
+
+    sensors = entry.runtime_data.models.get_sensors("test_model_id")
+    assert len(sensors) == len(model.ModelSensor)
+    assert len(hass.states.async_entity_ids("sensor")) == len(model.ModelSensor) + 2
+
+    for sensor in sensors:
+        entity_state = hass.states.get(f"sensor.winix_devicealias_{sensor.key}")
+        assert entity_state is not None
+        assert entity_state.state is not None
 
 
 @pytest.mark.usefixtures("enable_custom_integrations")
@@ -151,27 +162,24 @@ async def test_sensor_pm25_missing(
 # ---------------------------------------------------------------------------
 
 
-def _get_description(key: str):
-    """Return the WinixSensorEntityDescription for the given key."""
-    return next(d for d in SENSOR_DESCRIPTIONS if d.key == key)
+@pytest.mark.usefixtures("enable_custom_integrations")
+async def test_air_conditioner_sensors(
+    hass: HomeAssistant,
+    air_conditioner_device_stub,
+    device_data,
+    aioclient_mock: AiohttpClientMocker,
+) -> None:
+    """Test the sensors."""
 
+    await init_integration(
+        hass, air_conditioner_device_stub, device_data, aioclient_mock
+    )
 
-def test_power_consumption_exists_only_for_air_conditioner() -> None:
-    """The power_consumption sensor is scoped to air conditioners only."""
+    entity_state = hass.states.get("sensor.winix_devicealias_filter_life")
+    assert entity_state is None
 
-    description = _get_description("power_consumption")
+    entity_state = hass.states.get("sensor.winix_devicealias_aqi")
+    assert entity_state is None
 
-    ac_device = Mock(is_air_conditioner=True)
-    purifier_device = Mock(is_air_conditioner=False)
-
-    assert description.exists_fn(ac_device) is True
-    assert description.exists_fn(purifier_device) is False
-
-
-def test_power_consumption_value_fn() -> None:
-    """value_fn reads the power_consumption key from state."""
-
-    description = _get_description("power_consumption")
-
-    assert description.value_fn({"power_consumption": 512}, Mock()) == 512
-    assert description.value_fn({}, Mock()) is None
+    entity_state = hass.states.get("sensor.winix_devicealias_power_consumption")
+    assert entity_state is not None

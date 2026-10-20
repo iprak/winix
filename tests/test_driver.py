@@ -140,10 +140,10 @@ async def test_control_raises_on_timeout(mock_airpurifier_driver) -> None:
     [
         ({"A02": "0"}, {"power": "off"}),
         ({"A02": "1"}, {"power": "on"}),
-        ({"S08": "79"}, {"air_qvalue": 79}),  # air_qvalue
-        ({"S04": "12"}, {"pm2_5": 12}),  # pm2_5
+        ({"S08": "79"}, {}),  # air_qvalue
+        ({"S04": "12"}, {}),  # pm2_5
         ({"A04": "08"}, {"airflow": "super"}),
-        ({"S07": "04"}, {"air_quality": "very_poor"}),
+        ({"S07": "04"}, {}),
     ],
     indirect=["mock_airpurifier_driver_with_payload"],
 )
@@ -152,8 +152,8 @@ async def test_get_state(mock_airpurifier_driver_with_payload, expected) -> None
 
     # payload = {"A02": "0"}  # "A02" represents "power" and "0" means "off"
 
-    state = await mock_airpurifier_driver_with_payload.get_state()
-    assert state == expected
+    combined_state = await mock_airpurifier_driver_with_payload.get_states()
+    assert combined_state[0] == expected
 
 
 # ---------------------------------------------------------------------------
@@ -236,8 +236,8 @@ async def test_dehumidifier_get_state(
 ) -> None:
     """Test get_state for DehumidifierDriver."""
 
-    state = await mock_dehumidifier_driver_with_payload.get_state()
-    assert state == expected
+    combined_state = await mock_dehumidifier_driver_with_payload.get_states()
+    assert combined_state[0] == expected
 
 
 # ---------------------------------------------------------------------------
@@ -328,5 +328,5 @@ async def test_air_conditioner_get_state(
 ) -> None:
     """Test get_state for AirConditionerDriver."""
 
-    state = await mock_air_conditioner_driver_with_payload.get_state()
-    assert state == expected
+    combined_state = await mock_air_conditioner_driver_with_payload.get_states()
+    assert combined_state[0] == expected

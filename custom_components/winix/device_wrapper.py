@@ -18,7 +18,6 @@ from .const import (
     ATTR_CHILD_LOCK,
     ATTR_MODE,
     ATTR_PLASMA,
-    ATTR_PM25,
     ATTR_POWER,
     ATTR_TARGET_HUMIDITY,
     ATTR_TIMER,
@@ -88,6 +87,7 @@ class WinixDeviceWrapper:
 
         # Start as empty object in case fan was operated before it got updated
         self._state = {}
+        self._raw_state = {}
 
         self._on = False
         self._auto = False
@@ -125,12 +125,13 @@ class WinixDeviceWrapper:
         """Update the supported features based on the current state."""
         self._features.supports_brightness_level = self.brightness_level is not None
         self._features.supports_child_lock = self.is_child_lock_on is not None
-        self._features.supports_pm25 = ATTR_PM25 in self._state
         self._features.supports_uv_sanitize = self.is_uv_sanitize_on is not None
 
     async def update(self) -> None:
         """Update the device data."""
-        self._state = await self._driver.get_state()
+        combined = await self._driver.get_states()
+        self._state = combined[0]
+        self._raw_state = combined[1]
         self._update_common_flags()
         if self.is_air_purifier:
             self._update_air_purifier_flags()
@@ -195,6 +196,10 @@ class WinixDeviceWrapper:
     def get_state(self) -> dict[str, str]:
         """Return the device data."""
         return self._state
+
+    def get_raw_state(self) -> dict[str, str]:
+        """Return the device raw data."""
+        return self._raw_state
 
     @property
     def features(self) -> Features:

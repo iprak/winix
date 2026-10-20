@@ -48,14 +48,24 @@ AirConditionerDriver_TypeName = "custom_components.winix.driver.AirConditionerDr
 
 
 @pytest.mark.parametrize(
-    ("mock_state", "is_auto", "is_manual", "is_on", "is_plasma_on", "is_sleep"),
+    ("mock_states", "is_auto", "is_manual", "is_on", "is_plasma_on", "is_sleep"),
     [
         # On
-        ({}, False, False, False, False, False),
+        (({"S07": "1"}, {"S07": "1"}), False, False, False, False, False),
         # On, plasma on
-        ({ATTR_POWER: ON_VALUE}, False, False, True, False, False),
         (
-            {ATTR_POWER: ON_VALUE, ATTR_PLASMA: ON_VALUE},
+            ({ATTR_POWER: ON_VALUE, "S07": "1"}, {"S07": "1"}),
+            False,
+            False,
+            True,
+            False,
+            False,
+        ),
+        (
+            (
+                {ATTR_POWER: ON_VALUE, ATTR_PLASMA: ON_VALUE, "S07": "1"},
+                {"S07": "1"},
+            ),
             False,
             False,
             True,
@@ -64,7 +74,10 @@ AirConditionerDriver_TypeName = "custom_components.winix.driver.AirConditionerDr
         ),
         # On, auto
         (
-            {ATTR_POWER: ON_VALUE, ATTR_MODE: MODE_AUTO},
+            (
+                {ATTR_POWER: ON_VALUE, ATTR_MODE: MODE_AUTO, "S07": "1"},
+                {"S07": "1"},
+            ),
             True,
             False,
             True,
@@ -73,7 +86,10 @@ AirConditionerDriver_TypeName = "custom_components.winix.driver.AirConditionerDr
         ),
         # On, manual
         (
-            {ATTR_POWER: ON_VALUE, ATTR_MODE: MODE_MANUAL},
+            (
+                {ATTR_POWER: ON_VALUE, ATTR_MODE: MODE_MANUAL, "S07": "1"},
+                {"S07": "1"},
+            ),
             False,
             True,
             True,
@@ -82,7 +98,10 @@ AirConditionerDriver_TypeName = "custom_components.winix.driver.AirConditionerDr
         ),
         # On, sleep
         (
-            {ATTR_POWER: ON_VALUE, ATTR_AIRFLOW: AIRFLOW_SLEEP},
+            (
+                {ATTR_POWER: ON_VALUE, ATTR_AIRFLOW: AIRFLOW_SLEEP, "S07": "1"},
+                {"S07": "1"},
+            ),
             False,
             False,
             True,
@@ -92,18 +111,20 @@ AirConditionerDriver_TypeName = "custom_components.winix.driver.AirConditionerDr
     ],
 )
 async def test_wrapper_update(
-    mock_state, is_auto, is_manual, is_on, is_plasma_on, is_sleep
+    mock_states, is_auto, is_manual, is_on, is_plasma_on, is_sleep
 ) -> None:
     """Tests device wrapper states."""
 
+    # mock_states contains GAS_SENSOR_LEVEL_S07 value which passes through to raw_state
     with patch(
-        f"{AirPurifierDriver_TypeName}.get_state",
-        AsyncMock(return_value=mock_state),
+        f"{AirPurifierDriver_TypeName}.get_states",
+        AsyncMock(return_value=mock_states),
     ) as get_state:
         wrapper = build_mock_wrapper()
         await wrapper.update()
         assert get_state.call_count == 1
-        assert wrapper.get_state() == mock_state
+        assert wrapper.get_state() == mock_states[0]
+        assert wrapper.get_raw_state() == mock_states[1]
 
         assert wrapper.is_auto == is_auto
         assert wrapper.is_manual == is_manual
@@ -496,9 +517,10 @@ async def test_dehumidifier_auto_dry_flag(power_value, is_on, is_auto_dry) -> No
     """Auto-dry power state is exposed as a dedicated flag."""
 
     mock_state = {ATTR_POWER: power_value} if power_value is not None else {}
+    # Use {} as the raw state as since mock_state doesn't have any sensor data
     with patch(
-        f"{DehumidifierDriver_TypeName}.get_state",
-        AsyncMock(return_value=mock_state),
+        f"{DehumidifierDriver_TypeName}.get_states",
+        AsyncMock(return_value=(mock_state, {})),
     ):
         wrapper = build_mock_dehumidifier_wrapper()
         await wrapper.update()
@@ -553,10 +575,15 @@ async def test_ac_is_drying(power_value, expected_power_on, expected_drying) -> 
     (C02=2, the anti-mold cycle after being turned off), so callers need
     to be able to tell it apart from a genuine off.
     """
+
+    # Use {} as the raw state as since we are not returning any sensor data
     with patch(
-        f"{AirConditionerDriver_TypeName}.get_state",
+        f"{AirConditionerDriver_TypeName}.get_states",
         AsyncMock(
-            return_value={"ac_power": power_value} if power_value is not None else {}
+            return_value=(
+                {"ac_power": power_value} if power_value is not None else {},
+                {},
+            )
         ),
     ):
         wrapper = build_mock_air_conditioner_wrapper()

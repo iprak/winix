@@ -75,17 +75,86 @@
       }
     },
     "sensor": {
-      "air_qvalue": {
-        "name": "공기 품질 지수"
+      "pm1_0_level": {
+        "name": "PM1.0 수준",
+        "state": {
+          "1": "좋음",
+          "2": "보통",
+          "3": "나쁨",
+          "4": "매우 나쁨"
+        }
+      },
+      "pm1_0": {
+        "name": "PM1.0"
+      },
+      "pm2_5_level": {
+        "name": "PM2.5 수준",
+        "state": {
+          "1": "좋음",
+          "2": "보통",
+          "3": "나쁨",
+          "4": "매우 나쁨"
+        }
+      },
+      "pm2_5": {
+        "name": "PM2.5"
+      },
+      "pm10_level": {
+        "name": "PM10 수준",
+        "state": {
+          "1": "좋음",
+          "2": "보통",
+          "3": "나쁨",
+          "4": "매우 나쁨"
+        }
+      },
+      "pm10": {
+        "name": "PM10"
+      },
+      "gas_sensor_level": {
+        "name": "가스 센서 수준",
+        "state": {
+          "1": "좋음",
+          "2": "보통",
+          "3": "나쁨",
+          "4": "매우 나쁨"
+        }
+      },
+      "gas_sensor": {
+        "name": "가스 센서"
+      },
+      "ambient_brightness": {
+        "name": "주변 밝기"
+      },
+      "rpm": {
+        "name": "RPM"
+      },
+      "co2": {
+        "name": "CO2"
+      },
+      "air_purification_index": {
+        "name": "공기 정화 지수"
+      },
+      "indoor_temperature": {
+        "name": "실내 온도"
+      },
+      "outdoor_temperature": {
+        "name": "실외 온도"
+      },
+      "indoor_fan_speed": {
+        "name": "실내 팬 속도"
+      },
+      "outdoor_fan_speed": {
+        "name": "실외 팬 속도"
+      },
+      "current_compressor_speed": {
+        "name": "현재 압축기 속도"
       },
       "filter_life": {
         "name": "필터 수명"
       },
-      "aqi": {
-        "name": "AQI"
-      },
-      "pm2_5": {
-        "name": "PM 2.5"
+      "bright": {
+        "name": "밝기"
       },
       "max_filter_life": {
         "name": "최대 수명"

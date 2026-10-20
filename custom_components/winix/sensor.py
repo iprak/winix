@@ -1,4 +1,4 @@
-"""Winix sensor entities (air quality, filter life)."""
+"""Winix sensor entities."""
 
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
@@ -11,44 +11,22 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.const import (
-    PERCENTAGE,
-    EntityCategory,
-    UnitOfDensity,
-    UnitOfPower,
-    UnitOfTime,
-)
+from homeassistant.const import PERCENTAGE, EntityCategory, UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
 
 from . import WINIX_DOMAIN, WinixConfigEntry
 from .const import (
-    ATTR_AIR_AQI,
-    ATTR_AIR_QUALITY,
-    ATTR_AIR_QVALUE,
     ATTR_FILTER_HOUR,
     ATTR_OPERATING_HOURS,
-    ATTR_PM25,
-    ATTR_POWER_CONSUMPTION,
     LOGGER,
-    SENSOR_AIR_QVALUE,
-    SENSOR_AQI,
     SENSOR_FILTER_LIFE,
     SENSOR_MAX_FILTER_LIFE,
-    SENSOR_PM25,
-    SENSOR_POWER_CONSUMPTION,
 )
 from .device_wrapper import WinixDeviceWrapper
 from .manager import WinixEntity, WinixManager
-
-
-def get_air_quality_attr(
-    state: dict[str, str], wrapper: WinixDeviceWrapper
-) -> dict[str, Any]:
-    """Get air quality attribute."""
-
-    return {ATTR_AIR_QUALITY: state.get(ATTR_AIR_QUALITY)}
+from .model import EnumSensorInfo, SensorInfo
 
 
 def get_filter_life(state: dict[str, str], wrapper: WinixDeviceWrapper) -> int | None:
@@ -74,7 +52,7 @@ def get_filter_life_percentage(hours: str | None, max_life_hours: int) -> int | 
 
 def get_operating_time_attr(
     state: dict[str, str], wrapper: WinixDeviceWrapper
-) -> int | None:
+) -> dict[str, StateType]:
     """Get operating hours."""
 
     return {ATTR_OPERATING_HOURS: state.get(ATTR_FILTER_HOUR)}
@@ -84,24 +62,15 @@ def get_operating_time_attr(
 class WinixSensorEntityDescription(SensorEntityDescription):
     """Describe Winix sensor entity."""
 
-    value_fn: Callable[[dict[str, str], WinixDeviceWrapper], StateType]
-    extra_state_attributes_fn: Callable[[dict[str, str]], dict[str, Any]] | None = None
+    value_fn: Callable[[dict[str, str], WinixDeviceWrapper], StateType] | None = None
+    extra_state_attributes_fn: (
+        Callable[[dict[str, str], WinixDeviceWrapper], dict[str, StateType]] | None
+    ) = None
     exists_fn: Callable[[WinixDeviceWrapper], bool] = field(default=lambda _: True)
 
 
 SENSOR_DESCRIPTIONS: tuple[WinixSensorEntityDescription, ...] = (
     WinixSensorEntityDescription(
-        extra_state_attributes_fn=get_air_quality_attr,
-        icon="mdi:cloud",
-        key=SENSOR_AIR_QVALUE,
-        translation_key="air_qvalue",
-        native_unit_of_measurement="qv",
-        state_class=SensorStateClass.MEASUREMENT,
-        value_fn=lambda state, wrapper: state.get(ATTR_AIR_QVALUE),
-        exists_fn=lambda device: device.is_air_purifier,
-    ),
-    WinixSensorEntityDescription(
-        icon="mdi:air-filter",
         key=SENSOR_FILTER_LIFE,
         translation_key="filter_life",
         native_unit_of_measurement=PERCENTAGE,
@@ -119,33 +88,6 @@ SENSOR_DESCRIPTIONS: tuple[WinixSensorEntityDescription, ...] = (
         value_fn=lambda state, wrapper: wrapper.filter_max_life,
         exists_fn=lambda device: device.is_air_purifier,
     ),
-    WinixSensorEntityDescription(
-        icon="mdi:blur",
-        key=SENSOR_AQI,
-        translation_key="aqi",
-        state_class=SensorStateClass.MEASUREMENT,
-        value_fn=lambda state, wrapper: state.get(ATTR_AIR_AQI),
-        exists_fn=lambda device: device.is_air_purifier,
-    ),
-    WinixSensorEntityDescription(
-        device_class=SensorDeviceClass.PM25,
-        key=SENSOR_PM25,
-        translation_key="pm2_5",
-        native_unit_of_measurement=UnitOfDensity.MICROGRAMS_PER_CUBIC_METER,
-        value_fn=lambda state, wrapper: state.get(ATTR_PM25),
-        exists_fn=lambda device: (
-            device.is_air_purifier and device.features.supports_pm25
-        ),
-    ),
-    WinixSensorEntityDescription(
-        device_class=SensorDeviceClass.POWER,
-        key=SENSOR_POWER_CONSUMPTION,
-        translation_key="power_consumption",
-        native_unit_of_measurement=UnitOfPower.WATT,
-        state_class=SensorStateClass.MEASUREMENT,
-        value_fn=lambda state, wrapper: state.get(ATTR_POWER_CONSUMPTION),
-        exists_fn=lambda device: device.is_air_conditioner,
-    ),
 )
 
 
@@ -157,12 +99,23 @@ async def async_setup_entry(
     """Set up the Winix sensors."""
     manager = entry.runtime_data
 
-    entities = [
-        WinixSensor(wrapper, manager, description)
-        for description in SENSOR_DESCRIPTIONS
-        for wrapper in manager.get_device_wrappers()
-        if description.exists_fn(wrapper)
-    ]
+    entities = []
+
+    for wrapper in manager.get_device_wrappers():
+        sensors = manager.models.get_sensors(wrapper.device_stub.model_id)
+
+        entities.extend(
+            [WinixIntegerSensor(wrapper, manager, sensor) for sensor in sensors]
+        )
+
+        entities.extend(
+            [
+                WinixSensor(wrapper, manager, description)
+                for description in SENSOR_DESCRIPTIONS
+                if description.exists_fn(wrapper)
+            ]
+        )
+
     async_add_entities(entities)
     LOGGER.info("Added %s sensors", len(entities))
 
@@ -213,3 +166,59 @@ class WinixSensor(WinixEntity, SensorEntity):
             if state is None
             else self.entity_description.value_fn(state, self.device_wrapper)
         )
+
+
+class WinixIntegerSensor(WinixSensor):
+    """Representation of a Winix Purifier sensor with integer value."""
+
+    def __init__(
+        self,
+        wrapper: WinixDeviceWrapper,
+        coordinator: WinixManager,
+        sensor_info: SensorInfo,
+    ) -> None:
+        """Initialize the sensor."""
+
+        if isinstance(sensor_info, EnumSensorInfo):
+            super().__init__(
+                wrapper,
+                coordinator,
+                description=WinixSensorEntityDescription(
+                    device_class=SensorDeviceClass.ENUM,
+                    key=sensor_info.key,
+                    translation_key=sensor_info.key,
+                ),
+            )
+
+            self._attr_options = list(sensor_info.enum_values.keys())
+        else:
+            super().__init__(
+                wrapper,
+                coordinator,
+                description=WinixSensorEntityDescription(
+                    device_class=sensor_info.device_class,
+                    state_class=SensorStateClass.MEASUREMENT,
+                    key=sensor_info.key,
+                    translation_key=sensor_info.key,
+                    native_unit_of_measurement=sensor_info.native_unit_of_measurement,
+                ),
+            )
+
+        self._attribute_id = sensor_info.attr_id
+        LOGGER.debug(
+            "%s (%s): added sensor %s on attribute %s",
+            wrapper.device_stub.alias,
+            wrapper.device_stub.model_id,
+            sensor_info.key,
+            sensor_info.attr_id,
+        )
+
+    @property
+    def native_value(self) -> int | None:
+        """Return the state of the sensor."""
+        state = self.device_wrapper.get_raw_state()
+        if state is None:
+            return None
+
+        value = None if state is None else state.get(self._attribute_id)
+        return None if value is None else round(float(value))

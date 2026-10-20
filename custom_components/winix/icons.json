@@ -22,6 +22,20 @@
 				}
 			}
 		},
+		"sensor": {
+			"air_purification_index": {
+				"default": "mdi:air-filter"
+			},
+			"ambient_brightness": {
+				"default": "mdi:brightness-5"
+			},
+			"co2": {
+				"default": "mdi:molecule-co"
+			},
+			"filter_life": {
+				"default": "mdi:air-filter"
+			}
+		},
 		"switch": {
 			"uv_sanitize": {
 				"default": "mdi:white-balance-sunny",

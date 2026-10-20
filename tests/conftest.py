@@ -27,9 +27,26 @@ async def device_stub() -> MyWinixDeviceStub:
         location_code="deviceLocCode",
         filter_replace_date="filterReplaceDate",
         model="modelName",
-        model_id="modelId",
-        sw_version="mcuVer",
+        model_id="C545",
+        sw_version="1.3.0",
         product_group="Air01",
+    )
+
+
+@pytest.fixture
+async def air_conditioner_device_stub() -> MyWinixDeviceStub:
+    """Build mocked device stub."""
+
+    return MyWinixDeviceStub(
+        id=TEST_DEVICE_ID,
+        mac="mac",
+        alias="deviceAlias",
+        location_code="deviceLocCode",
+        filter_replace_date="filterReplaceDate",
+        model="modelName",
+        model_id="AC101",
+        sw_version="1.3.0",
+        product_group="Acn01",
     )
 
 
