@@ -52,7 +52,6 @@ async def init_integration(
         f"https://us.api.winix-iot.com/common/event/sttus/devices/{TEST_DEVICE_ID}",
         json=test_device_json,
     )
-    model_group_info_list = {}
 
     with (
         patch(
@@ -63,10 +62,6 @@ async def init_integration(
         patch(
             "custom_components.winix.manager.Helpers.get_identity_id_sync",
             return_value="test_identity_id",
-        ),
-        patch(
-            "custom_components.winix.Helpers.get_models_filter_max_life",
-            return_value=model_group_info_list,
         ),
     ):
         await hass.config_entries.async_setup(entry.entry_id)

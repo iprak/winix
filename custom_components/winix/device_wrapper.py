@@ -43,6 +43,7 @@ from .const import (
     NumericPresetModes,
 )
 from .driver import AirConditionerDriver, AirPurifierDriver, DehumidifierDriver
+from .model import ModelsInfo
 from .stub import MyWinixDeviceStub
 
 
@@ -108,14 +109,10 @@ class WinixDeviceWrapper:
         self._alias = device_stub.alias
         self._features = Features()
 
-    async def async_initialize(
-        self, token: str, uuid: str, models_max_filter_life: dict[str, int]
-    ) -> None:
+    async def async_initialize(self, token: str, uuid: str, models: ModelsInfo) -> None:
         """Fetch product-type-specific initialization data."""
         if self.is_air_purifier:
-            self.filter_max_life = models_max_filter_life.get(
-                self.device_stub.model_id.casefold(), DEFAULT_FILTER_MAX_LIFE_HOURS
-            )
+            self.filter_max_life = models.get_filter_max_life(self.device_stub.model_id)
             self._logger.debug(
                 "%s: initialized air purifier device with filter_max_life=%d hours",
                 self._alias,
