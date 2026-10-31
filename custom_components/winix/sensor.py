@@ -19,6 +19,7 @@ from homeassistant.helpers.typing import StateType
 from . import WINIX_DOMAIN, WinixConfigEntry
 from .const import (
     ATTR_FILTER_HOUR,
+    ATTR_FILTER_REPLACEMENT_DATE,
     ATTR_OPERATING_HOURS,
     LOGGER,
     SENSOR_FILTER_LIFE,
@@ -55,7 +56,10 @@ def get_operating_time_attr(
 ) -> dict[str, StateType]:
     """Get operating hours."""
 
-    return {ATTR_OPERATING_HOURS: state.get(ATTR_FILTER_HOUR)}
+    return {
+        ATTR_FILTER_REPLACEMENT_DATE: wrapper.device_stub.filter_replace_date,
+        ATTR_OPERATING_HOURS: state.get(ATTR_FILTER_HOUR),
+    }
 
 
 @dataclass(frozen=True, kw_only=True)
