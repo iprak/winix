@@ -16,45 +16,41 @@ This can be installed by copying all the files from `custom_components/winix/` t
 
 ### Air Purifier
 
-#### Sensors
+The integration provides sensors and controls for the purifier:
 
-| Model | Example sensors |
-| ----- | ------- |
-| C545  | <img height="400" alt="image" src="https://github.com/user-attachments/assets/441943fa-9835-4405-8668-78fc15f4003a" /> |
-| C610  | <img height="400" alt="image" src="https://github.com/user-attachments/assets/da1a13a6-ba3e-4fb1-bde7-6c12ed53d607" /> |
+  <img height="400" alt="image" src="https://github.com/user-attachments/assets/441943fa-9835-4405-8668-78fc15f4003a" />
+
+Sensor entities are created according to the device model, so the available sensors vary. Supported models may expose PM1.0, PM2.5, or PM10 measurements and their corresponding `Good`, `Fair`, `Poor`, or `Very Poor` level; gas sensor readings and levels; ambient brightness; RPM; or CO2. The `Air Purification Index` sensor is available on supported models and reports a percentage. The older `Air QValue` and `AQI` sensors are no longer created.
+
+| Model IDs | Model-specific sensors |
+| --------- | ---------------------- |
+| `T500_AU`, `ZEROS_EU`, `T500_EU`, `ZEROS_GB`, `T500_GB`, `ZEROS_ID`, `T500_ID`, `TOWER_Q`, `ZEROS_TW`, `T500_TW` | PM10, PM10 Level, Ambient Brightness |
+| `C610_AU`, `C5_AU`, `A400_US`, `C610_US`, `C545`, `C909`, `T500_US`, `9800`, `AZSUUS`, `C5_ID`, `T500_JP`, `C5`, `XLC`, `NK105` | Gas Sensor, Gas Sensor Level, Ambient Brightness |
+| `T800_AU`, `T1000_AU`, `T800_ID`, `T1000_KR`, `XQLASER`, `XQ20`, `XQ`, `T800_TW`, `TOWERXQ_WA`, `XQPRO_WA` | PM2.5, PM2.5 Level, Gas Sensor, Gas Sensor Level, Ambient Brightness |
+| `5520_AU`, `5530_US`, `5520_US`, `5510_US` | Gas Sensor, Gas Sensor Level, Ambient Brightness, RPM |
+| `C710_US` | PM2.5, PM2.5 Level, Ambient Brightness, Air Purification Index |
+| `T800_US`, `T800_EU`, `T800_GB`, `T800_JP` | PM2.5, PM2.5 Level, Ambient Brightness |
+| `T1000_PPS` | PM2.5, PM2.5 Level, Gas Sensor, Gas Sensor Level, Ambient Brightness, CO2 |
+| `PRIMEKOR`, `MASTERKOR` | PM1.0, PM1.0 Level, PM2.5, PM2.5 Level, PM10, PM10 Level, Gas Sensor, Gas Sensor Level, Ambient Brightness |
+| `AZPUEU`, `TITAN`, `HERA`, `T1` | PM10, PM10 Level, Gas Sensor, Gas Sensor Level, Ambient Brightness |
+| `AC100`, `AC101` | Indoor Temperature, Outdoor Temperature, Indoor Fan Speed, Outdoor Fan Speed, Current Compressor Speed, Power Consumption |
 
 
-- The `Air QValue` sensor reports the qValue reported by Winix purifier. This value is related to air quality although I am not exactly sure what it represents.
-- The `AQI` sensor matches the led light on the purifier.
-  - Good (Blue) = 1
-  - Fair (Amber) = 2
-  - Poor (Red) = 3
-- The `Filter Life` sensor represents the left filter life and is based on an initial life of 9 months.
-- The `PM 2.5` sensor is exposed only on devices that report particulate readings (e.g., T800).
+- `Filter Life` and `Max Filter Life` are additionally created for all air purifiers. The `Filter Life` sensor reports the remaining filter life as a percentage. Its calculation uses the model's filter lifetime, which is 9 months by default and may differ by model. The sensor also exposes `operating_hours` and `filter_replace_date` attributes. `Max Filter Life` reports that lifetime in hours.
 - Tower Prime APRM833-JWK exposes its Super Clean mode as the highest fan-speed percentage.
 
-- The fan entity supports speed and preset modes
+- The fan entity supports speed and preset modes.
 - The `Child Lock` switch toggles the device's child lock, exposed only on devices that report support for the feature.
-
-![image](https://user-images.githubusercontent.com/6459774/212468432-0b37cd09-af5b-418c-855d-a12c8b21efc3.png)
-
-- The device data is fetched every 30 seconds.
-- There are 4 services `winix.plasmawave_off, winix.plasmawave_on, plasmawave_toggle and remove_stale_entities` in addition to the default fan services `fan.speed, fan.toggle, fan.turn_off, fan.turn_on, fan.set_preset_mode`.
-  - `remove_stale_entities` can be used to remove entities which appear unavaialble when the associated device is removed from the account.
-
-
-#### Brightness Level
-If the purifiers support this feature, then you will see a selection list under the device.
-
-- Winix only supports updating the brightness level when the purifier is running.
-- The last brightness level is exposed as the attribute `last_brightness_level` on the fan.
+- The integration registers four custom services: `winix.plasmawave_off`, `winix.plasmawave_on`, `winix.plasmawave_toggle`, and `winix.remove_stale_entities`. Standard Home Assistant fan controls are also available.
+  - `winix.remove_stale_entities` removes unavailable Winix entities and their associated devices from Home Assistant's registries.
+- If the device supports brightness adjustment, a selection entity is available. The brightness level can only be adjusted while the purifier is running.
 
 
 ### Dehumidifier
 
 - DXWE210 will generate 7 entities.
 
-<img width="200" alt="dehumidifier_entities" src="https://github.com/user-attachments/assets/351e9887-8d8b-4ad7-a360-77662e991473" />
+  <img width="200" alt="dehumidifier_entities" src="https://github.com/user-attachments/assets/351e9887-8d8b-4ad7-a360-77662e991473" />
 
 - The `humidifier` entity is the primary control for the dehumidifier device.
   - Powers the device on or off.
@@ -81,8 +77,9 @@ If the purifiers support this feature, then you will see a selection list under 
 - Swing mode toggles left-right oscillation.
 - Real-time power consumption is exposed as a separate `sensor` entity (device_class `power`).
 
-### Note
+### General Notes
 
+- For all device types, the data is fetched every 30 seconds.
 - If devices are added/removed, then you would have to reload the integration.
 
 - Winix **does not support** simultaneous login from multiple devices. If you logged into the mobile app after configuring HomeAssistant, then the HomeAssistant session gets flagged as invalid and vice-versa.
@@ -98,6 +95,7 @@ Entity names and states are displayed in the language configured in Home Assista
 
 ## Breaking Changes
 
-- [1.1.0](https://github.com/iprak/winix/releases) changed the sensor implementation. The aqi sensor id might be different now.
+- Sensor entities are now defined per device model. The older `Air QValue` and `AQI` sensors have been removed and replaced with model-specific sensors; update any automations or dashboards that refer to the old entities.
+- [1.1.0](https://github.com/iprak/winix/releases) changed the sensor implementation; older sensor entities may have different IDs.
 
-- [1.0.0](https://github.com/iprak/winix/releases) introduces config flow and previous yaml based setup is no longer supported. You would want to delete that setup and proceed to setup the intgeration as mentioned in `Installation` section.
+- [1.0.0](https://github.com/iprak/winix/releases) introduced config flow; the previous YAML-based setup is no longer supported. Remove the old setup and configure the integration as described in the `Installation` section.
