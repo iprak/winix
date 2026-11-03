@@ -18,7 +18,8 @@ This can be installed by copying all the files from `custom_components/winix/` t
 
 The integration provides sensors and controls for the purifier:
 
-  <img height="400" alt="image" src="https://github.com/user-attachments/assets/441943fa-9835-4405-8668-78fc15f4003a" />
+  <img height="400" alt="Screenshot 2026-11-01 151211" src="https://github.com/user-attachments/assets/86783fdf-4504-475c-9dbd-168befb317cc" />
+
 
 Sensor entities are created according to the device model, so the available sensors vary. Supported models may expose PM1.0, PM2.5, or PM10 measurements and their corresponding `Good`, `Fair`, `Poor`, or `Very Poor` level; gas sensor readings and levels; ambient brightness; RPM; or CO2. The `Air Purification Index` sensor is available on supported models and reports a percentage. The older `Air QValue` and `AQI` sensors are no longer created.
 
