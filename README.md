@@ -36,6 +36,8 @@ Sensor entities are created according to the device model, so the available sens
 | `AZPUEU`, `TITAN`, `HERA`, `T1` | PM10, PM10 Level, Gas Sensor, Gas Sensor Level, Ambient Brightness |
 | `AC100`, `AC101` | Indoor Temperature, Outdoor Temperature, Indoor Fan Speed, Outdoor Fan Speed, Current Compressor Speed, Power Consumption |
 
+The table lists the sensors in each model's profile. A sensor is only created when the device reports its attribute at the time the integration loads, so a device can end up with fewer sensors than listed. For example, some AM90 (`AZSUUS`) units report Gas Sensor Level but not Gas Sensor or Ambient Brightness. If the device returns no data when the integration loads, every sensor in its profile is created. Reload the integration to pick up an attribute the device only starts reporting later.
+
 
 - `Filter Life` and `Max Filter Life` are additionally created for all air purifiers. The `Filter Life` sensor reports the remaining filter life as a percentage. Its calculation uses the model's filter lifetime, which is 9 months by default and may differ by model. The sensor also exposes `operating_hours` and `filter_replace_date` attributes. `Max Filter Life` reports that lifetime in hours.
 - Tower Prime APRM833-JWK exposes its Super Clean mode as the highest fan-speed percentage.
