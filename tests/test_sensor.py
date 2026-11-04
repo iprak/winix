@@ -85,6 +85,11 @@ async def test_all_model_sensors(
     device_stub.model_id = "test_model_id"
     device_data["body"]["data"][0]["modelId"] = "test_model_id"
 
+    # Sensors are only created for attributes present in the payload.
+    attributes = device_data["body"]["data"][0]["attributes"]
+    for sensor in model.ModelsInfo().get_sensors("test_model_id"):
+        attributes.setdefault(sensor.attr_id, "1")
+
     entry = await init_integration(hass, device_stub, device_data, aioclient_mock)
 
     sensors = entry.runtime_data.models.get_sensors("test_model_id")
@@ -95,6 +100,50 @@ async def test_all_model_sensors(
         entity_state = hass.states.get(f"sensor.winix_devicealias_{sensor.key}")
         assert entity_state is not None
         assert entity_state.state is not None
+
+
+@pytest.mark.usefixtures("enable_custom_integrations")
+async def test_model_sensors_missing_from_payload(
+    hass: HomeAssistant,
+    device_stub,
+    device_data,
+    aioclient_mock: AiohttpClientMocker,
+) -> None:
+    """Model sensors are not created for attributes the device doesn't report.
+
+    The AZSUUS (AM90) profile includes S08 and S14, but the unit only sends S07.
+    """
+
+    device_stub.model_id = "AZSUUS"
+    attributes = device_data["body"]["data"][0]["attributes"]
+    del attributes["S08"]
+    del attributes["S14"]
+
+    await init_integration(hass, device_stub, device_data, aioclient_mock)
+
+    assert hass.states.get("sensor.winix_devicealias_gas_sensor_level") is not None
+    assert hass.states.get("sensor.winix_devicealias_gas_sensor") is None
+    assert hass.states.get("sensor.winix_devicealias_ambient_brightness") is None
+
+
+@pytest.mark.usefixtures("enable_custom_integrations")
+async def test_model_sensors_created_without_payload(
+    hass: HomeAssistant,
+    device_stub,
+    aioclient_mock: AiohttpClientMocker,
+) -> None:
+    """All model sensors are created when the first refresh returns no data."""
+
+    no_data = {
+        "statusCode": 200,
+        "headers": {"resultCode": "S100", "resultMessage": "no data"},
+        "body": {},
+    }
+
+    await init_integration(hass, device_stub, no_data, aioclient_mock)
+
+    for key in ("gas_sensor_level", "gas_sensor", "ambient_brightness"):
+        assert hass.states.get(f"sensor.winix_devicealias_{key}") is not None
 
 
 @pytest.mark.usefixtures("enable_custom_integrations")
@@ -170,6 +219,8 @@ async def test_air_conditioner_sensors(
     aioclient_mock: AiohttpClientMocker,
 ) -> None:
     """Test the sensors."""
+
+    device_data["body"]["data"][0]["attributes"]["S06"] = "05"  # Power consumption
 
     await init_integration(
         hass, air_conditioner_device_stub, device_data, aioclient_mock

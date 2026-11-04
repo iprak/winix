@@ -108,6 +108,12 @@ async def async_setup_entry(
     for wrapper in manager.get_device_wrappers():
         sensors = manager.models.get_sensors(wrapper.device_stub.model_id)
 
+        # A model profile lists every sensor the model can have, but some units
+        # leave attributes out of their payload (e.g. AM90 sends S07 but not S08
+        # or S14). Skip those, unless there was no payload to judge by.
+        if raw_state := wrapper.get_raw_state():
+            sensors = [sensor for sensor in sensors if sensor.attr_id in raw_state]
+
         entities.extend(
             [WinixIntegerSensor(wrapper, manager, sensor) for sensor in sensors]
         )
