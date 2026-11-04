@@ -129,12 +129,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: WinixConfigEntry) -> boo
     await hass.config_entries.async_forward_entry_setups(entry, SUPPORTED_PLATFORMS)
     setup_hass_services(hass)
 
-    # Remove stale entities
+    # Remove stale entities. Entities build their unique IDs from the lowercased
+    # MAC (WinixEntity), so the lookup has to lowercase it too.
     ent_reg = er.async_get(hass)
     for wrapper in manager.get_device_wrappers():
         for prefix in ["air_qvalue", "aqi"]:
             unique_id = SENSOR_ENTITY_ID_FORMAT.format(
-                f"{WINIX_DOMAIN}_{prefix.lower()}_{wrapper.device_stub.mac}"
+                f"{WINIX_DOMAIN}_{prefix.lower()}_{wrapper.device_stub.mac.lower()}"
             )
             entity_id = ent_reg.async_get_entity_id(
                 SENSOR_DOMAIN, WINIX_DOMAIN, unique_id=unique_id
