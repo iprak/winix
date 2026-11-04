@@ -7,6 +7,10 @@ from awesomeversion import AwesomeVersion
 from winix import auth
 
 from homeassistant.components import persistent_notification
+from homeassistant.components.sensor import (
+    DOMAIN as SENSOR_DOMAIN,
+    ENTITY_ID_FORMAT as SENSOR_ENTITY_ID_FORMAT,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_PASSWORD,
@@ -123,8 +127,26 @@ async def async_setup_entry(hass: HomeAssistant, entry: WinixConfigEntry) -> boo
 
     entry.runtime_data = manager
     await hass.config_entries.async_forward_entry_setups(entry, SUPPORTED_PLATFORMS)
-
     setup_hass_services(hass)
+
+    # Remove stale entities
+    ent_reg = er.async_get(hass)
+    for wrapper in manager.get_device_wrappers():
+        for prefix in ["air_qvalue", "aqi"]:
+            unique_id = SENSOR_ENTITY_ID_FORMAT.format(
+                f"{WINIX_DOMAIN}_{prefix.lower()}_{wrapper.device_stub.mac}"
+            )
+            entity_id = ent_reg.async_get_entity_id(
+                SENSOR_DOMAIN, WINIX_DOMAIN, unique_id=unique_id
+            )
+
+            if entity_id:
+                LOGGER.info(
+                    "Successfully removed deprecated entity registry entry: %s",
+                    entity_id,
+                )
+                ent_reg.async_remove(entity_id)
+
     return True
 
 

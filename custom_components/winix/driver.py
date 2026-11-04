@@ -13,10 +13,6 @@ from .const import (
     AC_MODE_DEHUMIDIFICATION,
     AC_MODE_FAN_ONLY,
     AC_POWER_DRYING,
-    AIR_QUALITY_FAIR,
-    AIR_QUALITY_GOOD,
-    AIR_QUALITY_POOR,
-    AIR_QUALITY_VERY_POOR,
     AIRFLOW_HIGH,
     AIRFLOW_LOW,
     AIRFLOW_MEDIUM,
@@ -31,17 +27,13 @@ from .const import (
     ATTR_AC_TARGET_TEMPERATURE,
     ATTR_AC_TURBO,
     ATTR_AIR_AQI,
-    ATTR_AIR_QUALITY,
-    ATTR_AIR_QVALUE,
     ATTR_AIRFLOW,
-    ATTR_AMBIENT_LIGHT,
     ATTR_BRIGHTNESS_LEVEL,
     ATTR_CHILD_LOCK,
     ATTR_CURRENT_HUMIDITY,
     ATTR_FILTER_HOUR,
     ATTR_MODE,
     ATTR_PLASMA,
-    ATTR_PM25,
     ATTR_POWER,
     ATTR_POWER_CONSUMPTION,
     ATTR_TARGET_HUMIDITY,
@@ -144,8 +136,8 @@ class WinixDriver:
             self.state_keys[category][state_key],
         )
 
-    async def get_state(self) -> dict[str, str | int]:
-        """Get device state.
+    async def get_states(self) -> tuple[dict[str, str | int], dict[str, str]]:
+        """Get the device computed and raw states.
 
         This raises HomeAssistantError on communication errors, but returns an empty dict if the response is successfully received but doesn't contain expected data.
         This allows callers to handle missing data without crashing.
@@ -190,7 +182,7 @@ class WinixDriver:
         headers = json.get("headers", {})
         if headers.get("resultMessage") == "no data":
             LOGGER.info("No data received")
-            return {}
+            return {}, {}
 
         output = {}
 
@@ -201,7 +193,7 @@ class WinixDriver:
             LOGGER.error("Error parsing response json, received %s", json, exc_info=err)
 
             # Return empty object so that callers don't crash (#37)
-            return output
+            return {}, {}
 
         for payload_key, attribute in payload.items():
             for category, local_key in self.category_keys.items():
@@ -217,7 +209,7 @@ class WinixDriver:
                         except ValueError:
                             continue
 
-        return output
+        return output, payload
 
 
 class AirConditionerDriver(WinixDriver):
@@ -296,10 +288,6 @@ class AirPurifierDriver(WinixDriver):
         ATTR_CHILD_LOCK: "A08",
         ATTR_BRIGHTNESS_LEVEL: "A16",
         ATTR_FILTER_HOUR: "A21",
-        ATTR_AIR_QUALITY: "S07",
-        ATTR_AIR_QVALUE: "S08",
-        ATTR_PM25: "S04",
-        ATTR_AMBIENT_LIGHT: "S14",
     }
 
     state_keys = {
@@ -315,12 +303,6 @@ class AirPurifierDriver(WinixDriver):
         },
         ATTR_CHILD_LOCK: {OFF_VALUE: "0", ON_VALUE: "1"},
         ATTR_PLASMA: {OFF_VALUE: "0", ON_VALUE: "1"},
-        ATTR_AIR_QUALITY: {
-            AIR_QUALITY_GOOD: "01",
-            AIR_QUALITY_FAIR: "02",
-            AIR_QUALITY_POOR: "03",
-            AIR_QUALITY_VERY_POOR: "04",
-        },
     }
 
     async def turn_off(self) -> None:

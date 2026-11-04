@@ -149,10 +149,7 @@ def test_device_attributes(hass: HomeAssistant) -> None:
     device_wrapper.get_state = Mock(return_value=None)
 
     device = WinixPurifier(device_wrapper, Mock())
-    assert device.extra_state_attributes is not None
-
-    device_wrapper.get_state = Mock(return_value={"DUMMY_ATTR": 12})
-    assert device.extra_state_attributes["DUMMY_ATTR"] == 12
+    assert device.extra_state_attributes is None
 
 
 @pytest.mark.parametrize("value", [(True), (False)])

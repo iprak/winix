@@ -75,17 +75,86 @@
       }
     },
     "sensor": {
-      "air_qvalue": {
-        "name": "Luchtkwaliteitswaarde"
+      "pm1_0_level": {
+        "name": "PM1.0-niveau",
+        "state": {
+          "1": "Goed",
+          "2": "Redelijk",
+          "3": "Slecht",
+          "4": "Zeer slecht"
+        }
+      },
+      "pm1_0": {
+        "name": "PM1.0"
+      },
+      "pm2_5_level": {
+        "name": "PM2.5-niveau",
+        "state": {
+          "1": "Goed",
+          "2": "Redelijk",
+          "3": "Slecht",
+          "4": "Zeer slecht"
+        }
+      },
+      "pm2_5": {
+        "name": "PM2.5"
+      },
+      "pm10_level": {
+        "name": "PM10-niveau",
+        "state": {
+          "1": "Goed",
+          "2": "Redelijk",
+          "3": "Slecht",
+          "4": "Zeer slecht"
+        }
+      },
+      "pm10": {
+        "name": "PM10"
+      },
+      "gas_sensor_level": {
+        "name": "Gassensorniveau",
+        "state": {
+          "1": "Goed",
+          "2": "Redelijk",
+          "3": "Slecht",
+          "4": "Zeer slecht"
+        }
+      },
+      "gas_sensor": {
+        "name": "Gassensor"
+      },
+      "ambient_brightness": {
+        "name": "Omgevingshelderheid"
+      },
+      "rpm": {
+        "name": "tpm"
+      },
+      "co2": {
+        "name": "CO2"
+      },
+      "air_purification_index": {
+        "name": "Luchtzuiveringsindex"
+      },
+      "indoor_temperature": {
+        "name": "Binnentemperatuur"
+      },
+      "outdoor_temperature": {
+        "name": "Buitentemperatuur"
+      },
+      "indoor_fan_speed": {
+        "name": "Binnensnelheid ventilator"
+      },
+      "outdoor_fan_speed": {
+        "name": "Buitensnelheid ventilator"
+      },
+      "current_compressor_speed": {
+        "name": "Huidige compressorsnelheid"
       },
       "filter_life": {
         "name": "Filterlevensduur"
       },
-      "aqi": {
-        "name": "AQI"
-      },
-      "pm2_5": {
-        "name": "PM 2.5"
+      "bright": {
+        "name": "Helderheid"
       },
       "max_filter_life": {
         "name": "Maximale levensduur"

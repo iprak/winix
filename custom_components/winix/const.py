@@ -14,9 +14,6 @@ WINIX_NAME: Final = "Winix"
 WINIX_AUTH_RESPONSE: Final = "WinixAuthResponse"
 ATTR_AIRFLOW: Final = "airflow"
 ATTR_AIR_AQI: Final = "aqi"
-ATTR_AIR_QUALITY: Final = "air_quality"
-ATTR_AIR_QVALUE: Final = "air_qvalue"
-ATTR_PM25: Final = "pm2_5"
 ATTR_FILTER_HOUR: Final = "filter_hour"
 ATTR_FILTER_REPLACEMENT_DATE: Final = "filter_replace_date"
 ATTR_FILTER_REPLACEMENT_CYCLE: Final = "filter_replacement_cycle"
@@ -27,14 +24,12 @@ ATTR_POWER: Final = "power"
 ATTR_LAST_BRIGHTNESS_LEVEL: Final = "last_brightness_level"
 ATTR_BRIGHTNESS_LEVEL: Final = "brightness_level"
 ATTR_CHILD_LOCK: Final = "child_lock"
-ATTR_AMBIENT_LIGHT: Final = "ambient_light"
 ATTR_TARGET_HUMIDITY: Final = "target_humidity"
 ATTR_CURRENT_HUMIDITY: Final = "current_humidity"
 ATTR_WATER_TANK: Final = "water_tank"
 ATTR_UV_SANITIZE: Final = "uv_sanitize"
 ATTR_TIMER: Final = "timer"
 
-SENSOR_AIR_QVALUE: Final = "air_qvalue"
 SENSOR_PM25: Final = "pm2_5"
 SENSOR_AQI: Final = "aqi"
 SENSOR_FILTER_LIFE: Final = "filter_life"
@@ -47,10 +42,6 @@ OFF_VALUE: Final = "off"
 ON_VALUE: Final = "on"
 AUTO_DRY_VALUE: Final = "auto-dry"
 
-AIR_QUALITY_GOOD: Final = "good"
-AIR_QUALITY_FAIR: Final = "fair"
-AIR_QUALITY_POOR: Final = "poor"
-AIR_QUALITY_VERY_POOR: Final = "very_poor"
 ATTR_OPERATING_HOURS: Final = "operating_hours"
 
 # The service name is the partial name of the method in WinixPurifier
@@ -97,6 +88,7 @@ DEHUMIDIFIER_MAX_HUMIDITY: Final = 70
 DEHUMIDIFIER_HUMIDITY_STEP: Final = 5
 
 DEFAULT_FILTER_MAX_LIFE_HOURS: Final = 9 * 24 * 30  # 9 months
+OVERRIDE_FILTER_MAX_LIFE_HOURS = 8640
 
 DEFAULT_POST_TIMEOUT: Final = 5
 
@@ -150,71 +142,7 @@ class Features:
 
     supports_brightness_level = False
     supports_child_lock = False
-    supports_pm25 = False
     supports_uv_sanitize = False
-
-
-DEFAUT_MODEL_FILTER_MAX_LIFE = {
-    "t500_au": 6480,
-    "c610_au": 6480,
-    "t800_au": 6480,
-    "t1000_au": 6480,
-    "5520_au": 6480,
-    "c5_au": 6480,
-    "c710_us": 6480,
-    "a400_us": 6480,
-    "5530_us": 6480,
-    "5520_us": 6480,
-    "5510_us": 6480,
-    "c610_us": 6480,
-    "c545": 6480,
-    "c909": 6480,
-    "t800_us": 6480,
-    "t500_us": 6480,
-    "9800": 6480,
-    "azsuus": 8640,
-    "zeros_eu": 6480,
-    "t500_eu": 6480,
-    "t800_eu": 6480,
-    "zeros_gb": 6480,
-    "t500_gb": 6480,
-    "t800_gb": 6480,
-    "zeros_id": 6480,
-    "t500_id": 6480,
-    "t800_id": 6480,
-    "c5_id": 6480,
-    "t800_jp": 6480,
-    "t500_jp": 6480,
-    "t1000_pps": 6480,
-    "t1000_kr": 6480,
-    "primekor": 6480,
-    "masterkor": 6480,
-    "xqlaser": 8640,
-    "xq20": 8640,
-    "xq": 8640,
-    "tower_q": 8640,
-    "azpueu": 8640,
-    "titan": 8640,
-    "x24_kr": 8640,
-    "x22_kr": 8640,
-    "x21_kr": 8640,
-    "x20_kr": 8640,
-    "jp19m": 8640,
-    "ac101": 8640,
-    "ac100": 8640,
-    "zeros_tw": 6480,
-    "t500_tw": 6480,
-    "t800_tw": 6480,
-    "c5": 6480,
-    "x19ac": 8640,
-    "x17ac": 8640,
-    "towerxq_wa": 8640,
-    "xqpro_wa": 8640,
-    "xlc": 8640,
-    "hera": 8640,
-    "nk105": 8640,
-    "t1": 8640,
-}
 
 
 ATTR_POWER_CONSUMPTION: Final = "power_consumption"

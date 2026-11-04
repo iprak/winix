@@ -1,7 +1,6 @@
 """Winix Air Purifier fan entity."""
 
 import asyncio
-from collections.abc import Mapping
 from typing import Any
 
 import voluptuous as vol
@@ -19,10 +18,6 @@ from homeassistant.util.percentage import (
 from . import WinixConfigEntry
 from .const import (
     ATTR_AIRFLOW,
-    ATTR_FILTER_REPLACEMENT_DATE,
-    ATTR_LAST_BRIGHTNESS_LEVEL,
-    ATTR_LOCATION,
-    ATTR_POWER,
     FAN_SERVICES,
     LOGGER,
     PRESET_MODE_AUTO,
@@ -117,30 +112,6 @@ class WinixPurifier(WinixEntity, FanEntity):
         Returning None, since this is the primary entity.
         """
         return None
-
-    @property
-    def extra_state_attributes(self) -> Mapping[str, Any] | None:
-        """Return the state attributes."""
-        attributes = {}
-        state = self.device_wrapper.get_state()
-
-        if state is not None:
-            # The power attribute is the entity state, so skip it
-            attributes = {
-                key: value for key, value in state.items() if key != ATTR_POWER
-            }
-
-        attributes[ATTR_LOCATION] = self.device_wrapper.device_stub.location_code
-        attributes[ATTR_FILTER_REPLACEMENT_DATE] = (
-            self.device_wrapper.device_stub.filter_replace_date
-        )
-
-        if self.device_wrapper.features.supports_brightness_level:
-            attributes[ATTR_LAST_BRIGHTNESS_LEVEL] = (
-                self.device_wrapper.brightness_level
-            )
-
-        return attributes
 
     @property
     def is_on(self) -> bool:

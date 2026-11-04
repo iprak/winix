@@ -75,17 +75,86 @@
       }
     },
     "sensor": {
-      "air_qvalue": {
-        "name": "Indice de qualité de l'air"
+      "pm1_0_level": {
+        "name": "Niveau PM1.0",
+        "state": {
+          "1": "Bon",
+          "2": "Moyen",
+          "3": "Mauvais",
+          "4": "Très mauvais"
+        }
+      },
+      "pm1_0": {
+        "name": "PM1.0"
+      },
+      "pm2_5_level": {
+        "name": "Niveau PM2.5",
+        "state": {
+          "1": "Bon",
+          "2": "Moyen",
+          "3": "Mauvais",
+          "4": "Très mauvais"
+        }
+      },
+      "pm2_5": {
+        "name": "PM2.5"
+      },
+      "pm10_level": {
+        "name": "Niveau PM10",
+        "state": {
+          "1": "Bon",
+          "2": "Moyen",
+          "3": "Mauvais",
+          "4": "Très mauvais"
+        }
+      },
+      "pm10": {
+        "name": "PM10"
+      },
+      "gas_sensor_level": {
+        "name": "Niveau du capteur de gaz",
+        "state": {
+          "1": "Bon",
+          "2": "Moyen",
+          "3": "Mauvais",
+          "4": "Très mauvais"
+        }
+      },
+      "gas_sensor": {
+        "name": "Capteur de gaz"
+      },
+      "ambient_brightness": {
+        "name": "Luminosité ambiante"
+      },
+      "rpm": {
+        "name": "tr/min"
+      },
+      "co2": {
+        "name": "CO2"
+      },
+      "air_purification_index": {
+        "name": "Indice de purification de l'air"
+      },
+      "indoor_temperature": {
+        "name": "Température intérieure"
+      },
+      "outdoor_temperature": {
+        "name": "Température extérieure"
+      },
+      "indoor_fan_speed": {
+        "name": "Vitesse du ventilateur intérieur"
+      },
+      "outdoor_fan_speed": {
+        "name": "Vitesse du ventilateur extérieur"
+      },
+      "current_compressor_speed": {
+        "name": "Vitesse actuelle du compresseur"
       },
       "filter_life": {
         "name": "Durée de vie du filtre"
       },
-      "aqi": {
-        "name": "IQA"
-      },
-      "pm2_5": {
-        "name": "PM 2.5"
+      "bright": {
+        "name": "Luminosité"
       },
       "max_filter_life": {
         "name": "Durée de vie maximale"
