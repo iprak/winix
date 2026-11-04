@@ -55,13 +55,13 @@ def _select_driver(
 
     product_group = (device_stub.product_group or "").casefold()
     if product_group.startswith("air"):
-        return AirPurifierDriver(device_stub.id, client, identity_id)
+        return AirPurifierDriver(device_stub.id, client, identity_id, device_stub.model_id)
 
     if product_group.startswith("deh"):
-        return DehumidifierDriver(device_stub.id, client, identity_id)
+        return DehumidifierDriver(device_stub.id, client, identity_id, device_stub.model_id)
 
     if product_group.startswith("acn"):
-        return AirConditionerDriver(device_stub.id, client, identity_id)
+        return AirConditionerDriver(device_stub.id, client, identity_id, device_stub.model_id)
 
     raise ValueError(
         f"Unsupported product_group '{device_stub.product_group}' for device {device_stub.alias}"

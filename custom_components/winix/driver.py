@@ -82,12 +82,17 @@ class WinixDriver:
     state_keys: dict[str, dict[str, str]] | None = None
 
     def __init__(
-        self, device_id: str, client: aiohttp.ClientSession, identity_id: str
+        self,
+        device_id: str,
+        client: aiohttp.ClientSession,
+        identity_id: str,
+        model_id: str | None = None,
     ) -> None:
         """Create an instance of WinixDriver."""
         self.device_id = device_id
         self._client = client
         self._identity_id = identity_id
+        self._model_id = (model_id or "").casefold()
 
     async def _rpc_attr(self, attr: str, value: str) -> None:
         """Make a raw API call with the given attribute code and value.
@@ -289,6 +294,27 @@ class AirPurifierDriver(WinixDriver):
         ATTR_BRIGHTNESS_LEVEL: "A16",
         ATTR_FILTER_HOUR: "A21",
     }
+
+    # Newer models (e.g. C710) omit S07/S08 and report the air-quality
+    # percentage in S18 instead (see issue #192). Per-model overrides of
+    # the key mapping above, matched on the modelId prefix.
+    MODEL_CATEGORY_KEY_OVERRIDES: dict[str, dict[str, str]] = {
+        "c710": {ATTR_AIR_QVALUE: "S18"},
+    }
+
+    def __init__(
+        self,
+        device_id: str,
+        client: aiohttp.ClientSession,
+        identity_id: str,
+        model_id: str | None = None,
+    ) -> None:
+        """Create an instance of AirPurifierDriver."""
+        super().__init__(device_id, client, identity_id, model_id)
+        for prefix, overrides in self.MODEL_CATEGORY_KEY_OVERRIDES.items():
+            if self._model_id.startswith(prefix):
+                self.category_keys = {**(type(self).category_keys or {}), **overrides}
+                break
 
     state_keys = {
         ATTR_POWER: {OFF_VALUE: "0", ON_VALUE: "1"},
