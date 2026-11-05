@@ -16,6 +16,7 @@ from custom_components.winix.climate import (
 from custom_components.winix.const import WINIX_DOMAIN
 from custom_components.winix.manager import STATE_REFRESH_DELAY
 from homeassistant.components.climate import ClimateEntityFeature, HVACMode
+from homeassistant.const import UnitOfTemperature
 from homeassistant.core import HomeAssistant
 
 from .common import build_fake_manager  # noqa: TID251
@@ -170,8 +171,24 @@ def test_current_and_target_temperature() -> None:
     wrapper.ac_target_temperature = 24
 
     device = WinixAirConditioner(wrapper, Mock())
+    assert device.native_current_temperature == 26
+    assert device.native_target_temperature == 24
+    # The legacy names still serve Home Assistant before 2026.11.
     assert device.current_temperature == 26
     assert device.target_temperature == 24
+    unit = WinixAirConditioner._attr_native_temperature_unit  # noqa: SLF001
+    assert unit == UnitOfTemperature.CELSIUS
+
+
+def test_no_deprecated_temperature_api_warning(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Defining a subclass logs no climate temperature deprecation (HA 2026.11+)."""
+
+    class _Probe(WinixAirConditioner):
+        """Subclass created here so Home Assistant inspects it under caplog."""
+
+    assert "provides the deprecated" not in caplog.text
 
 
 # ---------------------------------------------------------------------------
