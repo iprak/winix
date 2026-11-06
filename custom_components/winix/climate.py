@@ -55,10 +55,10 @@ async def async_setup_entry(
 class WinixAirConditioner(WinixEntity, ClimateEntity):
     """Representation of a Winix window/portable air conditioner."""
 
-    _attr_native_temperature_unit = UnitOfTemperature.CELSIUS
-    # Home Assistant before 2026.11 reads the unit from here. A class that provides both
-    # this and the native member gets the native one and no deprecation warning.
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
+    # Home Assistant 2026.11+ reads the native unit. A class that provides both gets the
+    # native one and no deprecation warning; older versions keep reading the one above.
+    _attr_native_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_precision = PRECISION_WHOLE
     _attr_target_temperature_step = 1
     _attr_min_temp = 18
@@ -95,18 +95,18 @@ class WinixAirConditioner(WinixEntity, ClimateEntity):
         return _AC_MODE_TO_HVAC_MODE.get(self.device_wrapper.ac_mode, HVACMode.OFF)
 
     @property
-    def native_current_temperature(self) -> int | None:
+    def current_temperature(self) -> int | None:
         """Return current room temperature."""
         return self.device_wrapper.ac_current_temperature
 
     @property
-    def native_target_temperature(self) -> int | None:
+    def target_temperature(self) -> int | None:
         """Return target temperature."""
         return self.device_wrapper.ac_target_temperature
 
-    # Home Assistant before 2026.11 reads these names instead of the native ones.
-    current_temperature = native_current_temperature
-    target_temperature = native_target_temperature
+    # Home Assistant 2026.11+ reads the native names; older versions read the ones above.
+    native_current_temperature = current_temperature
+    native_target_temperature = target_temperature
 
     @property
     def fan_mode(self) -> str | None:
