@@ -3,7 +3,7 @@
 from unittest.mock import AsyncMock, MagicMock, Mock
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 from custom_components.winix.const import (
     ATTR_CURRENT_HUMIDITY,
@@ -34,9 +34,7 @@ from homeassistant.core import HomeAssistant
 from .common import build_fake_manager  # noqa: TID251
 
 
-def build_dehumidifier(
-    hass: HomeAssistant, device_wrapper: Mock
-) -> WinixDehumidifier:
+def build_dehumidifier(hass: HomeAssistant, device_wrapper: Mock) -> WinixDehumidifier:
     """Return an initialized WinixDehumidifier instance."""
     device = WinixDehumidifier(device_wrapper, build_fake_manager(1))
     device.add_to_platform_start(hass, MagicMock(platform_name="test-platform"), None)
@@ -310,7 +308,9 @@ async def test_async_turn_off(hass: HomeAssistant) -> None:
 
 
 @pytest.mark.parametrize("humidity", [35, 40, 45, 50, 55, 60, 65, 70])
-async def test_async_set_humidity_exact_steps(hass: HomeAssistant, humidity: int) -> None:
+async def test_async_set_humidity_exact_steps(
+    hass: HomeAssistant, humidity: int
+) -> None:
     """Exact 5-step values are passed through unchanged."""
     wrapper = _mock_dehumidifier_wrapper()
     wrapper.get_state = Mock(return_value={})
@@ -325,13 +325,13 @@ async def test_async_set_humidity_exact_steps(hass: HomeAssistant, humidity: int
 @pytest.mark.parametrize(
     ("raw", "expected"),
     [
-        (34, 35),   # rounds up to min
-        (37, 35),   # rounds down (7.4 -> 7 -> 35)
-        (38, 40),   # rounds up (7.6 -> 8 -> 40)
-        (57, 55),   # rounds down (11.4 -> 11 -> 55)
-        (58, 60),   # rounds up (11.6 -> 12 -> 60)
-        (71, 70),   # rounds down, then clamped to max
-        (0, 35),    # rounds to 0, clamped to min
+        (34, 35),  # rounds up to min
+        (37, 35),  # rounds down (7.4 -> 7 -> 35)
+        (38, 40),  # rounds up (7.6 -> 8 -> 40)
+        (57, 55),  # rounds down (11.4 -> 11 -> 55)
+        (58, 60),  # rounds up (11.6 -> 12 -> 60)
+        (71, 70),  # rounds down, then clamped to max
+        (0, 35),  # rounds to 0, clamped to min
         (100, 70),  # rounds to 100, clamped to max
     ],
 )

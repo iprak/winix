@@ -3,7 +3,7 @@
 from types import SimpleNamespace
 
 import pytest
-from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
+from pytest_homeassistant.test_util.aiohttp import AiohttpClientMocker
 
 from custom_components.winix import model
 from custom_components.winix.const import WINIX_DOMAIN
