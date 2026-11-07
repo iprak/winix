@@ -3,7 +3,7 @@
 from unittest.mock import AsyncMock, MagicMock, Mock
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 from custom_components.winix.binary_sensor import (
     BINARY_SENSOR_DESCRIPTIONS,
@@ -138,8 +138,8 @@ def test_construction(description) -> None:
 @pytest.mark.parametrize(
     ("is_water_tank_available", "expected_is_on"),
     [
-        (True, False),   # tank available (not full, not detached) -> no problem
-        (False, True),   # tank full or detached -> problem reported
+        (True, False),  # tank available (not full, not detached) -> no problem
+        (False, True),  # tank full or detached -> problem reported
     ],
 )
 def test_water_tank_is_on(is_water_tank_available: bool, expected_is_on: bool) -> None:
@@ -160,7 +160,7 @@ def test_water_tank_is_on(is_water_tank_available: bool, expected_is_on: bool) -
 @pytest.mark.parametrize(
     ("is_auto_dry", "expected_is_on"),
     [
-        (True, True),    # device in auto-dry cycle
+        (True, True),  # device in auto-dry cycle
         (False, False),  # not in auto-dry
     ],
 )

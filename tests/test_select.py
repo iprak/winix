@@ -3,7 +3,7 @@
 from unittest.mock import AsyncMock, MagicMock, Mock
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 from custom_components.winix.const import WINIX_DOMAIN
 from custom_components.winix.select import (
@@ -102,7 +102,7 @@ def test_brightness_available_follows_is_on(is_on, expected_available) -> None:
 @pytest.mark.parametrize(
     ("state", "expected_available"),
     [
-        ({}, True),   # state present -> available regardless of power
+        ({}, True),  # state present -> available regardless of power
         (None, False),  # state None -> unavailable
     ],
 )

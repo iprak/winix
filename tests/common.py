@@ -2,8 +2,8 @@
 
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
+from pytest_homeassistant.common import MockConfigEntry
+from pytest_homeassistant.test_util.aiohttp import AiohttpClientMocker
 from voluptuous.validators import Number
 
 from custom_components.winix.const import WINIX_AUTH_RESPONSE, WINIX_DOMAIN
