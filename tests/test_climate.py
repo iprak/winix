@@ -176,7 +176,7 @@ def test_current_and_target_temperature() -> None:
     # The legacy names still serve Home Assistant before 2026.11.
     assert device.current_temperature == 26
     assert device.target_temperature == 24
-    unit = WinixAirConditioner._attr_native_temperature_unit  # noqa: SLF001
+    unit = device._attr_native_temperature_unit  # noqa: SLF001
     assert unit == UnitOfTemperature.CELSIUS
 
 
